@@ -24,9 +24,6 @@ Analyze IBM’s HR Attrition dataset to identify patterns of employee attrition,
 - Python (Pandas, Matplotlib, Seaborn, Jupyter Notebook)  
 - Dataset: [IBM HR Analytics Attrition Dataset (Kaggle)](https://www.kaggle.com/datasets/pavansubhasht/ibm-hr-analytics-attrition-dataset)  
 
-**Sample Output:**  
-(Insert screenshot of one of your charts here 📈)  
-
 ---
 
 ## 🚀 Upcoming Projects  
