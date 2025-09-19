@@ -22,18 +22,38 @@ Analyze IBM’s HR Attrition dataset to identify patterns of employee attrition,
 ---
  
 ## 📊 Sample Output
-
+Here are a few samples from the Attrition Risk Analyser Project:
 Attrition by Age:
 
 ![Attrition by Age](images/attrition_by_age.jpg)
 
+*Attrition counts (Yes/No) by Age*
+
 Attrition by Department:
 
-![Attrition by Department](images/Attrition_by_dept.jpg)
+![Attrition by Department](images/attrition_by_dept.jpg)  
+
+*Attrition counts (Yes/No) per Department*
+
+![Attrition % by Job Role](images/attrition_by_jobrole.png).
+
+*Percentage of employees leaving by Job Role*
+---
+
+## 🔍 Key Insights
+
+- Overall attrition rate: **16.1%**  
+- Job roles with highest attrition:
+  • Sales Representatives → 39% attrition (83 out of 220 left)
+  • Laboratory Technicians → 23% attrition (62 out of 259 left)
+- Lowest attrition: R&D (13.8%) → strongest retention
+- Highest attrition: Sales (20.6%) → weakest retention
+- HR is small (63 employees), but attrition rate is relatively high (19%).
+- Age groups younger than ~30 show elevated risk compared to older cohorts  
 
 ---
 
-**Tech Stack:**  
+## ⚒️Tech Stack:
 - Python (Pandas, Matplotlib, Seaborn, Jupyter Notebook)  
 - Dataset: [IBM HR Analytics Attrition Dataset (Kaggle)](https://www.kaggle.com/datasets/pavansubhasht/ibm-hr-analytics-attrition-dataset)  
 
