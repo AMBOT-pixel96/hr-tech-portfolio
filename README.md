@@ -18,7 +18,20 @@ Analyze IBM’s HR Attrition dataset to identify patterns of employee attrition,
    - Overall attrition counts  
    - Attrition by department  
    - Attrition by age distribution  
-   - Attrition % by job role  
+   - Attrition % by job role 
+---
+ 
+## 📊 Sample Output
+
+Attrition by Department:
+
+![Attrition by Department](images/attrition_by_department.png)
+
+Attrition % by Job Role:
+
+![Attrition by Job Role](images/attrition_by_jobrole.png)
+
+---
 
 **Tech Stack:**  
 - Python (Pandas, Matplotlib, Seaborn, Jupyter Notebook)  
