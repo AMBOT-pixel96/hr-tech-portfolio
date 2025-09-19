@@ -1,5 +1,14 @@
 # HR Tech Portfolio  
 
+![Python](https://img.shields.io/badge/Python-3.9-blue)  
+![Jupyter Notebook](https://img.shields.io/badge/Notebook-Jupyter-orange)  
+![Pandas](https://img.shields.io/badge/Library-Pandas-150458?logo=pandas)  
+![Seaborn](https://img.shields.io/badge/Library-Seaborn-3776AB)  
+![Matplotlib](https://img.shields.io/badge/Library-Matplotlib-11557c)  
+![Dataset](https://img.shields.io/badge/Dataset-IBM%20HR%20Analytics-green)  
+
+This repository showcases my journey into **HR Tech & People Analytics**.
+
 This repository showcases my journey into **HR Tech & People Analytics**.  
 It contains hands-on projects where I apply **Python, Pandas, Seaborn, and People Analytics concepts** to real-world HR data.  
 
@@ -26,19 +35,19 @@ Analyze IBM’s HR Attrition dataset to identify patterns of employee attrition,
 
 ## 🖼️ Visuals & Outputs  
 
-Attrition by Age:  
+# Attrition by Age:
 
 ![Attrition by Age](images/attrition_by_age.jpg)  
 
 *Attrition counts (Yes/No) by Age*  
 
-Attrition by Department:  
+# Attrition by Department:  
 
 ![Attrition by Department](images/Attrition_by_dept.jpg)  
 
 *Attrition counts (Yes/No) per Department*  
 
-Attrition % by Job Role:  
+# Attrition % by Job Role:  
 
 ![Attrition % by Job Role](images/attrition_by_jobrole.png)  
 
