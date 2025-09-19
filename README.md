@@ -29,7 +29,7 @@ Attrition by Age:
 
 Attrition by Department:
 
-![Attrition by Department](images/Attrition_by_dept..jpg)
+![Attrition by Department](images/Attrition_by_dept.jpg)
 
 ---
 
