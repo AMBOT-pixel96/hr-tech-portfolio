@@ -34,7 +34,7 @@ Attrition by Age:
 
 Attrition by Department:  
 
-![Attrition by Department](images/attrition_by_dept.jpg)  
+![Attrition by Department](images/Attrition_by_dept.jpg)  
 
 *Attrition counts (Yes/No) per Department*  
 
