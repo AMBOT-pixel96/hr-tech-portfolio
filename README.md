@@ -23,13 +23,13 @@ Analyze IBM’s HR Attrition dataset to identify patterns of employee attrition,
  
 ## 📊 Sample Output
 
+Attrition by Age:
+
+![Attrition by Age](images/attrition_by_age.jpg)
+
 Attrition by Department:
 
-![Attrition by Department](images/attrition_by_age.png)
-
-Attrition by Department:
-
-![Attrition by Job Role](images/Attrition_by_dept..png)
+![Attrition by Department](images/Attrition_by_dept..jpg)
 
 ---
 
