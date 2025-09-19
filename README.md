@@ -25,11 +25,11 @@ Analyze IBM’s HR Attrition dataset to identify patterns of employee attrition,
 
 Attrition by Department:
 
-![Attrition by Department](images/attrition_by_department.png)
+![Attrition by Department](images/attrition_by_age.png)
 
-Attrition % by Job Role:
+Attrition by Department:
 
-![Attrition by Job Role](images/attrition_by_jobrole.png)
+![Attrition by Job Role](images/Attrition_by_dept..png)
 
 ---
 
