@@ -17,7 +17,16 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 ## 📊 Project 1: Attrition Risk Analyzer (v1.0)
 
 **Objective:**  
-Analyze IBM’s HR Attrition dataset to identify patterns of employee attrition, create a risk flag, and visualize insights.  
+Analyze IBM’s HR Attrition dataset to identify patterns of employee attrition, create a risk flag, and visualize insights.
+
+---
+
+**Why This Matters (Business Context):**  
+Employee attrition directly impacts business costs through lost productivity, rehiring, and retraining.  
+By identifying high-risk roles and departments, organizations can proactively design retention strategies,  
+reduce turnover costs, and improve workforce stability.
+
+---
 
 **Key Steps:**  
 1. Load and explore the dataset (1470 employees, 35 features).  
