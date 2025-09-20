@@ -123,7 +123,29 @@ Move from descriptive analytics → predictive insights by using **Logistic Regr
 - Dataset: [IBM HR Analytics Attrition Dataset (Kaggle)](https://www.kaggle.com/datasets/pavansubhasht/ibm-hr-analytics-attrition-dataset)  
 
 ---
+## 🛠️ How to Run This Project
 
+Follow these steps to reproduce the analysis on your own system:
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/AMBOT-pixel96/hr-tech-portfolio.git
+   cd hr-tech-portfolio
+2. **Create a virtual environment Using Conda:**
+```bash
+conda create -n hrtech python=3.10 -y
+conda activate hrtech
+```
+3. **Install required packages**
+```
+pip install -r requirements.txt
+```
+4. **Launch Jupyter Notebook**
+5. Open and run the notebooks
+Day4-AttritionRiskAnalyzer_v2.0.ipynb → descriptive analytics
+Attrition_PredictiveModel.ipynb → predictive modeling
+
+---
 ## 🚀 Upcoming Projects  
 
 - HR Data Cleaning Utilities  
