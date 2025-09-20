@@ -147,9 +147,8 @@ jupyter notebook
 
 5. Open and run the notebooks
 
-Day4-AttritionRiskAnalyzer_v2.0.ipynb → descriptive analytics
-
-Attrition_PredictiveModel.ipynb → predictive modeling
+- [AttritionRiskAnalyzer_v2.0.ipynb → Descriptive Analytics](https://github.com/AMBOT-pixel96/hr-tech-portfolio/blob/main/Day4-AttritionRiskAnalyzer_v2.0.ipynb)
+- [Attrition_PredictiveModel.ipynb → Predictive Modeling](https://github.com/AMBOT-pixel96/hr-tech-portfolio/blob/main/Day4-AttritionPredictiveModel.ipynb)
 
 ---
 ## 🚀 Upcoming Projects  
