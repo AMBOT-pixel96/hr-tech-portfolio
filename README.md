@@ -140,9 +140,15 @@ conda activate hrtech
 ```
 pip install -r requirements.txt
 ```
-4. **Launch Jupyter Notebook**
+4. Launch Jupyter Notebook
+
+jupyter notebook
+
+
 5. Open and run the notebooks
+
 Day4-AttritionRiskAnalyzer_v2.0.ipynb → descriptive analytics
+
 Attrition_PredictiveModel.ipynb → predictive modeling
 
 ---
