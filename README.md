@@ -16,6 +16,7 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 
 ## 📊 Project 1: Attrition Risk Analyzer (v1.0)
 
+### v1.0 — Descriptive Insights
 **Objective:**  
 Analyze IBM’s HR Attrition dataset to identify patterns of employee attrition, create a risk flag, and visualize insights.
 
@@ -42,8 +43,34 @@ reduce turnover costs, and improve workforce stability.
 
 ---
 
+### v2.0 — Predictive Modeling (Logistic Regression)  
+
+**Objective:**  
+Move from descriptive analytics → predictive insights by using **Logistic Regression** to forecast employee attrition risk. 
+
+**Key Steps:**  
+1. Data preprocessing  
+   - Dropped irrelevant features (EmployeeNumber, Over18, etc.)  
+   - Encoded categorical variables via one-hot encoding  
+   - Scaled numeric features  
+   - Train-test split (70/30)  
+2. Model training with Logistic Regression (`scikit-learn`)  
+3. Model evaluation  
+   - Accuracy score  
+   - Confusion matrix  
+   - Classification report (precision, recall, F1)  
+   - ROC-AUC score  
+4. Feature importance analysis → which factors most influence attrition risk  
+5. Saved trained model + scaler into `/models/`  
+
+📓 [View the Predictive Notebook](Attrition_PredictiveModel.ipynb)  
+
+---
+
+
 ## 🖼️ Visuals & Outputs  
 
+### Descriptive Analytics (v1.0)
 # Attrition by Age:
 
 ![Attrition by Age](images/attrition_by_age.jpg)  
@@ -62,6 +89,13 @@ reduce turnover costs, and improve workforce stability.
 
 *Percentage of employees leaving by Job Role*  
 
+### Predictive Analytics (v2.0)  
+![Confusion Matrix](images/confusion_matrix.png)  
+*Confusion Matrix — Logistic Regression performance*  
+
+![Top Features](images/top_features.png)  
+*Top 10 features influencing attrition risk* 
+
 ---
 
 ## 🔍 Key Insights  
@@ -75,11 +109,17 @@ reduce turnover costs, and improve workforce stability.
 - HR is small (63 employees), but attrition rate is relatively high (19%)  
 - Age groups younger than ~30 show elevated risk compared to older cohorts  
 
+**From Predictive Model:**  
+- Logistic Regression achieved ~`XX%` accuracy, ROC-AUC = `X.XX`.  
+- Key positive attrition drivers: *Overtime, JobRole_SalesRep, MaritalStatus_Single, etc.*  
+- Key retention drivers: *JobLevel, YearsAtCompany, MonthlyIncome*. 
+
 ---
 
 ## ⚒️ Tech Stack  
 
-- Python (Pandas, Matplotlib, Seaborn, Jupyter Notebook)  
+- Python (Pandas, Matplotlib, Seaborn, scikit-learn, Jupyter Notebook)  
+- SQL (SQLite for queries on HR dataset)
 - Dataset: [IBM HR Analytics Attrition Dataset (Kaggle)](https://www.kaggle.com/datasets/pavansubhasht/ibm-hr-analytics-attrition-dataset)  
 
 ---
@@ -89,6 +129,9 @@ reduce turnover costs, and improve workforce stability.
 - HR Data Cleaning Utilities  
 - Predictive Attrition Modeling (Logistic Regression)  
 - Compensation Analytics Dashboard  
+- SQL query library for HR datasets (attrition by job role, tenure, etc.)  
+- Feature engineering + cross-validation for predictive modeling  
+- Streamlit dashboard for interactive attrition prediction  
 
 ---
 
