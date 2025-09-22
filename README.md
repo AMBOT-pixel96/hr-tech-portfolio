@@ -120,9 +120,16 @@ Move from descriptive analytics → predictive insights by using **Logistic Regr
 
 - Python (Pandas, Matplotlib, Seaborn, scikit-learn, Jupyter Notebook)  
 - SQL (SQLite for queries on HR dataset)
-- Dataset: [IBM HR Analytics Attrition Dataset (Kaggle)](https://www.kaggle.com/datasets/pavansubhasht/ibm-hr-analytics-attrition-dataset)  
+- Dataset: [IBM HR Analytics Attrition Dataset (Kaggle)](https://www.kaggle.com/datasets/pavansubhasht/ibm-hr-analytics-attrition-dataset)
 
 ---
+
+Model artifacts:
+- [logistic_attrition_model.pkl](models/logistic_attrition_model.pkl)
+- [scaler.pkl](models/scaler.pkl)
+
+---
+
 ## 🛠️ How to Run This Project
 
 Follow these steps to reproduce the analysis on your own system:
