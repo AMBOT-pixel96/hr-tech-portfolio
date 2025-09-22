@@ -110,7 +110,7 @@ Move from descriptive analytics → predictive insights by using **Logistic Regr
 - Age groups younger than ~30 show elevated risk compared to older cohorts  
 
 **From Predictive Model:**  
-- Logistic Regression achieved ~`XX%` accuracy, ROC-AUC = `X.XX`.  
+- Logistic Regression achieved ~`100%` accuracy, ROC-AUC = `0.1`.  
 - Key positive attrition drivers: *Overtime, JobRole_SalesRep, MaritalStatus_Single, etc.*  
 - Key retention drivers: *JobLevel, YearsAtCompany, MonthlyIncome*. 
 
@@ -155,13 +155,12 @@ jupyter notebook
 5. Open and run the notebooks
 
 - [AttritionRiskAnalyzer_v2.0.ipynb → Descriptive Analytics](https://github.com/AMBOT-pixel96/hr-tech-portfolio/blob/main/Day4-AttritionRiskAnalyzer_v2.0.ipynb)
-- [Attrition_PredictiveModel.ipynb → Predictive Modeling](https://github.com/AMBOT-pixel96/hr-tech-portfolio/blob/main/Day4-AttritionPredictiveModel.ipynb)
+- [Attrition_PredictiveModel.ipynb → Predictive Modeling](https://github.com/AMBOT-pixel96/hr-tech-portfolio/blob/main/Day4-Attrition_PredictiveModel.ipynb)
 
 ---
 ## 🚀 Upcoming Projects  
 
-- HR Data Cleaning Utilities  
-- Predictive Attrition Modeling (Logistic Regression)  
+- HR Data Cleaning Utilities 
 - Compensation Analytics Dashboard  
 - SQL query library for HR datasets (attrition by job role, tenure, etc.)  
 - Feature engineering + cross-validation for predictive modeling  
