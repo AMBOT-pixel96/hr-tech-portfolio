@@ -119,6 +119,23 @@ Move from descriptive analytics → predictive insights by using **Logistic Regr
 - Key retention drivers: *JobLevel, YearsAtCompany, MonthlyIncome*. 
 
 ---
+## 📊 Project 2: HR Data Cleaning Utility (v1.0)
+
+This notebook demonstrates how to **simulate messy HR data** and then build a cleaning pipeline to make it analysis-ready.  
+Data cleaning is a critical step in People Analytics — poor quality data = misleading insights.
+# ✅ Conclusions
+
+- Automated pipeline successfully cleaned the dataset.  
+- Issues fixed: duplicates, missing values, inconsistent casing, invalid dates.  
+- Outputs saved in:
+  - [messy_hr_data.csv](data/messy_hr_data.csv)  
+  - [cleaned_hr_data.csv](data/cleaned_hr_data.csv)  
+
+**Hero Visual: Data Cleaning Impact**  
+
+![Before vs After Cleaning](images/missing_values_collage.png)
+
+📓 [View the Utility Notebook](HR_Data_Cleaning_Utility_V1.ipynb)  
 
 ## ⚒️ Tech Stack  
 
@@ -159,13 +176,14 @@ jupyter notebook
 5. Open and run the notebooks
 
 - [AttritionRiskAnalyzer_v2.0.ipynb → Descriptive Analytics](https://github.com/AMBOT-pixel96/hr-tech-portfolio/blob/main/Day4-AttritionRiskAnalyzer_v2.0.ipynb)
-- [Attrition_PredictiveModel.ipynb → Predictive Modeling](https://github.com/AMBOT-pixel96/hr-tech-portfolio/blob/main/Attrition_PredictiveModel.ipynb)
+- [Attrition_PredictiveModel_V2.ipynb → Predictive Modeling](https://github.com/AMBOT-pixel96/hr-tech-portfolio/blob/main/Attrition_PredictiveModel_V2.ipynb)
+
+[HR_Data_Cleaning_Utility_V1.ipynb → HR Data Cleanup Utility](https://github.com/AMBOT-pixel96/hr-tech-portfolio/blob/main/HR_Data_Cleaning_Utility_V1.ipynb)
 
 ---
 ## 🚀 Upcoming Projects  
 
-- HR Data Cleaning Utilities 
-- Compensation Analytics Dashboard  
+- Compensation Analytics Dashboard
 - SQL query library for HR datasets (attrition by job role, tenure, etc.)  
 - Feature engineering + cross-validation for predictive modeling  
 - Streamlit dashboard for interactive attrition prediction  
