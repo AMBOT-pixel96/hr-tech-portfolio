@@ -63,6 +63,7 @@ Move from descriptive analytics → predictive insights by using **Logistic Regr
 4. Feature importance analysis → which factors most influence attrition risk  
 5. Saved trained model + scaler into `/models/`  
 6. Fixed Data Leakage issue and added enhancements
+   
 📓 [View the Predictive Notebook](Attrition_PredictiveModel_V2.ipynb)  
 
 ---
@@ -97,7 +98,7 @@ Move from descriptive analytics → predictive insights by using **Logistic Regr
 *Top 10 features influencing attrition risk* 
 
 ![Top Features After Enhancement of Model](top_features_post_enhancement.png)  
-*Top 10 features influencing attrition risk*
+*Top 10 features influencing attrition risk - Enhanced Model*
 
 ---
 
