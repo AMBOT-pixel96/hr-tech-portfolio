@@ -97,7 +97,7 @@ Move from descriptive analytics → predictive insights by using **Logistic Regr
 ![Top Features](images/top_features.png)  
 *Top 10 features influencing attrition risk* 
 
-![Top Features After Enhancement of Model](top_features_post_enhancement.png)  
+![Top Features After Enhancement of Model](images/top_features_post_enhancement.png)  
 *Top 10 features influencing attrition risk - Enhanced Model*
 
 ---
@@ -114,7 +114,7 @@ Move from descriptive analytics → predictive insights by using **Logistic Regr
 - Age groups younger than ~30 show elevated risk compared to older cohorts  
 
 **From Predictive Model:**  
-- Logistic Regression achieved ~`100%` accuracy, ROC-AUC = `0.1`.  
+- Logistic Regression achieved ~`75.9%` accuracy, ROC-AUC = `0.817`.  
 - Key positive attrition drivers: *Overtime, JobRole_SalesRep, MaritalStatus_Single, etc.*  
 - Key retention drivers: *JobLevel, YearsAtCompany, MonthlyIncome*. 
 
@@ -128,7 +128,7 @@ Move from descriptive analytics → predictive insights by using **Logistic Regr
 
 ---
 
-Model artifacts:
+## Model artifacts:(Updated)
 - [logistic_attrition_model.pkl](models/logistic_attrition_model.pkl)
 - [scaler.pkl](models/scaler.pkl)
 
