@@ -62,8 +62,8 @@ Move from descriptive analytics → predictive insights by using **Logistic Regr
    - ROC-AUC score  
 4. Feature importance analysis → which factors most influence attrition risk  
 5. Saved trained model + scaler into `/models/`  
-
-📓 [View the Predictive Notebook](Attrition_PredictiveModel.ipynb)  
+6. Fixed Data Leakage issue and added enhancements
+📓 [View the Predictive Notebook](Attrition_PredictiveModel_V2.ipynb)  
 
 ---
 
@@ -95,6 +95,9 @@ Move from descriptive analytics → predictive insights by using **Logistic Regr
 
 ![Top Features](images/top_features.png)  
 *Top 10 features influencing attrition risk* 
+
+![Top Features After Enhancement of Model](top_features_post_enhancement.png)  
+*Top 10 features influencing attrition risk*
 
 ---
 
