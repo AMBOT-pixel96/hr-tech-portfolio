@@ -276,3 +276,5 @@ This repo is my hands-on portfolio — tracking progress as I move from HR pract
 ---
 
 ⭐️ If you find this interesting, follow my journey here or connect with me on LinkedIn.
+
+---
