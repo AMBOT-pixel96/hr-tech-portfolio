@@ -5,10 +5,10 @@ on:
     branches:
       - main
     paths:
-      - 'notebooks/**'
-      - 'scripts/**'
-      - 'README.md'
-      - '.github/workflows/generate-pdf.yml'
+      - "notebooks/**/*.ipynb"
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -21,27 +21,15 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
-
-      - name: Install system dependencies for WeasyPrint
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libpango-1.0-0 \
-            libgdk-pixbuf2.0-0 \
-            libffi-dev \
-            libcairo2
+          python-version: "3.10"
 
       - name: Install Python packages
         run: |
           python -m pip install --upgrade pip
-          pip install nbconvert jupyter weasyprint
+          pip install nbconvert nbformat weasyprint
 
       - name: Generate PDFs
-        run: |
-          echo "📄 Starting PDF generation..."
-          python scripts/export_pdf.py
-          echo "✅ PDF generation step finished."
+        run: python scripts/export_pdf.py
 
       - name: Upload generated PDFs as artifacts
         uses: actions/upload-artifact@v4
@@ -51,12 +39,9 @@ jobs:
 
       - name: Commit PDFs back to repo (if changed)
         run: |
-          echo "🔄 Preparing to commit PDFs..."
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin main
-          git checkout main
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add reports/*.pdf
-          git commit -m "Auto-update PDFs [skip ci]" || echo "⚠️ No PDF changes to commit."
-          git push origin main --force
-          echo "🚀 PDFs updated & pushed!"
+          git commit -m "Auto-update PDFs [skip ci]" || echo "No changes to commit"
+          git pull --rebase origin main || echo "No remote changes"
+          git push
