@@ -6,7 +6,7 @@
 
 ## 📑 Reports Panel
 
-[![Download Latest](https://img.shields.io/badge/PDF-Download%20Latest-brightgreen?style=for-the-badge&logo=adobeacrobatreader)](reports/Attrition_Project_Summary.pdf)
+[![Download Latest][(https://img.shields.io/badge/PDF-Download%20Latest-brightgreen?style=for-the-badge&logo=adobeacrobatreader)](https://github.com/AMBOT-pixel96/hr-tech-portfolio/raw/main/reports/Attrition_Project_Summary.pdf?download=1)
 [![View in Repo](https://img.shields.io/badge/View-Reports-blue?style=for-the-badge&logo=github)](reports/)
 [![Download All](https://img.shields.io/badge/ZIP-Download%20All-orange?style=for-the-badge&logo=files)](https://github.com/AMBOT-pixel96/hr-tech-portfolio/archive/refs/heads/main.zip)
 
