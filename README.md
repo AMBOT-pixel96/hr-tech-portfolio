@@ -119,6 +119,40 @@ Move from descriptive analytics → predictive insights by using **Logistic Regr
 - Key retention drivers: *JobLevel, YearsAtCompany, MonthlyIncome*. 
 
 ---
+
+## Predictive Attrition Model (v2.0) - Tuned Models
+
+**Objective:**  
+Enhance the baseline Logistic Regression model by applying **cross-validation** and **hyperparameter tuning** to improve stability and interpretability.  
+
+**Key Steps:**  
+1. Split dataset into training & test sets (80/20)  
+2. Standardized numeric features with `StandardScaler`  
+3. Trained baseline Logistic Regression (Day-5)  
+4. Applied **5-fold cross-validation** to validate performance consistency  
+5. Used **GridSearchCV** to tune hyperparameters (`C`, `penalty`, `solver`)  
+6. Compared tuned vs baseline performance  
+
+**Results:**  
+- Baseline Accuracy: **XX%**  
+- Tuned CV Accuracy: **XX%**  
+- ROC AUC: **XX**  
+- Best Parameters: `{ 'C': X, 'penalty': 'l1', 'solver': 'liblinear' }`  
+
+**Sample Visuals:**  
+Confusion Matrix:  
+![Confusion Matrix](images/confusion_matrix_tuned.png)  
+
+Top Features Driving Attrition:  
+![Top Features](images/top_features_tuned.png)  
+
+**Insights:**  
+- OverTime, SalesRep roles, and MaritalStatus=Single consistently rank as top predictors.  
+- Hyperparameter tuning improved model generalization, reducing overfitting risk.  
+- Cross-validation confirmed stability of results across folds.
+
+---
+
 ## 📊 Project 2: HR Data Cleaning Utility (v1.0)
 
 This notebook demonstrates how to **simulate messy HR data** and then build a cleaning pipeline to make it analysis-ready.  
@@ -145,10 +179,10 @@ Data cleaning is a critical step in People Analytics — poor quality data = mis
 
 ---
 
-## Model artifacts:(Updated)
+## Model artifacts:(Updated & Tuned)
 - [logistic_attrition_model.pkl](models/logistic_attrition_model.pkl)
-- [scaler.pkl](models/scaler.pkl)
-
+- [scaler.pkl](models/scaler.pkl
+- [logistic_attrition_model_tuned.pkl](models/logistic_attrition_model_tuned.pkl)
 ---
 
 ## 🛠️ How to Run This Project
