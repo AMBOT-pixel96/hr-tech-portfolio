@@ -190,7 +190,7 @@ Benchmark **Logistic Regression** against a **Random Forest classifier** to see 
 
 **Sample Visuals:**  
 Confusion Matrix Comparison:  
-![Confusion Matrix Comparison](images/model_comparision.png)  
+![Model Comparison](images/model_comparision.png)  
 
 Top Features (Logistic vs Random Forest):  
 - Logistic: OverTime, SalesRep role, MaritalStatus=Single  
