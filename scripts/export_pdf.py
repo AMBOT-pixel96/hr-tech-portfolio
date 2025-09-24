@@ -1,67 +1,51 @@
+import os
 from pathlib import Path
-import subprocess
-import datetime
-import hashlib
-
-output_dir = Path("reports")
-output_dir.mkdir(exist_ok=True)
-
-# Look for notebooks in repo root
-notebooks = sorted(
-    Path(".").glob("*.ipynb"),
-    key=lambda p: p.stat().st_mtime,
-    reverse=True
-)
-
-if not notebooks:
-    raise FileNotFoundError("❌ No notebooks found in repo root")
-
-latest = notebooks[0]
-print(f"📓 Latest project notebook found: {latest}")
+from nbconvert import HTMLExporter
+import nbformat
+from weasyprint import HTML
 
 # Paths
-stable_pdf = output_dir / "Attrition_Project_Summary.pdf"
-temp_html = output_dir / "temp.html"
+NOTEBOOKS_DIR = Path("notebooks")
+REPORTS_DIR = Path("reports")
 
-# Create a hash of the notebook (content-based versioning)
-def file_hash(path):
-    return hashlib.md5(path.read_bytes()).hexdigest()
+REPORTS_DIR.mkdir(exist_ok=True)
 
-hash_value = file_hash(latest)
-archived_pdf = output_dir / f"{latest.stem}_{hash_value}.pdf"
+def convert_notebook_to_html(notebook_path, html_path):
+    """Convert a Jupyter notebook to HTML."""
+    with open(notebook_path, "r", encoding="utf-8") as f:
+        nb = nbformat.read(f, as_version=4)
 
-def export_html_to_pdf(input_nb, output_pdf):
+    html_exporter = HTMLExporter()
+    (body, _) = html_exporter.from_notebook_node(nb)
+
+    with open(html_path, "w", encoding="utf-8") as f:
+        f.write(body)
+
+def export_html_to_pdf(html_path, pdf_path):
+    """Convert HTML to PDF using WeasyPrint (Python API)."""
+    HTML(filename=str(html_path)).write_pdf(str(pdf_path))
+
+def main():
+    notebooks = list(NOTEBOOKS_DIR.glob("*.ipynb"))
+
+    if not notebooks:
+        raise FileNotFoundError("❌ No notebooks found in /notebooks folder")
+
+    latest_notebook = max(notebooks, key=os.path.getmtime)
+    print(f"📒 Latest project notebook found: {latest_notebook.name}")
+
+    html_file = REPORTS_DIR / "temp.html"
+    stable_pdf = REPORTS_DIR / "Attrition_Project_Summary.pdf"
+    versioned_pdf = REPORTS_DIR / f"{latest_notebook.stem}_{os.urandom(4).hex()}.pdf"
+
     # Step 1: Notebook → HTML
-    subprocess.run([
-        "jupyter", "nbconvert",
-        "--to", "html",
-        "--TemplateExporter.exclude_input=True",
-        str(input_nb),
-        "--output", str(temp_html)
-    ], check=True)
+    convert_notebook_to_html(latest_notebook, html_file)
 
     # Step 2: HTML → PDF
-    subprocess.run([
-        "weasyprint", str(temp_html), str(output_pdf)
-    ], check=True)
+    export_html_to_pdf(html_file, stable_pdf)
+    export_html_to_pdf(html_file, versioned_pdf)
 
-    print(f"✅ PDF created: {output_pdf}")
+    print(f"✅ PDF reports created: {stable_pdf} and {versioned_pdf}")
 
-# Always update stable
-export_html_to_pdf(latest, stable_pdf)
-
-# Only create archive if this hash file doesn't already exist
-if not archived_pdf.exists():
-    export_html_to_pdf(latest, archived_pdf)
-    print("📦 Archived new version")
-else:
-    print("ℹ️ No changes detected — archive not updated")    # Step 2: HTML → PDF
-    subprocess.run([
-        "weasyprint", str(temp_html), str(output_pdf)
-    ], check=True)
-
-    print(f"✅ PDF created at {output_pdf}")
-
-# Export both stable and archived
-export_html_to_pdf(latest, stable_pdf)
-export_html_to_pdf(latest, archived_pdf)
+if __name__ == "__main__":
+    main()
