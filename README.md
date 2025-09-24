@@ -1,5 +1,7 @@
 # HR Tech Portfolio  
 
+![Generate PDF](https://github.com/AMBOT-pixel96/hr-tech-portfolio/actions/workflows/generate-pdf.yml/badge.svg)
+
 ![Python](https://img.shields.io/badge/Python-3.9-blue)  
 ![Jupyter Notebook](https://img.shields.io/badge/Notebook-Jupyter-orange)  
 ![Pandas](https://img.shields.io/badge/Library-Pandas-150458?logo=pandas)  
