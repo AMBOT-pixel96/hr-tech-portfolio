@@ -4,10 +4,9 @@ from nbconvert import HTMLExporter
 import nbformat
 from weasyprint import HTML
 
-# Paths
-NOTEBOOKS_DIR = Path("notebooks")
+# Look for notebooks in repo root
+NOTEBOOKS_DIR = Path(".")
 REPORTS_DIR = Path("reports")
-
 REPORTS_DIR.mkdir(exist_ok=True)
 
 def convert_notebook_to_html(notebook_path, html_path):
@@ -26,10 +25,10 @@ def export_html_to_pdf(html_path, pdf_path):
     HTML(filename=str(html_path)).write_pdf(str(pdf_path))
 
 def main():
+    # Find notebooks in repo root
     notebooks = list(NOTEBOOKS_DIR.glob("*.ipynb"))
-
     if not notebooks:
-        raise FileNotFoundError("❌ No notebooks found in /notebooks folder")
+        raise FileNotFoundError("❌ No notebooks found in repo root")
 
     latest_notebook = max(notebooks, key=os.path.getmtime)
     print(f"📒 Latest project notebook found: {latest_notebook.name}")
