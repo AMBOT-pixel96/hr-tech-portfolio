@@ -147,7 +147,9 @@ Top Features Driving Attrition:
 - OverTime, Laboratory Technician roles, and Frequent Travel rank as top predictors.  
 - Hyperparameter tuning improved model generalization, reducing overfitting risk.  
 - Cross-validation confirmed stability of results across folds.
-
+**Model Artifacts:**  
+[logistic_top_features.csv](data/logistic_top_features.csv)
+  
 📓 [View the Predictive Notebook](Attrition_PredictiveModel_V3.ipynb)
 
 ---
