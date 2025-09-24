@@ -7,7 +7,7 @@ output_dir.mkdir(exist_ok=True)
 
 # Find the most recently modified notebook
 notebooks = sorted(
-    Path("notebooks").glob("*.ipynb"),
+    Path(".").glob("*.ipynb"),   # look in repo root instead of /notebooks
     key=lambda p: p.stat().st_mtime,
     reverse=True
 )
