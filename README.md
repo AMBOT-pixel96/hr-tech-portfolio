@@ -152,7 +152,7 @@ Top Features Driving Attrition:
 
 ---
 
-## 📊 Project 3: HR Data Cleaning Utility (v1.0)
+## 📊 Project 3: HR Data Cleaning Utility (v1.0) (Side Quest-1)
 
 This notebook demonstrates how to **simulate messy HR data** and then build a cleaning pipeline to make it analysis-ready.  
 Data cleaning is a critical step in People Analytics — poor quality data = misleading insights.
@@ -184,20 +184,24 @@ Benchmark **Logistic Regression** against a **Random Forest classifier** to see 
 5. Visualized confusion matrices and feature importance  
 
 **Results:**  
-- Logistic Regression → Accuracy: **XX%**, ROC AUC: **XX**  
-- Random Forest → Accuracy: **XX%**, ROC AUC: **XX**  
+- Logistic Regression → Accuracy: **75%**, ROC AUC: **79%**  
+- Random Forest → Accuracy: **83%**, ROC AUC: **77%**  
 - Random Forest showed stronger performance on non-linear features, while Logistic remains more interpretable.  
 
 **Sample Visuals:**  
 Confusion Matrix Comparison:  
-![Confusion Matrix Comparison](images/model_comparison_confusion.png)  
+![Confusion Matrix Comparison](images/model_comparision.png)  
 
 Top Features (Logistic vs Random Forest):  
 - Logistic: OverTime, SalesRep role, MaritalStatus=Single  
 - Random Forest: OverTime, MonthlyIncome, Age buckets  
+📓 [View the Model Comparison Notebook](Attrition_ModelComparision.ipynb)
+
+---
 
 **Model Artifacts:**  
 ***Check Below for all Artifacts*** 
+---
 
 **Insights:**  
 - Logistic = simple, transparent model (good for executive storytelling)  
