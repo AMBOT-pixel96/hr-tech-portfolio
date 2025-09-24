@@ -3,7 +3,7 @@ import subprocess
 import sys
 
 # NOTE: update this filename if your main notebook name is different
-notebook = Path("notebooks/Attrition_ModelComparison.ipynb")
+notebook = Path("notebooks/Attrition_ModelComparision.ipynb")
 output_dir = Path("reports")
 output_dir.mkdir(exist_ok=True)
 
