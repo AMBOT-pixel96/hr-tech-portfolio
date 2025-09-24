@@ -1,22 +1,46 @@
 from pathlib import Path
 import subprocess
-import sys
+import datetime
 
-# NOTE: update this filename if your main notebook name is different
-notebook = Path("notebooks/Attrition_ModelComparision.ipynb")
 output_dir = Path("reports")
 output_dir.mkdir(exist_ok=True)
 
-# nbconvert will put a file named Attrition_Project_Summary.pdf in reports/
-cmd = [
-    "jupyter", "nbconvert",
-    "--to", "pdf",
-    "--TemplateExporter.exclude_input=True",
-    str(notebook),
-    "--output-dir", str(output_dir),
-    "--output", "Attrition_Project_Summary"
-]
+# Find the most recently modified notebook
+notebooks = sorted(
+    Path("notebooks").glob("*.ipynb"),
+    key=lambda p: p.stat().st_mtime,
+    reverse=True
+)
 
-print("📄 Running nbconvert...")
-subprocess.run(cmd, check=True)
-print(f"✅ PDF should be at: {output_dir / 'Attrition_Project_Summary.pdf'}")
+if not notebooks:
+    raise FileNotFoundError("❌ No notebooks found in /notebooks folder")
+
+latest = notebooks[0]
+print(f"📓 Latest notebook found: {latest}")
+
+# File names
+stable_pdf = output_dir / "Attrition_Project_Summary.pdf"
+timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M")
+archived_pdf = output_dir / f"{latest.stem}_{timestamp}.pdf"
+temp_html = output_dir / "temp.html"
+
+def export_html_to_pdf(input_nb, output_pdf):
+    # Step 1: Notebook → HTML
+    subprocess.run([
+        "jupyter", "nbconvert",
+        "--to", "html",
+        "--TemplateExporter.exclude_input=True",
+        str(input_nb),
+        "--output", str(temp_html)
+    ], check=True)
+
+    # Step 2: HTML → PDF
+    subprocess.run([
+        "weasyprint", str(temp_html), str(output_pdf)
+    ], check=True)
+
+    print(f"✅ PDF created at {output_pdf}")
+
+# Export both stable and archived
+export_html_to_pdf(latest, stable_pdf)
+export_html_to_pdf(latest, archived_pdf)
