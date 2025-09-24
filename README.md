@@ -119,8 +119,7 @@ Move from descriptive analytics → predictive insights by using **Logistic Regr
 - Key retention drivers: *JobLevel, YearsAtCompany, MonthlyIncome*. 
 
 ---
-
-## Project 2- Predictive Attrition Model (v2.0) - Tuned Models
+## Project 2- Predictive Attrition Model (v3.0) - Tuned Models
 
 **Objective:**  
 Enhance the baseline Logistic Regression model by applying **cross-validation** and **hyperparameter tuning** to improve stability and interpretability.  
@@ -140,16 +139,16 @@ Enhance the baseline Logistic Regression model by applying **cross-validation** 
 - Best Parameters: `{ 'C': X, 'penalty': 'l1', 'solver': 'liblinear' }`  
 
 **Sample Visuals:**  
-Confusion Matrix:  
-![Confusion Matrix](images/confusion_matrix_tuned.png)  
 
 Top Features Driving Attrition:  
 ![Top Features](images/top_features_tuned.png)  
 
 **Insights:**  
-- OverTime, SalesRep roles, and MaritalStatus=Single consistently rank as top predictors.  
+- OverTime, Laboratory Technician roles, and Frequent Travel rank as top predictors.  
 - Hyperparameter tuning improved model generalization, reducing overfitting risk.  
 - Cross-validation confirmed stability of results across folds.
+
+📓 [View the Predictive Notebook](Attrition_PredictiveModel_V3.ipynb)
 
 ---
 
