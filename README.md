@@ -120,7 +120,7 @@ Move from descriptive analytics → predictive insights by using **Logistic Regr
 
 ---
 
-## Predictive Attrition Model (v2.0) - Tuned Models
+## Project 2- Predictive Attrition Model (v2.0) - Tuned Models
 
 **Objective:**  
 Enhance the baseline Logistic Regression model by applying **cross-validation** and **hyperparameter tuning** to improve stability and interpretability.  
@@ -153,7 +153,7 @@ Top Features Driving Attrition:
 
 ---
 
-## 📊 Project 2: HR Data Cleaning Utility (v1.0)
+## 📊 Project 3: HR Data Cleaning Utility (v1.0)
 
 This notebook demonstrates how to **simulate messy HR data** and then build a cleaning pipeline to make it analysis-ready.  
 Data cleaning is a critical step in People Analytics — poor quality data = misleading insights.
@@ -171,6 +171,42 @@ Data cleaning is a critical step in People Analytics — poor quality data = mis
 
 📓 [View the Utility Notebook](HR_Data_Cleaning_Utility_V1.ipynb)  
 
+
+## 📊 Project 4: Attrition Model Comparison (v3.0)
+
+**Objective:**  
+Benchmark **Logistic Regression** against a **Random Forest classifier** to see if tree-based models improve prediction of employee attrition.
+
+**Key Steps:**  
+1. Prepared dataset with clean features (no leakage)  
+2. Trained baseline Logistic Regression (linear, interpretable)  
+3. Trained Random Forest (non-linear, ensemble)  
+4. Compared performance using Accuracy & ROC AUC  
+5. Visualized confusion matrices and feature importance  
+
+**Results:**  
+- Logistic Regression → Accuracy: **XX%**, ROC AUC: **XX**  
+- Random Forest → Accuracy: **XX%**, ROC AUC: **XX**  
+- Random Forest showed stronger performance on non-linear features, while Logistic remains more interpretable.  
+
+**Sample Visuals:**  
+Confusion Matrix Comparison:  
+![Confusion Matrix Comparison](images/model_comparison_confusion.png)  
+
+Top Features (Logistic vs Random Forest):  
+- Logistic: OverTime, SalesRep role, MaritalStatus=Single  
+- Random Forest: OverTime, MonthlyIncome, Age buckets  
+
+**Model Artifacts:**  
+***Check Below for all Artifacts*** 
+
+**Insights:**  
+- Logistic = simple, transparent model (good for executive storytelling)  
+- Random Forest = higher accuracy, captures complex patterns (good for prediction)  
+- Next: try **XGBoost** and add **SHAP interpretability** for business-ready insights.
+
+
+
 ## ⚒️ Tech Stack  
 
 - Python (Pandas, Matplotlib, Seaborn, scikit-learn, Jupyter Notebook)  
@@ -181,8 +217,9 @@ Data cleaning is a critical step in People Analytics — poor quality data = mis
 
 ## Model artifacts:(Updated & Tuned)
 - [logistic_attrition_model.pkl](models/logistic_attrition_model.pkl)
-- [scaler.pkl](models/scaler.pkl
+- [scaler.pkl](models/scaler.pkl)
 - [logistic_attrition_model_tuned.pkl](models/logistic_attrition_model_tuned.pkl)
+- [random_forest_attrition_model.pkl](models/random_forest_attrition_model.pkl)
 ---
 
 ## 🛠️ How to Run This Project
