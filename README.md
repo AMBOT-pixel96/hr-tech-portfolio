@@ -75,6 +75,7 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │   ├──  Attrition_PredictiveModel.ipynb
 │   ├── Attrition_AdvancedModels.ipynb
 │   ├── Attrition_ModelComparision.ipynb
+│   ├── Attrition_ModelExplainability.ipynb
 │   ├── Attrition_PredictiveModel_V2.ipynb
 │   ├── Attrition_PredictiveModel_V3.ipynb
 │   ├── Day4-AttritionRiskAnalyzer.ipynb
