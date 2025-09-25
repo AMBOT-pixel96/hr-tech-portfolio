@@ -28,7 +28,8 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 
 ## 📂 Repository Structure  
 
-[![View Repo Tree](https://img.shields.io/badge/📂-View%20Repo%20Tree-lightgrey?style=for-the-badge)](FOLDER_STRUCTURE.md)
+<!-- REPO_TREE_START -->
+<!-- REPO_TREE_END -->
 
 ---
 
