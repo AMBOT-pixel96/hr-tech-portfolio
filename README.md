@@ -321,15 +321,26 @@ Take predictive modeling beyond Logistic Regression by tuning Random Forest and 
 
 ---
 
-**Sample Visuals:**  
-- ROC Curve Comparison → ![ROC Curve Comparison](images/roc_curve_comparison.png)  
-- Accuracy vs ROC AUC (Barplot) → ![Model Comparison](images/model_comparison_barplot.png)  
-- XGBoost Feature Heatmap → ![Top Features - XGBoost](images/top_features_xgb_heatmap.png)  
-- Confusion Matrix (XGBoost) → ![Confusion Matrix - XGBoost](images/confusion_matrix_xgb.png) 
----
+### 🔥 Sample Visuals  
 
-**Notebook:**  
-📓 [Attrition_AdvancedModels.ipynb → Advanced Models (RF + XGBoost)](notebooks/Attrition_AdvancedModels.ipynb)  
+**1. ROC Curve Comparison (Logistic vs RF vs XGBoost)**  
+![ROC Curve Comparison](images/roc_curve_comparison.png)  
+📈 *Shows how Logistic, RF, and XGBoost trade off sensitivity vs specificity — XGBoost edges ahead on balance.*  
+
+**2. Model Comparison (Accuracy vs ROC AUC)**  
+![Model Comparison](images/model_comparison_barplot.png)  
+📊 *Side-by-side accuracy vs ROC AUC highlights overall performance differences across models.*  
+
+**3. Top Features (XGBoost Heatmap)**  
+![Top Features - XGBoost Heatmap](images/top_features_xgb_heatmap.png)  
+🔥 *Top 15 features by importance — OverTime, JobRole, and MonthlyIncome dominate attrition risk signals.*  
+
+**4. Confusion Matrix (XGBoost)**  
+![Confusion Matrix - XGBoost](images/confusion_matrix_xgb.png)  
+🧩 *Visual breakdown of predictions — where XGBoost gets it right (and where it misses).*  
+
+---
+### Notebook 📓 [Attrition_AdvancedModels.ipynb → Advanced Models (RF + XGBoost)](notebooks/Attrition_AdvancedModels.ipynb)  
 ---
 ### 📦 Data Artifacts
 
