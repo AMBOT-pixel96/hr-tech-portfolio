@@ -364,6 +364,92 @@ Take predictive modeling beyond Logistic Regression by tuning Random Forest and 
 - Deploy best model in a **Streamlit dashboard**.  
 - Integrate SQL + ML for end-to-end HR analytics workflows.
 ---
+## 📊 Project 6: Model Explainability with SHAP
+
+**Objective:**  
+Use SHAP values to interpret XGBoost predictions, showing both global and local drivers of attrition.  
+
+---
+
+### 🔑 Key Steps  
+1. **Load & preprocess data** → Dropped leakage columns, encoded categoricals, ensured numeric types.  
+2. **Load trained XGBoost model** → From Project 5 (`xgboost_attrition_model.pkl`).  
+3. **Subsample data (100 rows)** → Keeps SHAP efficient & avoids kernel crashes.  
+4. **Compute SHAP values** → Using new `shap.Explainer` API.  
+5. **Generate visuals**:  
+   - Global feature importance & summary plots.  
+   - Local explanations (waterfall + bar).  
+   - Dependence plot for feature interactions.  
+6. **Export artifacts** → Saved plots in `/images/` for portfolio clarity.  
+
+---
+
+### 📈 Results  
+- **Global Drivers:**  
+  - Age, Distance from Home, and Daily Rate (Compensation )are the most influential features.  
+- **Local Explanations:**  
+  - For an individual employee, SHAP shows exactly which features push their attrition risk up or down.  
+- **Feature Interactions:**  
+  - Dependence plots reveal how attrition risk rises at lower income bands and with frequent overtime.  
+- **Takeaway:**  
+  - Moves the model from “black box” → **explainable AI**, building trust with HR leaders.  
+
+---
+
+### 🔥 Sample Visuals  
+
+**1. SHAP Summary Plot (Global Drivers)**  
+![SHAP Summary Plot](images/shap_summary_plot.png)  
+🌍 *Shows which features consistently drive attrition across the workforce.*  
+
+**2. SHAP Feature Importance (Bar Plot)**  
+![SHAP Feature Importance](images/shap_feature_importance.png)  
+📊 *Highlights top features by mean absolute SHAP value — OverTime, JobRole, and MonthlyIncome dominate.*  
+
+**3. SHAP Local Explanations (Individual Employee)**  
+- Waterfall Plot: ![SHAP Waterfall](images/shap_waterfall_plot.png)  
+- Bar Plot: ![SHAP Local Bar](images/shap_local_bar_plot.png)  
+👤 *Explains why one specific employee is predicted as at-risk, showing top contributing features.*  
+
+**4. SHAP Dependence Plot (MonthlyIncome)**  
+![SHAP Dependence Plot](images/shap_dependence_plot.png)  
+🔀 *Shows how attrition risk changes with MonthlyIncome while interacting with other features.*  
+
+---
+
+### 📓 Notebook  
+- [Attrition_ModelExplainability.ipynb](Attrition_ModelExplainability.ipynb)  
+
+---
+
+### 📦 Artifacts  
+- [xgboost_attrition_model.pkl](models/xgboost_attrition_model.pkl)  
+- Visuals:  
+  - `shap_summary_plot.png`  
+  - `shap_feature_importance.png`  
+  - `shap_waterfall_plot.png`  
+  - `shap_local_bar_plot.png`  
+  - `shap_dependence_plot.png`  
+
+---
+
+### ✅ Conclusions  
+- **Global Drivers:** Overtime, Job Role, and Monthly Income stand out as top predictors.  
+- **Local Explanations:** Individual-level SHAP plots build confidence in predictions.  
+- **Feature Interactions:** Dependence plots highlight nuanced patterns beyond simple correlations.  
+
+**Why this matters:**  
+- SHAP adds transparency → critical for HR applications where fairness & accountability are key.  
+- Executives can see not just *who* is at risk, but *why*.  
+- Enhances business trust in predictive HR analytics.  
+
+---
+
+### 🚀 Next Steps  
+- Integrate SHAP visuals into the **Streamlit Dashboard (Project 7)**.  
+- Combine with **SQL pipelines (Project 8)** to deliver explainability at scale.
+
+---
 ## ⚒️ Tech Stack  
 
 - Python (Pandas, Matplotlib, Seaborn, scikit-learn, Jupyter Notebook)  
