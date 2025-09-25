@@ -300,61 +300,53 @@ Top Features (Logistic vs Random Forest):
 ## 📊 Project 5: Advanced Attrition Models (Tuned RF + XGBoost)
 
 **Objective:**  
-Move beyond baseline models by tuning Random Forest and introducing XGBoost, a gradient boosting algorithm widely used in industry.  
+Take predictive modeling beyond Logistic Regression by tuning Random Forest and introducing **XGBoost**, a gradient boosting algorithm widely used for structured/tabular datasets.  
 
-**Results (test set):**  
+---
+
+**Key Steps:**  
+1. Prepared dataset with cleaned features (no leakage).  
+2. Trained and tuned Random Forest (grid search for depth, estimators, features).  
+3. Trained XGBoost model with optimized hyperparameters.  
+4. Compared model performance against Logistic Regression baseline.  
+5. Visualized feature importances, ROC curves, and confusion matrices.  
+6. Exported key data artifacts (top features, comparison metrics).  
+
+---
+
+**Results (Test Set):**  
 - Logistic Regression → Accuracy: **75.2%**, ROC AUC: **0.798**  
 - Tuned Random Forest → Accuracy: **83.7%**, ROC AUC: **0.769**  
 - XGBoost → Accuracy: **86.4%**, ROC AUC: **0.774**  
 
 ---
 
-### 🔥 Sample Visuals  
-
-**1. ROC Curve Comparison (Logistic vs RF vs XGBoost)**  
-![ROC Curve Comparison](images/roc_curve_comparison.png)  
-📈 *Shows how Logistic, RF, and XGBoost trade off sensitivity vs specificity — XGBoost edges ahead on balance.*  
-
-**2. Model Comparison (Accuracy vs ROC AUC)**  
-![Model Comparison](images/model_comparison_barplot.png)  
-📊 *Side-by-side accuracy vs ROC AUC highlights overall performance differences across models.*  
-
-**3. Top Features (XGBoost Heatmap)**  
-![Top Features - XGBoost Heatmap](images/top_features_xgb_heatmap.png)  
-🔥 *Top 15 features by importance — OverTime, JobRole, and MonthlyIncome dominate attrition risk signals.*  
-
-**4. Confusion Matrix (XGBoost)**  
-![Confusion Matrix - XGBoost](images/confusion_matrix_xgb.png)  
-🧩 *Visual breakdown of predictions — where XGBoost gets it right (and where it misses).*  
-
+**Sample Visuals:**  
+- ROC Curve Comparison → ![ROC Curve Comparison](images/roc_curve_comparison.png)  
+- Accuracy vs ROC AUC (Barplot) → ![Model Comparison](images/model_comparison_barplot.png)  
+- XGBoost Feature Heatmap → ![Top Features - XGBoost](images/top_features_xgb_heatmap.png)  
+- Confusion Matrix (XGBoost) → ![Confusion Matrix - XGBoost](images/confusion_matrix_xgb.png) 
 ---
 
-### 📓 Notebook  
-- [Attrition_AdvancedModels.ipynb](Attrition_AdvancedModels.ipynb)  
-
+**Notebook:**  
+📓 [Attrition_AdvancedModels.ipynb → Advanced Models (RF + XGBoost)](notebooks/Attrition_AdvancedModels.ipynb)  
 ---
-
 ### 📦 Data Artifacts
 
 - [rf_top_features.csv](data/rf_top_features.csv)  
 - [xgb_top_features.csv](data/xgb_top_features.csv)  
-- [model_comparison_results.csv](data/model_comparison_results.csv)  
-
+- [model_comparison_results.csv](data/model_comparison_results.csv)
 ---
-
 **Insights:**  
-- Logistic Regression: Solid interpretability but limited accuracy.  
-- Random Forest: Strong uplift in accuracy (84%) with non-linear handling.  
-- XGBoost: Best performer overall (86% accuracy), robust to complex signals like MonthlyIncome and Age groups.  
-
+- Logistic Regression: strong interpretability but weaker predictive power.  
+- Random Forest: higher accuracy (84%), robust to non-linearities.  
+- XGBoost: best performer overall (86% accuracy), consistently picks up complex patterns (OverTime, MonthlyIncome, JobRole).  
 ---
-
-### 🚀 Next Steps
-- Add **SHAP interpretability** for XGBoost to explain feature impact.  
+**Next Steps:**  
+- Add **SHAP interpretability** for XGBoost.  
 - Deploy best model in a **Streamlit dashboard**.  
-- Integrate SQL + ML for end-to-end HR Analytics workflows.
-
-
+- Integrate SQL + ML for end-to-end HR analytics workflows.
+---
 ## ⚒️ Tech Stack  
 
 - Python (Pandas, Matplotlib, Seaborn, scikit-learn, Jupyter Notebook)  
