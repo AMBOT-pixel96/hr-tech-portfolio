@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from fpdf import FPDF
 import io
+import os
 
 st.set_page_config(page_title="HR Attrition Dashboard", layout="wide")
 st.title("🚀 HR Attrition Prediction Dashboard")
@@ -76,24 +77,32 @@ if uploaded_file:
     st.write("### 📋 Employee Risk Predictions")
     st.dataframe(result_df, use_container_width=True)
 
+    # ================================
     # Visuals
+    # ================================
     st.write("### 📊 Attrition Risk Insights")
+
+    # Risk distribution
     risk_levels = pd.cut(df["Attrition_Prob"], bins=[0, 0.33, 0.66, 1], labels=["Low", "Medium", "High"])
     risk_counts = risk_levels.value_counts()
 
-    col1, col2 = st.columns(2)
-    with col1:
-        fig1, ax = plt.subplots()
-        sns.barplot(x=risk_counts.index, y=risk_counts.values,
-                    palette=["green", "orange", "red"], ax=ax)
-        ax.set_ylabel("Employees")
-        st.pyplot(fig1)
+    fig1, ax1 = plt.subplots()
+    sns.barplot(x=risk_counts.index, y=risk_counts.values,
+                palette=["green", "orange", "red"], ax=ax1)
+    ax1.set_ylabel("Employees")
+    st.pyplot(fig1)
 
-    with col2:
-        fig2, ax = plt.subplots()
-        sns.histplot(df["Attrition_Prob"], bins=20, kde=True, color="blue", ax=ax)
-        ax.set_xlabel("Attrition Probability")
-        st.pyplot(fig2)
+    fig2, ax2 = plt.subplots()
+    sns.histplot(df["Attrition_Prob"], bins=20, kde=True, color="blue", ax=ax2)
+    ax2.set_xlabel("Attrition Probability")
+    st.pyplot(fig2)
+
+    # Save charts for PDF
+    os.makedirs("temp_charts", exist_ok=True)
+    fig1_path = "temp_charts/risk_distribution.png"
+    fig2_path = "temp_charts/probability_distribution.png"
+    fig1.savefig(fig1_path, dpi=150, bbox_inches="tight")
+    fig2.savefig(fig2_path, dpi=150, bbox_inches="tight")
 
     # ================================
     # CSV Export
@@ -123,11 +132,19 @@ if uploaded_file:
         pdf.cell(200, 10, txt=f"Average Attrition Risk: {avg_prob:.1f}%", ln=True)
         pdf.ln(10)
 
-        pdf.multi_cell(0, 10, txt="Top Predictions Snapshot:")
+        pdf.multi_cell(0, 10, txt="📋 Top Predictions Snapshot (10 rows):")
         for i, row in result_df.head(10).iterrows():
             pdf.cell(0, 10, txt=f"{row['JobRole']} ({row['Department']}) - Risk {row['Attrition_Prob']}% ({row['Attrition_Pred']})", ln=True)
 
-        # Export as downloadable PDF
+        # Insert charts
+        pdf.add_page()
+        pdf.set_font("Arial", size=12)
+        pdf.cell(200, 10, txt="📊 Charts", ln=True, align="C")
+        pdf.image(fig1_path, x=10, y=30, w=180)
+        pdf.ln(100)
+        pdf.image(fig2_path, x=10, y=140, w=180)
+
+        # Export PDF
         pdf_buffer = io.BytesIO()
         pdf.output(pdf_buffer)
         pdf_bytes = pdf_buffer.getvalue()
