@@ -57,6 +57,7 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │   └── scaler.pkl
 ├── notebooks
 │   ├──  Attrition_PredictiveModel.ipynb
+│   ├── Attrition_AdvancedModels.ipynb
 │   ├── Attrition_ModelComparision.ipynb
 │   ├── Attrition_PredictiveModel_V2.ipynb
 │   ├── Attrition_PredictiveModel_V3.ipynb
@@ -70,6 +71,7 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 ├── reports
 │   ├── Attrition_ModelComparision_009086358233572ffb338cf8f4ee6ab7.pdf
 │   ├── Attrition_Project_Summary.pdf
+│   ├── Day4-AttritionRiskAnalyzer_v2.0_058b58b9bf5e96ac0c1bdaac1e7abdcc.pdf
 │   ├── HR_Data_Cleaning_Utility_V1_260622ce.pdf
 │   ├── HR_Data_Cleaning_Utility_V1_6501dfa8.pdf
 │   ├── HR_Data_Cleaning_Utility_V1_86b38b95.pdf
