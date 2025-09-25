@@ -426,14 +426,12 @@ Use SHAP values to interpret XGBoost predictions, showing both global and local 
 ### 📦 Artifacts  
 - [xgboost_attrition_model.pkl](models/xgboost_attrition_model.pkl)  
 - Visuals:  
-  - `shap_summary_plot.png`  
-  - `shap_feature_importance.png`  
-  - `shap_waterfall_plot.png`  
-  - `shap_local_bar_plot.png`  
-  - `shap_dependence_plot.png`  
-
+  - [shap_summary_plot.png](images/shap_summary_plot.png)  
+  - [shap_feature_importance.png](images/shap_feature_importance.png)  
+  - [shap_waterfall_plot.png](images/shap_waterfall_plot.png)  
+  - [shap_local_bar_plot.png](images/shap_local_bar_plot.png)  
+  - [shap_dependence_plot.png](images/shap_dependence_plot.png)
 ---
-
 ### ✅ Conclusions  
 - **Global Drivers:** Overtime, Job Role, and Monthly Income stand out as top predictors.  
 - **Local Explanations:** Individual-level SHAP plots build confidence in predictions.  
