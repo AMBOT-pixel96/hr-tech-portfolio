@@ -1,3 +1,6 @@
+# Utility
+joblib==1.4.2
+
 # Core libraries
 pandas==2.2.2
 numpy==1.26.4
@@ -10,9 +13,6 @@ seaborn==0.13.2
 # Machine Learning
 xgboost==2.1.1
 shap==0.46.0
-
-# Utility
-joblib==1.4.2
 
 # Deployment
 streamlit==1.38.0
