@@ -499,8 +499,16 @@ Deploy an interactive web app where HR leaders can upload data, run attrition pr
 
 ---
 
-### 🖼️ Sample Dashboard  
-![Streamlit Dashboard](images/streamlit_dashboard.png)  
+### 🖼️ Sample Images  
+
+![Streamlit Homepage](images/streamlit_db_1.png)
+
+![Streamlit Model Selection](images/streamlit_db_2.png)
+
+![Streamlit Dashboard Cards](images/streamlit_db_3.png)
+
+![Streamlit Dashboard Graphs](images/streamlit_db_4.png)
+  
 
 ---
 
@@ -511,7 +519,7 @@ Deploy an interactive web app where HR leaders can upload data, run attrition pr
 
 ### 📂 Files  
 - [app.py](app.py) → main dashboard app  
-- [trained_columns.pkl](models/trained_columns.pkl) → ensures feature alignment  
+- [trained_columns.joblib](models_joblib/trained_columns.joblib) → ensures feature alignment 
 - [requirements.txt](requirements.txt) → dependencies for deployment  
 
 ---
