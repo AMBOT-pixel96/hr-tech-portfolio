@@ -2,8 +2,7 @@
 ---
 > 🧑‍💻 HR Tech & People Analytics Portfolio — from descriptive insights → predictive models → explainable AI.  
 > 🌍 Live Demo: 
-[AttritionDashboard]
-(https://hr-tech-portfolio.streamlit.app/)
+[AttritionDashboard](https://hr-tech-portfolio.streamlit.app/)
 ---
 ![PDF Available](https://img.shields.io/badge/PDF-Available-brightgreen?logo=adobeacrobatreader)
 ---
