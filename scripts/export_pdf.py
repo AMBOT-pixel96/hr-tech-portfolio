@@ -7,8 +7,8 @@ import nbformat
 from weasyprint import HTML
 import datetime
 
-# Look for notebooks in repo root
-NOTEBOOKS_DIR = Path(".")
+# Look for notebooks only in /notebooks (ignore root & sidequests)
+NOTEBOOKS_DIR = Path("notebooks")
 REPORTS_DIR = Path("reports")
 REPORTS_DIR.mkdir(exist_ok=True)
 
@@ -38,7 +38,7 @@ def convert_notebook_to_html(notebook_path, html_path):
         nb = nbformat.read(f, as_version=4)
 
     html_exporter = HTMLExporter()
-    html_exporter.exclude_input = True  # hide code cells
+    html_exporter.exclude_input = True  # 🚫 hide code cells
     (body, _) = html_exporter.from_notebook_node(nb)
 
     with open(html_path, "w", encoding="utf-8") as f:
@@ -51,7 +51,7 @@ def export_html_to_pdf(html_path, pdf_path):
 def main():
     notebooks = sorted(NOTEBOOKS_DIR.glob("*.ipynb"))
     if not notebooks:
-        raise FileNotFoundError("❌ No notebooks found in repo root")
+        raise FileNotFoundError("❌ No notebooks found in /notebooks folder")
 
     # Collect info: (file, git_commit_ts, file_mtime)
     info = []
@@ -65,7 +65,7 @@ def main():
     for nb, git_ts, mtime in info:
         print(f" - {nb.name} | {git_ts or 'None'} | {format_ts(git_ts)} | {datetime.datetime.utcfromtimestamp(mtime).strftime('%Y-%m-%d %H:%M:%S UTC')}")
 
-    # Choose by git commit time if available, else by mtime
+    # Choose latest by git commit time if available, else fallback to mtime
     git_available = [t for t in info if t[1] is not None]
     if git_available:
         latest = max(git_available, key=lambda t: t[1])[0]

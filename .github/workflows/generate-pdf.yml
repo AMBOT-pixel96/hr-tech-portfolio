@@ -8,7 +8,7 @@ on:
     branches:
       - main
     paths:
-      - '*.ipynb'
+      - 'notebooks/*.ipynb'    # ✅ Only main project notebooks
       - 'scripts/**'
       - '.github/workflows/**'
       - 'README.md'
@@ -21,7 +21,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # ensure full git history so commit timestamps work
+          fetch-depth: 0   # full git history so commit timestamps work
 
       - name: Set up Python
         uses: actions/setup-python@v5

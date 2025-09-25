@@ -26,6 +26,13 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 
 ---
 
+## 📂 Repository Structure  
+
+<!-- REPO_TREE_START -->
+<!-- REPO_TREE_END -->
+
+---
+
 ## 📊 Project 1: Attrition Risk Analyzer (v1.0)
 
 ### v1.0 — Descriptive Insights
@@ -51,7 +58,7 @@ reduce turnover costs, and improve workforce stability.
    - Attrition by age distribution  
    - Attrition % by job role  
 
-📓 [View the Jupyter Notebook](Day4-AttritionRiskAnalyzer.ipynb)  
+📓 [View the Jupyter Notebook](notebooks/Day4-AttritionRiskAnalyzer.ipynb)  
 
 ---
 
@@ -76,7 +83,7 @@ Move from descriptive analytics → predictive insights by using **Logistic Regr
 5. Saved trained model + scaler into `/models/`  
 6. Fixed Data Leakage issue and added enhancements
    
-📓 [View the Predictive Notebook](Attrition_PredictiveModel_V2.ipynb)  
+📓 [View the Predictive Notebook](notebooks/Attrition_PredictiveModel_V2.ipynb)  
 
 ---
 
@@ -162,7 +169,7 @@ Top Features Driving Attrition:
 **Model Artifacts:**  
 [logistic_top_features.csv](data/logistic_top_features.csv)
   
-📓 [View the Predictive Notebook](Attrition_PredictiveModel_V3.ipynb)
+📓 [View the Predictive Notebook](notebooks/Attrition_PredictiveModel_V3.ipynb)
 
 ---
 
@@ -182,7 +189,7 @@ Data cleaning is a critical step in People Analytics — poor quality data = mis
 
 ![Before vs After Cleaning](images/missing_values_collage.png)
 
-📓 [View the Utility Notebook](HR_Data_Cleaning_Utility_V1.ipynb)  
+📓 [View the Utility Notebook](sidequests/HR_Data_Cleaning_Utility_V1.ipynb)  
 
 
 ## 📊 Project 4: Attrition Model Comparison (v3.0)
@@ -209,7 +216,7 @@ Confusion Matrix Comparison:
 Top Features (Logistic vs Random Forest):  
 - Logistic: OverTime, SalesRep role, MaritalStatus=Single  
 - Random Forest: OverTime, MonthlyIncome, Age buckets  
-📓 [View the Model Comparison Notebook](Attrition_ModelComparision.ipynb)
+📓 [View the Model Comparison Notebook](notebooks/Attrition_ModelComparision.ipynb)
 
 ---
 
@@ -263,10 +270,20 @@ jupyter notebook
 
 5. Open and run the notebooks
 
-- [AttritionRiskAnalyzer_v2.0.ipynb → Descriptive Analytics](https://github.com/AMBOT-pixel96/hr-tech-portfolio/blob/main/Day4-AttritionRiskAnalyzer_v2.0.ipynb)
-- [Attrition_PredictiveModel_V2.ipynb → Predictive Modeling](https://github.com/AMBOT-pixel96/hr-tech-portfolio/blob/main/Attrition_PredictiveModel_V2.ipynb)
+### 📘 Baby Steps (Learning Path)
+- [Day1-Hello-Amlan.ipynb](notebooks/Day1-Hello-Amlan.ipynb)  
+- [Day2-Basics.ipynb](notebooks/Day2-Basics.ipynb)  
+- [Day3-DataTypesAndControl.ipynb](notebooks/Day3-DataTypesAndControl.ipynb)  
 
-[HR_Data_Cleaning_Utility_V1.ipynb → HR Data Cleanup Utility](https://github.com/AMBOT-pixel96/hr-tech-portfolio/blob/main/HR_Data_Cleaning_Utility_V1.ipynb)
+### 📊 Main Projects
+- [Day4-AttritionRiskAnalyzer.ipynb → Descriptive Analytics](notebooks/Day4-AttritionRiskAnalyzer.ipynb)  
+- [Day4-AttritionRiskAnalyzer_v2.0.ipynb → Enhanced Descriptive Analytics](notebooks/Day4-AttritionRiskAnalyzer_v2.0.ipynb)  
+- [Attrition_PredictiveModel_V2.ipynb → Predictive Modeling (Logistic Regression)](notebooks/Attrition_PredictiveModel_V2.ipynb)  
+- [Attrition_PredictiveModel_V3.ipynb → Predictive Modeling (Tuned Logistic Regression)](notebooks/Attrition_PredictiveModel_V3.ipynb)  
+- [Attrition_ModelComparision.ipynb → Logistic Regression vs Random Forest](notebooks/Attrition_ModelComparision.ipynb)  
+
+### 🧹 Side Quests
+- [HR_Data_Cleaning_Utility_V1.ipynb → HR Data Cleanup Utility](sidequests/HR_Data_Cleaning_Utility_V1.ipynb)
 
 ---
 ## 🚀 Upcoming Projects  
@@ -286,5 +303,9 @@ This repo is my hands-on portfolio — tracking progress as I move from HR pract
 ---
 
 ⭐️ If you find this interesting, follow my journey here or connect with me on LinkedIn.
+
+---
+
+<!-- trigger: repo-tree -->
 
 ---
