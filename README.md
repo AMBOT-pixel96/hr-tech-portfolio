@@ -41,14 +41,19 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │   ├── attrition_by_age.jpg
 │   ├── attrition_by_jobrole.png
 │   ├── confusion_matrix.png
+│   ├── confusion_matrix_xgb.png
 │   ├── missing_values_after.png
 │   ├── missing_values_before.png
 │   ├── missing_values_collage.png
 │   ├── model_comparision.png
+│   ├── model_comparison_barplot.png
+│   ├── roc_curve_comparison.png
 │   ├── screenshot1.png
 │   ├── top_features.png
 │   ├── top_features_post_enhancement.png
-│   └── top_features_tuned.png
+│   ├── top_features_tuned.png
+│   ├── top_features_xgb.png
+│   └── top_features_xgb_heatmap.png
 ├── models
 │   ├── logistic_attrition_model.pkl
 │   ├── logistic_attrition_model_tuned.pkl
