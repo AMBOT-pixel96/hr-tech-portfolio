@@ -295,6 +295,64 @@ Top Features (Logistic vs Random Forest):
 - Random Forest = higher accuracy, captures complex patterns (good for prediction)  
 - Next: try **XGBoost** and add **SHAP interpretability** for business-ready insights.
 
+---
+
+## 📊 Project 5: Advanced Attrition Models (Tuned RF + XGBoost)
+
+**Objective:**  
+Move beyond baseline models by tuning Random Forest and introducing XGBoost, a gradient boosting algorithm widely used in industry.  
+
+**Results (test set):**  
+- Logistic Regression → Accuracy: **75.2%**, ROC AUC: **0.798**  
+- Tuned Random Forest → Accuracy: **83.7%**, ROC AUC: **0.769**  
+- XGBoost → Accuracy: **86.4%**, ROC AUC: **0.774**  
+
+---
+
+### 🔥 Sample Visuals  
+
+**1. ROC Curve Comparison (Logistic vs RF vs XGBoost)**  
+![ROC Curve Comparison](images/roc_curve_comparison.png)  
+📈 *Shows how Logistic, RF, and XGBoost trade off sensitivity vs specificity — XGBoost edges ahead on balance.*  
+
+**2. Model Comparison (Accuracy vs ROC AUC)**  
+![Model Comparison](images/model_comparison_barplot.png)  
+📊 *Side-by-side accuracy vs ROC AUC highlights overall performance differences across models.*  
+
+**3. Top Features (XGBoost Heatmap)**  
+![Top Features - XGBoost Heatmap](images/top_features_xgb_heatmap.png)  
+🔥 *Top 15 features by importance — OverTime, JobRole, and MonthlyIncome dominate attrition risk signals.*  
+
+**4. Confusion Matrix (XGBoost)**  
+![Confusion Matrix - XGBoost](images/confusion_matrix_xgb.png)  
+🧩 *Visual breakdown of predictions — where XGBoost gets it right (and where it misses).*  
+
+---
+
+### 📓 Notebook  
+- [Attrition_AdvancedModels.ipynb](Attrition_AdvancedModels.ipynb)  
+
+---
+
+### 📦 Data Artifacts
+
+- [rf_top_features.csv](data/rf_top_features.csv)  
+- [xgb_top_features.csv](data/xgb_top_features.csv)  
+- [model_comparison_results.csv](data/model_comparison_results.csv)  
+
+---
+
+**Insights:**  
+- Logistic Regression: Solid interpretability but limited accuracy.  
+- Random Forest: Strong uplift in accuracy (84%) with non-linear handling.  
+- XGBoost: Best performer overall (86% accuracy), robust to complex signals like MonthlyIncome and Age groups.  
+
+---
+
+### 🚀 Next Steps
+- Add **SHAP interpretability** for XGBoost to explain feature impact.  
+- Deploy best model in a **Streamlit dashboard**.  
+- Integrate SQL + ML for end-to-end HR Analytics workflows.
 
 
 ## ⚒️ Tech Stack  
@@ -305,11 +363,14 @@ Top Features (Logistic vs Random Forest):
 
 ---
 
-## Model artifacts:(Updated & Tuned)
+## Model artifacts:(All Models)
 - [logistic_attrition_model.pkl](models/logistic_attrition_model.pkl)
 - [scaler.pkl](models/scaler.pkl)
 - [logistic_attrition_model_tuned.pkl](models/logistic_attrition_model_tuned.pkl)
 - [random_forest_attrition_model.pkl](models/random_forest_attrition_model.pkl)
+- [random_forest_tuned.pkl](models/random_forest_tuned.pkl)  
+- [xgboost_attrition_model.pkl](models/xgboost_attrition_model.pkl)
+
 ---
 
 ## 🛠️ How to Run This Project
@@ -347,7 +408,10 @@ jupyter notebook
 - [Attrition_PredictiveModel_V2.ipynb → Predictive Modeling (Logistic Regression)](notebooks/Attrition_PredictiveModel_V2.ipynb)  
 - [Attrition_PredictiveModel_V3.ipynb → Predictive Modeling (Tuned Logistic Regression)](notebooks/Attrition_PredictiveModel_V3.ipynb)  
 - [Attrition_ModelComparision.ipynb → Logistic Regression vs Random Forest](notebooks/Attrition_ModelComparision.ipynb)  
+-
+[Attrition_AdvancedModels.ipynb](Attrition_AdvancedModels.ipynb)
 
+-
 ### 🧹 Side Quests
 - [HR_Data_Cleaning_Utility_V1.ipynb → HR Data Cleanup Utility](sidequests/HR_Data_Cleaning_Utility_V1.ipynb)
 
