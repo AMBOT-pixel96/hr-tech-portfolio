@@ -46,7 +46,6 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 
 <!-- REPO_TREE_START -->
 ```text
-├── Dockerfile
 ├── README.md
 ├── app.py
 ├── data
