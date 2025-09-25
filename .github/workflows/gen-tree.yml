@@ -1,0 +1,40 @@
+name: Generate Repo Tree
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.ipynb'
+      - 'scripts/**'
+      - 'data/**'
+      - 'models/**'
+      - 'images/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install nbformat nbconvert weasyprint
+
+      - name: Run gen_tree.py
+        run: python scripts/gen_tree.py
+
+      - name: Commit updated tree
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git add FOLDER_STRUCTURE.md || true
+          git commit -m "Auto-update repo tree [skip ci]" || echo "⚠️ No changes"
+          git push origin main || true
