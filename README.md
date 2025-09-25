@@ -438,6 +438,61 @@ Use SHAP values to interpret XGBoost predictions, showing both global and local 
 - [Attrition_ModelExplainability.ipynb](Attrition_ModelExplainability.ipynb)  
 
 ---
+## 📊 Project 7: Interactive Attrition Dashboard (Streamlit)
+
+**Objective:**  
+Deploy an interactive web app where HR leaders can upload data, run attrition predictions, and explore explainability visuals.
+
+---
+
+### 🔑 Key Steps  
+1. Built a **Streamlit app (`app.py`)** to host trained models (Logistic, RF, XGBoost).  
+2. Created `trained_columns.pkl` for consistent feature alignment during predictions.  
+3. Added upload functionality → users can test with their own HR datasets (CSV).  
+4. Integrated SHAP for **global & local explanations** inside the dashboard.  
+5. Deployed app on **Streamlit Cloud** → shareable public link.  
+
+---
+
+### 📈 Results  
+- End-to-end ML workflow is now **live & interactive**.  
+- Users can:  
+  - Upload data  
+  - Select model  
+  - View predictions + probabilities  
+  - Explore explainability plots  
+- Moves this portfolio from **static analysis → deployable HR Tech product**.  
+
+---
+
+### 🖼️ Sample Dashboard  
+![Streamlit Dashboard](images/streamlit_dashboard.png)  
+
+---
+
+### 🌍 Live App  
+- [Open Dashboard](https://hr-tech-portfolio.streamlit.app/)  
+
+---
+
+### 📂 Files  
+- [app.py](app.py) → main dashboard app  
+- [trained_columns.pkl](models/trained_columns.pkl) → ensures feature alignment  
+- [requirements.txt](requirements.txt) → dependencies for deployment  
+
+---
+
+### ✅ Conclusions  
+- Streamlit deployment shows the ability to go beyond notebooks and create **real-world HR tools**.  
+- Adds credibility for consulting/analytics roles by showcasing full-stack delivery.  
+- Sets foundation for future dashboards (Compensation, SQL+ML, etc.).  
+
+---
+
+### 🚀 Next Steps  
+- Build **SQL + ML pipeline** to query databases + run predictions (Project 8).  
+- Extend dashboard with **Compensation Analytics** modules.
+---
 
 ### 📦 Artifacts  
 - [xgboost_attrition_model.pkl](models/xgboost_attrition_model.pkl)  
