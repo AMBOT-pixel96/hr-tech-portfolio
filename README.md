@@ -58,11 +58,14 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │   ├── top_features_xgb.png
 │   └── top_features_xgb_heatmap.png
 ├── models
+│   ├── Attrition_AdvancedModels.ipynb
 │   ├── logistic_attrition_model.pkl
 │   ├── logistic_attrition_model_tuned.pkl
 │   ├── placeholder
 │   ├── random_forest_attrition_model.pkl
-│   └── scaler.pkl
+│   ├── random_forest_tuned.pkl
+│   ├── scaler.pkl
+│   └── xgboost_attrition_model.pkl
 ├── notebooks
 │   ├──  Attrition_PredictiveModel.ipynb
 │   ├── Attrition_AdvancedModels.ipynb
