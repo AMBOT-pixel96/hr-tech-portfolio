@@ -29,6 +29,58 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 ## 📂 Repository Structure  
 
 <!-- REPO_TREE_START -->
+```text
+├── README.md
+├── data
+│   ├── cleaned_hr_data.csv
+│   ├── logistic_top_features.csv
+│   ├── messy_hr_data.csv
+│   └── processed_hr_data.csv
+├── images
+│   ├── Attrition_by_dept.jpg
+│   ├── attrition_by_age.jpg
+│   ├── attrition_by_jobrole.png
+│   ├── confusion_matrix.png
+│   ├── missing_values_after.png
+│   ├── missing_values_before.png
+│   ├── missing_values_collage.png
+│   ├── model_comparision.png
+│   ├── screenshot1.png
+│   ├── top_features.png
+│   ├── top_features_post_enhancement.png
+│   └── top_features_tuned.png
+├── models
+│   ├── logistic_attrition_model.pkl
+│   ├── logistic_attrition_model_tuned.pkl
+│   ├── placeholder
+│   ├── random_forest_attrition_model.pkl
+│   └── scaler.pkl
+├── notebooks
+│   ├──  Attrition_PredictiveModel.ipynb
+│   ├── Attrition_ModelComparision.ipynb
+│   ├── Attrition_PredictiveModel_V2.ipynb
+│   ├── Attrition_PredictiveModel_V3.ipynb
+│   ├── Day4-AttritionRiskAnalyzer.ipynb
+│   ├── Day4-AttritionRiskAnalyzer_v2.0.ipynb
+│   ├── baby_steps
+│   │   ├── Day1-Hello-Amlan.ipynb
+│   │   ├── Day2-Basics.ipynb
+│   │   └── Day3-DataTypesAndControl.ipynb
+│   └── baby_steps.gitkeep
+├── reports
+│   ├── Attrition_ModelComparision_009086358233572ffb338cf8f4ee6ab7.pdf
+│   ├── Attrition_Project_Summary.pdf
+│   ├── HR_Data_Cleaning_Utility_V1_260622ce.pdf
+│   ├── HR_Data_Cleaning_Utility_V1_6501dfa8.pdf
+│   ├── HR_Data_Cleaning_Utility_V1_86b38b95.pdf
+│   └── HR_Data_Cleaning_Utility_V1_87664d4cc3eefa67f9fe549d33ef7c57.pdf
+├── requirements.txt
+├── scripts
+│   ├── export_pdf.py
+│   └── gen_tree.py
+└── sidequests
+    └── HR_Data_Cleaning_Utility_V1.ipynb
+```
 <!-- REPO_TREE_END -->
 
 ---
