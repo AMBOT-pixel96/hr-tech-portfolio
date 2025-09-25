@@ -1,18 +1,8 @@
-# Utility
-joblib==1.4.2
-
-# Core libraries
-pandas==2.2.2
-numpy==1.26.4
-scikit-learn==1.5.2
-
-# Visualization
-matplotlib==3.9.2
-seaborn==0.13.2
-
-# Machine Learning
-xgboost==2.1.1
-shap==0.46.0
-
-# Deployment
-streamlit==1.38.0
+streamlit
+pandas
+numpy
+scikit-learn
+matplotlib
+seaborn
+xgboost
+shap
