@@ -89,6 +89,8 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │   ├── scaler.pkl
 │   ├── trained_columns.pkl
 │   └── xgboost_attrition_model.pkl
+├── models_joblib
+│   └── test.txt
 ├── notebooks
 │   ├──  Attrition_PredictiveModel.ipynb
 │   ├── Attrition_AdvancedModels.ipynb
