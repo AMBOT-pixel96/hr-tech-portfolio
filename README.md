@@ -35,7 +35,10 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │   ├── cleaned_hr_data.csv
 │   ├── logistic_top_features.csv
 │   ├── messy_hr_data.csv
-│   └── processed_hr_data.csv
+│   ├── model_comparison_results.csv
+│   ├── processed_hr_data.csv
+│   ├── rf_top_features.csv
+│   └── xgb_top_features.csv
 ├── images
 │   ├── Attrition_by_dept.jpg
 │   ├── attrition_by_age.jpg
@@ -74,6 +77,7 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │   │   └── Day3-DataTypesAndControl.ipynb
 │   └── baby_steps.gitkeep
 ├── reports
+│   ├── Attrition_AdvancedModels_aa41c1310f907082a92a9e51b94010b5.pdf
 │   ├── Attrition_ModelComparision_009086358233572ffb338cf8f4ee6ab7.pdf
 │   ├── Attrition_Project_Summary.pdf
 │   ├── Day4-AttritionRiskAnalyzer_v2.0_058b58b9bf5e96ac0c1bdaac1e7abdcc.pdf
