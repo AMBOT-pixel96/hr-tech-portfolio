@@ -54,7 +54,9 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │   ├── screenshot1.png
 │   ├── shap_dependence_plot.png
 │   ├── shap_feature_importance.png
+│   ├── shap_local_bar_plot.png
 │   ├── shap_summary_plot.png
+│   ├── shap_waterfall_plot.png
 │   ├── top_features.png
 │   ├── top_features_post_enhancement.png
 │   ├── top_features_tuned.png
