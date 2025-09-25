@@ -2,7 +2,7 @@
 > 🧑‍💻 HR Tech & People Analytics Portfolio — from descriptive insights → predictive models → explainable AI.  
 > 🌍 Live Demo: [Attrition Dashboard](https://your-app-link.streamlit.app)
 ---
-![Generate PDF Report](https://github.com/AMBOT-pixel96/hr-tech-portfolio/actions/workflows/generate-pdf.yml/badge.svg?branch=main)
+![PDF Available](https://img.shields.io/badge/PDF-Available-brightgreen?logo=adobeacrobatreader)
 ---
 
 ## 📑 Reports Panel
