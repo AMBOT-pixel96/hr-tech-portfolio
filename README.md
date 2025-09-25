@@ -1,8 +1,8 @@
 # HR Tech Portfolio
 > 🧑‍💻 HR Tech & People Analytics Portfolio — from descriptive insights → predictive models → explainable AI.  
 > 🌍 Live Demo: [Attrition Dashboard](https://your-app-link.streamlit.app)
-![Generate PDF Report](https://github.com/AMBOT-pixel96/hr-tech-portfolio/actions/workflows/generate-pdf.yml/badge.svg)
-
+---
+![Generate PDF Report](https://github.com/AMBOT-pixel96/hr-tech-portfolio/actions/workflows/generate-pdf.yml/badge.svg?branch=main)
 ---
 
 ## 📑 Reports Panel
