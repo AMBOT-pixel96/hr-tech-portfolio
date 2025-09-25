@@ -22,7 +22,20 @@
 This repository showcases my journey into **HR Tech & People Analytics**.
 
 This repository showcases my journey into **HR Tech & People Analytics**.  
-It contains hands-on projects where I apply **Python, Pandas, Seaborn, and People Analytics concepts** to real-world HR data.  
+It contains hands-on projects where I apply **Python, Pandas, Seaborn, and People Analytics concepts** to real-world HR data.
+
+---
+
+## 📋 Project Overview  
+
+| Project | Notebook | Objective | Key Results |
+|---------|----------|------------|-------------|
+| **1. Attrition Risk Analyzer (v1.0)** | [Day4-AttritionRiskAnalyzer.ipynb](notebooks/Day4-AttritionRiskAnalyzer.ipynb) | Descriptive analytics of attrition patterns (age, dept, job role) | Attrition rate **16.1%**, highest in Sales Reps (39%) |
+| **2. Predictive Attrition Model (Logistic v2.0 / v3.0)** | [Attrition_PredictiveModel_V2.ipynb](notebooks/Attrition_PredictiveModel_V2.ipynb)<br>[Attrition_PredictiveModel_V3.ipynb](notebooks/Attrition_PredictiveModel_V3.ipynb) | Baseline + tuned Logistic Regression | Accuracy ~**75%**, ROC AUC ~**0.80**, key drivers: Overtime, JobRole, Marital Status |
+| **3. HR Data Cleaning Utility (Sidequest)** | [HR_Data_Cleaning_Utility_V1.ipynb](sidequests/HR_Data_Cleaning_Utility_V1.ipynb) | Cleaning messy HR data (duplicates, missing values, casing) | Automated pipeline → [cleaned_hr_data.csv](data/cleaned_hr_data.csv) |
+| **4. Model Comparison (Logistic vs Random Forest)** | [Attrition_ModelComparision.ipynb](notebooks/Attrition_ModelComparision.ipynb) | Compare interpretability vs non-linear power | Logistic: **75%** acc, RF: **83%** acc, RF captures income + age patterns |
+| **5. Advanced Models (Tuned RF + XGBoost)** | [Attrition_AdvancedModels.ipynb](notebooks/Attrition_AdvancedModels.ipynb) | Hyperparameter tuned RF + XGBoost benchmarking | XGBoost best performer → **86.4% acc**, ROC AUC **0.774** |
+| **6. Explainability with SHAP** | [Attrition_ModelExplainability.ipynb](notebooks/Attrition_ModelExplainability.ipynb) | Add global & local interpretability (XGBoost) | Global drivers: Overtime, JobRole, Income; Local plots explain individuals |
 
 ---
 
