@@ -84,6 +84,7 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │   ├── random_forest_attrition_model.pkl
 │   ├── random_forest_tuned.pkl
 │   ├── scaler.pkl
+│   ├── trained_columns.pkl
 │   └── xgboost_attrition_model.pkl
 ├── notebooks
 │   ├──  Attrition_PredictiveModel.ipynb
