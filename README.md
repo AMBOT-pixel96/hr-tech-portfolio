@@ -436,6 +436,26 @@ Use SHAP values to interpret XGBoost predictions, showing both global and local 
 
 ### 📓 Notebook  
 - [Attrition_ModelExplainability.ipynb](Attrition_ModelExplainability.ipynb)  
+---
+
+### 📦 Artifacts  
+- [xgboost_attrition_model.pkl](models/xgboost_attrition_model.pkl)  
+- Visuals:  
+  - [shap_summary_plot.png](images/shap_summary_plot.png)  
+  - [shap_feature_importance.png](images/shap_feature_importance.png)  
+  - [shap_waterfall_plot.png](images/shap_waterfall_plot.png)  
+  - [shap_local_bar_plot.png](images/shap_local_bar_plot.png)  
+  - [shap_dependence_plot.png](images/shap_dependence_plot.png)
+---
+### ✅ Conclusions  
+- **Global Drivers:** Overtime, Job Role, and Monthly Income stand out as top predictors.  
+- **Local Explanations:** Individual-level SHAP plots build confidence in predictions.  
+- **Feature Interactions:** Dependence plots highlight nuanced patterns beyond simple correlations.  
+
+**Why this matters:**  
+- SHAP adds transparency → critical for HR applications where fairness & accountability are key.  
+- Executives can see not just *who* is at risk, but *why*.  
+- Enhances business trust in predictive HR analytics.  
 
 ---
 ## 📊 Project 7: Interactive Attrition Dashboard (Streamlit)
@@ -492,34 +512,7 @@ Deploy an interactive web app where HR leaders can upload data, run attrition pr
 ### 🚀 Next Steps  
 - Build **SQL + ML pipeline** to query databases + run predictions (Project 8).  
 - Extend dashboard with **Compensation Analytics** modules.
----
 
-### 📦 Artifacts  
-- [xgboost_attrition_model.pkl](models/xgboost_attrition_model.pkl)  
-- Visuals:  
-  - [shap_summary_plot.png](images/shap_summary_plot.png)  
-  - [shap_feature_importance.png](images/shap_feature_importance.png)  
-  - [shap_waterfall_plot.png](images/shap_waterfall_plot.png)  
-  - [shap_local_bar_plot.png](images/shap_local_bar_plot.png)  
-  - [shap_dependence_plot.png](images/shap_dependence_plot.png)
----
-### ✅ Conclusions  
-- **Global Drivers:** Overtime, Job Role, and Monthly Income stand out as top predictors.  
-- **Local Explanations:** Individual-level SHAP plots build confidence in predictions.  
-- **Feature Interactions:** Dependence plots highlight nuanced patterns beyond simple correlations.  
-
-**Why this matters:**  
-- SHAP adds transparency → critical for HR applications where fairness & accountability are key.  
-- Executives can see not just *who* is at risk, but *why*.  
-- Enhances business trust in predictive HR analytics.  
-
----
-
-### 🚀 Next Steps  
-- Integrate SHAP visuals into the **Streamlit Dashboard (Project 7)**.  
-- Combine with **SQL pipelines (Project 8)** to deliver explainability at scale.
-
----
 ## ⚒️ Tech Stack  
 
 - Python (Pandas, Matplotlib, Seaborn, scikit-learn, Jupyter Notebook)  
