@@ -44,7 +44,7 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 <!-- REPO_TREE_START -->
 ```text
 ├── README.md
-├── app. py
+├── app.py
 ├── data
 │   ├── cleaned_hr_data.csv
 │   ├── logistic_top_features.csv
