@@ -1,124 +1,50 @@
 import streamlit as st
+import pandas as pd
+import pickle
 
-# -----------------------
-# Page Config
-# -----------------------
-st.set_page_config(page_title="Attrition Dashboard", layout="wide")
+# 🚀 Title
 st.title("🚀 HR Attrition Prediction Dashboard")
 
-# -----------------------
-# Import libraries safely
-# -----------------------
-try:
-    import pandas as pd
-    import joblib
-    import shap
-    import matplotlib.pyplot as plt
-    st.info("📦 Libraries imported successfully")
-except Exception as e:
-    st.error(f"❌ Import failed: {e}")
-    st.stop()
+# 📂 Load models & scaler with pickle
+with open("models/logistic_attrition_model.pkl", "rb") as f:
+    logistic_model = pickle.load(f)
 
-# -----------------------
-# Load Models
-# -----------------------
-try:
-    scaler = joblib.load("models/scaler.pkl")
-    logistic = joblib.load("models/logistic_attrition_model.pkl")
-    rf = joblib.load("models/random_forest_tuned.pkl")
-    xgb = joblib.load("models/xgboost_attrition_model.pkl")
-    trained_cols = joblib.load("models/trained_columns.pkl")
-    st.success("✅ Models and scaler loaded successfully!")
-except Exception as e:
-    st.error(f"❌ Error loading models: {e}")
-    st.stop()
+with open("models/random_forest_tuned.pkl", "rb") as f:
+    rf_model = pickle.load(f)
 
-# -----------------------
-# Sidebar: Model Selector
-# -----------------------
-st.sidebar.header("⚙️ Settings")
-model_choice = st.sidebar.selectbox(
-    "Choose Model", ["Logistic Regression", "Random Forest", "XGBoost"]
-)
+with open("models/xgboost_attrition_model.pkl", "rb") as f:
+    xgb_model = pickle.load(f)
 
-# -----------------------
-# File Upload
-# -----------------------
-st.header("📂 Upload Employee Dataset")
-uploaded_file = st.file_uploader("Upload a CSV (IBM HR Analytics format)", type=["csv"])
+with open("models/scaler.pkl", "rb") as f:
+    scaler = pickle.load(f)
 
-if uploaded_file is not None:
-    try:
-        df = pd.read_csv(uploaded_file)
-        st.info(f"📂 Uploaded file with {df.shape[0]} rows, {df.shape[1]} columns")
-        st.write("### 👀 Preview of Data", df.head())
-    except Exception as e:
-        st.error(f"❌ Error reading CSV: {e}")
-        st.stop()
+with open("models/trained_columns.pkl", "rb") as f:
+    trained_columns = pickle.load(f)
 
-    # -----------------------
-    # Preprocess
-    # -----------------------
-    try:
-        X = df.drop(columns=["Attrition"], errors="ignore")
-        X = pd.get_dummies(X, drop_first=True)
+# 📤 File uploader
+uploaded_file = st.file_uploader("Upload HR Data (CSV)", type=["csv"])
 
-        # Align with training features
-        for col in trained_cols:
-            if col not in X.columns:
-                X[col] = 0
-        X = X[trained_cols]
+if uploaded_file:
+    df = pd.read_csv(uploaded_file)
 
-        st.success("✅ Preprocessing complete. Features aligned.")
-    except Exception as e:
-        st.error(f"❌ Preprocessing failed: {e}")
-        st.stop()
+    # ✅ Ensure columns match training
+    df = pd.get_dummies(df)
+    df = df.reindex(columns=trained_columns, fill_value=0)
 
-    # -----------------------
-    # Model Predictions
-    # -----------------------
-    try:
-        preds, probs = None, None
-        if model_choice == "Logistic Regression":
-            X_scaled = scaler.transform(X)
-            preds = logistic.predict(X_scaled)
-            probs = logistic.predict_proba(X_scaled)[:, 1]
-        elif model_choice == "Random Forest":
-            preds = rf.predict(X)
-            probs = rf.predict_proba(X)[:, 1]
-        else:
-            preds = xgb.predict(X)
-            probs = xgb.predict_proba(X)[:, 1]
+    # 🔄 Scale numeric features
+    X_scaled = scaler.transform(df)
 
-        df_results = df.copy()
-        df_results["Attrition_Pred"] = preds
-        df_results["Attrition_Prob"] = probs
+    # 🧠 Predictions
+    logistic_pred = logistic_model.predict(X_scaled)
+    rf_pred = rf_model.predict(X_scaled)
+    xgb_pred = xgb_model.predict(X_scaled)
 
-        st.success("✅ Predictions generated")
-        st.write("### 📝 Prediction Results", df_results.head())
-    except Exception as e:
-        st.error(f"❌ Prediction failed: {e}")
-        st.stop()
+    # 📊 Show results
+    st.subheader("Predictions")
+    df["Logistic_Pred"] = logistic_pred
+    df["RandomForest_Pred"] = rf_pred
+    df["XGBoost_Pred"] = xgb_pred
 
-    # -----------------------
-    # SHAP Explanations
-    # -----------------------
-    try:
-        with st.expander("🔍 SHAP Model Explainability"):
-            st.info("⚡ Running SHAP explainer (this may take a moment)...")
-            explainer = shap.Explainer(xgb, X.sample(100, random_state=42))
-            shap_values = explainer(X.sample(100, random_state=42))
-
-            st.write("#### Global Feature Importance")
-            fig1, ax1 = plt.subplots()
-            shap.summary_plot(shap_values, X.sample(100, random_state=42), show=False)
-            st.pyplot(fig1)
-
-            st.write("#### Local Explanation (First Employee in Sample)")
-            fig2, ax2 = plt.subplots()
-            shap.plots.waterfall(shap_values[0], max_display=10, show=False)
-            st.pyplot(fig2)
-
-            st.success("✅ SHAP visualizations generated")
-    except Exception as e:
-        st.warning(f"⚠️ SHAP explainability skipped due to error: {e}")
+    st.dataframe(df.head())
+else:
+    st.info("👆 Upload a CSV file to start predictions.")
