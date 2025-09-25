@@ -26,6 +26,12 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 
 ---
 
+## 📂 Repository Structure  
+
+[![View Repo Tree](https://img.shields.io/badge/📂-View%20Repo%20Tree-lightgrey?style=for-the-badge)](FOLDER_STRUCTURE.md)
+
+---
+
 ## 📊 Project 1: Attrition Risk Analyzer (v1.0)
 
 ### v1.0 — Descriptive Insights
