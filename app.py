@@ -8,7 +8,7 @@ import io
 import os
 
 st.set_page_config(page_title="HR Attrition Dashboard", layout="wide")
-st.title("HR Attrition Prediction Dashboard")
+st.title("🚀 HR Attrition Prediction Dashboard")
 
 # ================================
 # Load Models
@@ -27,7 +27,7 @@ trained_columns = joblib.load(MODEL_PATH + "trained_columns.joblib")
 # ================================
 # Sidebar - Model Selection
 # ================================
-st.sidebar.header("Settings")
+st.sidebar.header("⚙️ Settings")
 selected_model_name = st.sidebar.selectbox("Choose a model", list(models.keys()))
 selected_model = models[selected_model_name]
 
@@ -36,7 +36,7 @@ st.sidebar.success(f"Using {selected_model_name} for predictions")
 # ================================
 # Upload Section
 # ================================
-st.subheader("Upload Employee Dataset")
+st.subheader("📂 Upload Employee Dataset")
 
 uploaded_file = st.file_uploader("Upload CSV (HRIS-style export)", type="csv")
 
@@ -45,7 +45,7 @@ sample_headers = ["Age", "Department", "JobRole", "MonthlyIncome"]
 sample_csv = pd.DataFrame(columns=sample_headers).to_csv(index=False)
 
 st.download_button(
-    label="Download Sample CSV Template",
+    label="📥 Download Sample CSV Template",
     data=sample_csv,
     file_name="sample_hris_upload.csv",
     mime="text/csv",
@@ -90,13 +90,13 @@ if uploaded_file:
     result_df["Attrition_Prob"] = (result_df["Attrition_Prob"] * 100).round(1)
     result_df["Attrition_Pred"] = result_df["Attrition_Pred"].map({1: "At Risk", 0: "Safe"})
 
-    st.write("### Employee Risk Predictions")
+    st.write("### 📋 Employee Risk Predictions")
     st.dataframe(result_df, use_container_width=True)
 
     # ================================
     # Visuals
     # ================================
-    st.write("### Attrition Risk Insights")
+    st.write("### 📊 Attrition Risk Insights")
 
     # Risk distribution
     risk_levels = pd.cut(raw_df["Attrition_Prob"], bins=[0, 0.33, 0.66, 1], labels=["Low", "Medium", "High"])
@@ -138,7 +138,7 @@ if uploaded_file:
     # CSV Export
     # ================================
     st.download_button(
-        label="Download Results (CSV)",
+        label="💾 Download Results (CSV)",
         data=result_df.to_csv(index=False),
         file_name=f"attrition_predictions_{selected_model_name.replace(' ','_')}.csv",
         mime="text/csv",
@@ -153,12 +153,13 @@ if uploaded_file:
             self.set_font("Arial", "I", 8)
             self.set_text_color(100, 100, 100)
 
-            # Branding line (no emojis)
+            # Branding line (ASCII only)
             text = (
-                "Prepared with <3 by Amlan Mishra — HR Tech, People Analytics & Compensation "
+                "Prepared with <3 by Amlan Mishra - HR Tech, People Analytics & Compensation "
                 "Management Specialist at KPMG Assurance and Consulting LLC., India"
             )
-            self.multi_cell(0, 10, text, align="C")
+            safe_text = text.encode("latin-1", "replace").decode("latin-1")
+            self.multi_cell(0, 10, safe_text, align="C")
 
             # LinkedIn link
             self.set_text_color(30, 100, 200)  # link blue
@@ -169,7 +170,7 @@ if uploaded_file:
                 link="https://www.linkedin.com/in/amlan-mishra-7aa70894"
             )
 
-    if st.button("Generate PDF Report"):
+    if st.button("📑 Generate PDF Report"):
         pdf = PDF()
         pdf.add_page()
         pdf.set_font("Arial", size=14)
@@ -209,11 +210,11 @@ if uploaded_file:
         pdf_bytes = pdf_buffer.getvalue()
 
         st.download_button(
-            label="Download PDF Report",
+            label="📥 Download PDF Report",
             data=pdf_bytes,
             file_name=f"attrition_report_{selected_model_name.replace(' ','_')}.pdf",
             mime="application/pdf",
         )
 
 else:
-    st.info("Upload a CSV or use the Sample Template to start predictions.")
+    st.info("⬆️ Upload a CSV or use the Sample Template to start predictions.")
