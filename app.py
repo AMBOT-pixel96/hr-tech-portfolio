@@ -8,7 +8,7 @@ import io
 import os
 
 st.set_page_config(page_title="HR Attrition Dashboard", layout="wide")
-st.title("🚀 HR Attrition Prediction Dashboard")
+st.title("HR Attrition Prediction Dashboard")
 
 # ================================
 # Load Models
@@ -27,16 +27,16 @@ trained_columns = joblib.load(MODEL_PATH + "trained_columns.joblib")
 # ================================
 # Sidebar - Model Selection
 # ================================
-st.sidebar.header("⚙️ Settings")
+st.sidebar.header("Settings")
 selected_model_name = st.sidebar.selectbox("Choose a model", list(models.keys()))
 selected_model = models[selected_model_name]
 
-st.sidebar.success(f"✅ Using {selected_model_name} for predictions")
+st.sidebar.success(f"Using {selected_model_name} for predictions")
 
 # ================================
 # Upload Section
 # ================================
-st.subheader("📂 Upload Employee Dataset")
+st.subheader("Upload Employee Dataset")
 
 uploaded_file = st.file_uploader("Upload CSV (HRIS-style export)", type="csv")
 
@@ -45,7 +45,7 @@ sample_headers = ["Age", "Department", "JobRole", "MonthlyIncome"]
 sample_csv = pd.DataFrame(columns=sample_headers).to_csv(index=False)
 
 st.download_button(
-    label="📥 Download Sample CSV Template",
+    label="Download Sample CSV Template",
     data=sample_csv,
     file_name="sample_hris_upload.csv",
     mime="text/csv",
@@ -78,9 +78,9 @@ if uploaded_file:
     avg_prob = raw_df["Attrition_Prob"].mean() * 100
 
     c1, c2, c3 = st.columns(3)
-    c1.metric("👥 Total Employees", total_employees)
-    c2.metric("⚠️ At-Risk Employees", at_risk)
-    c3.metric("📈 Avg Attrition Risk", f"{avg_prob:.1f}%")
+    c1.metric("Total Employees", total_employees)
+    c2.metric("At-Risk Employees", at_risk)
+    c3.metric("Average Attrition Risk", f"{avg_prob:.1f}%")
 
     # ================================
     # Results Table
@@ -88,15 +88,15 @@ if uploaded_file:
     display_cols = ["Age", "Department", "JobRole", "MonthlyIncome", "Attrition_Prob", "Attrition_Pred"]
     result_df = raw_df[display_cols].copy()
     result_df["Attrition_Prob"] = (result_df["Attrition_Prob"] * 100).round(1)
-    result_df["Attrition_Pred"] = result_df["Attrition_Pred"].map({1: "🚨 At Risk", 0: "✅ Safe"})
+    result_df["Attrition_Pred"] = result_df["Attrition_Pred"].map({1: "At Risk", 0: "Safe"})
 
-    st.write("### 📋 Employee Risk Predictions")
+    st.write("### Employee Risk Predictions")
     st.dataframe(result_df, use_container_width=True)
 
     # ================================
     # Visuals
     # ================================
-    st.write("### 📊 Attrition Risk Insights")
+    st.write("### Attrition Risk Insights")
 
     # Risk distribution
     risk_levels = pd.cut(raw_df["Attrition_Prob"], bins=[0, 0.33, 0.66, 1], labels=["Low", "Medium", "High"])
@@ -115,7 +115,7 @@ if uploaded_file:
     st.pyplot(fig2)
 
     # Department-wise high risk
-    high_risk_df = raw_df[raw_df["Attrition_Pred"] == "🚨 At Risk"]
+    high_risk_df = raw_df[raw_df["Attrition_Pred"] == "At Risk"]
     fig3, ax3 = plt.subplots(figsize=(8, 4))
     if not high_risk_df.empty and "Department" in high_risk_df.columns:
         sns.countplot(x="Department", data=high_risk_df, palette="Reds", ax=ax3)
@@ -138,7 +138,7 @@ if uploaded_file:
     # CSV Export
     # ================================
     st.download_button(
-        label="💾 Download Results (CSV)",
+        label="Download Results (CSV)",
         data=result_df.to_csv(index=False),
         file_name=f"attrition_predictions_{selected_model_name.replace(' ','_')}.csv",
         mime="text/csv",
@@ -153,9 +153,9 @@ if uploaded_file:
             self.set_font("Arial", "I", 8)
             self.set_text_color(100, 100, 100)
 
-            # Branding line
+            # Branding line (no emojis)
             text = (
-                "Prepared with ❤️ by Amlan Mishra — HR Tech, People Analytics & Compensation "
+                "Prepared with <3 by Amlan Mishra — HR Tech, People Analytics & Compensation "
                 "Management Specialist at KPMG Assurance and Consulting LLC., India"
             )
             self.multi_cell(0, 10, text, align="C")
@@ -164,12 +164,12 @@ if uploaded_file:
             self.set_text_color(30, 100, 200)  # link blue
             self.set_font("Arial", "U", 8)
             self.cell(
-                0, 10, "🔗 Connect on LinkedIn",
+                0, 10, "Connect on LinkedIn",
                 ln=True, align="C",
                 link="https://www.linkedin.com/in/amlan-mishra-7aa70894"
             )
 
-    if st.button("📑 Generate PDF Report"):
+    if st.button("Generate PDF Report"):
         pdf = PDF()
         pdf.add_page()
         pdf.set_font("Arial", size=14)
@@ -184,7 +184,7 @@ if uploaded_file:
         pdf.cell(200, 10, txt=f"Average Attrition Risk: {avg_prob:.1f}%", ln=True)
         pdf.ln(10)
 
-        pdf.multi_cell(0, 10, txt="📋 Top Predictions Snapshot (10 rows):")
+        pdf.multi_cell(0, 10, txt="Top Predictions Snapshot (10 rows):")
         for i, row in result_df.head(10).iterrows():
             pdf.cell(
                 0, 10,
@@ -195,12 +195,12 @@ if uploaded_file:
         # Insert charts
         pdf.add_page()
         pdf.set_font("Arial", size=12)
-        pdf.cell(200, 10, txt="📊 Charts", ln=True, align="C")
+        pdf.cell(200, 10, txt="Charts", ln=True, align="C")
         pdf.image(fig1_path, x=10, y=30, w=180)
         pdf.ln(100)
         pdf.image(fig2_path, x=10, y=140, w=180)
         pdf.add_page()
-        pdf.cell(200, 10, txt="📊 Department-Wise High-Risk Employees", ln=True, align="C")
+        pdf.cell(200, 10, txt="Department-Wise High-Risk Employees", ln=True, align="C")
         pdf.image(fig3_path, x=10, y=40, w=180)
 
         # Export PDF
@@ -209,11 +209,11 @@ if uploaded_file:
         pdf_bytes = pdf_buffer.getvalue()
 
         st.download_button(
-            label="📥 Download PDF Report",
+            label="Download PDF Report",
             data=pdf_bytes,
             file_name=f"attrition_report_{selected_model_name.replace(' ','_')}.pdf",
             mime="application/pdf",
         )
 
 else:
-    st.info("⬆️ Upload a CSV or use the Sample Template to start predictions.")
+    st.info("Upload a CSV or use the Sample Template to start predictions.")
