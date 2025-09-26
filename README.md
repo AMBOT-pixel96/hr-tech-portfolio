@@ -129,6 +129,7 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │   ├── Attrition_ModelComparision_009086358233572ffb338cf8f4ee6ab7.pdf
 │   ├── Attrition_ModelExplainability_52d61660976d1481ab051617939779a2.pdf
 │   ├── Attrition_Project_Summary.pdf
+│   ├── Attrition_SQL_Integration-Git_5bb7a8192e09a762c9dbe6088839adf4.pdf
 │   ├── Attrition_SQL_Integration_967dced0f92426fc0889ff773fe5ac24.pdf
 │   ├── Day4-AttritionRiskAnalyzer_v2.0_058b58b9bf5e96ac0c1bdaac1e7abdcc.pdf
 │   ├── HR_Data_Cleaning_Utility_V1_260622ce.pdf
