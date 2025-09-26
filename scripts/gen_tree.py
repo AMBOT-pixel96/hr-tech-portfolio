@@ -1,18 +1,31 @@
 import os
 from pathlib import Path
 
+# Max number of files to show inside each folder
+MAX_FILES = 5  
+
 def generate_tree(start_path=".", prefix=""):
     tree_str = ""
     items = sorted(os.listdir(start_path))
+    # Skip hidden files and .git internals
+    items = [i for i in items if not i.startswith(".git")]
+    
     pointers = ["├── "] * (len(items) - 1) + ["└── "]
     for pointer, item in zip(pointers, items):
-        if item.startswith(".git"):  # skip git internals
-            continue
         path = os.path.join(start_path, item)
-        tree_str += prefix + pointer + item + "\n"
+
+        # Always show folders
         if os.path.isdir(path):
+            tree_str += prefix + pointer + item + "/\n"
             extension = "│   " if pointer == "├── " else "    "
             tree_str += generate_tree(path, prefix + extension)
+        else:
+            # For files → only show top 3–5 latest
+            files = sorted(items, key=lambda x: os.path.getmtime(os.path.join(start_path, x)), reverse=True)
+            files = [f for f in files if os.path.isfile(os.path.join(start_path, f))]
+            for f in files[:MAX_FILES]:
+                tree_str += prefix + pointer + f + "\n"
+            break  # prevent flooding
     return tree_str
 
 def update_readme(tree_output):
@@ -38,4 +51,4 @@ def update_readme(tree_output):
 if __name__ == "__main__":
     tree = generate_tree(".")
     update_readme(tree)
-    print("✅ Repo tree injected into README.md")
+    print("✅ Curated repo tree injected into README.md")
