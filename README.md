@@ -50,6 +50,8 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 ├── app.py
 ├── data
 │   ├── cleaned_hr_data.csv
+│   ├── employee_attrition.csv
+│   ├── hr_dataset.db
 │   ├── logistic_top_features.csv
 │   ├── messy_hr_data.csv
 │   ├── model_comparison_results.csv
