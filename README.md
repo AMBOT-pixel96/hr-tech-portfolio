@@ -48,10 +48,14 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 
 <!-- REPO_TREE_START -->
 ```text
-├── requirements.txt
-├── runtime.txt
-├── app.py
 ├── README.md
+├── app.py
+├── data
+│   ├── Attrition_SQL_Predictions.csv
+│   ├── cleaned_hr_data.csv
+│   ├── employee_attrition.csv
+│   └── ... (7 more)
+└── ... (10 more)
 ```
 <!-- REPO_TREE_END -->
 
