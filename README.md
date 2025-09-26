@@ -46,103 +46,10 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 
 <!-- REPO_TREE_START -->
 ```text
-├── README.md
-├── app.py
-├── data
-│   ├── Attrition_SQL_Predictions.csv
-│   ├── cleaned_hr_data.csv
-│   ├── employee_attrition.csv
-│   ├── hr_dataset.db
-│   ├── logistic_top_features.csv
-│   ├── messy_hr_data.csv
-│   ├── model_comparison_results.csv
-│   ├── processed_hr_data.csv
-│   ├── rf_top_features.csv
-│   └── xgb_top_features.csv
-├── helper_scripts
-│   ├── hr_db.py
-│   └── sql_utils.py
-├── images
-│   ├── Attrition_by_dept.jpg
-│   ├── attrition_by_age.jpg
-│   ├── attrition_by_jobrole.png
-│   ├── confusion_matrix.png
-│   ├── confusion_matrix_xgb.png
-│   ├── department_attrition.png
-│   ├── donut_attrition.png
-│   ├── missing_values_after.png
-│   ├── missing_values_before.png
-│   ├── missing_values_collage.png
-│   ├── model_comparision.png
-│   ├── model_comparison_barplot.png
-│   ├── probability_distribution.png
-│   ├── roc_curve_comparison.png
-│   ├── screenshot1.png
-│   ├── shap_dependence_plot.png
-│   ├── shap_feature_importance.png
-│   ├── shap_local_bar_plot.png
-│   ├── shap_summary_plot.png
-│   ├── shap_waterfall_plot.png
-│   ├── streamlit_db_1.png
-│   ├── streamlit_db_2.png
-│   ├── streamlit_db_3.png
-│   ├── streamlit_db_4.png
-│   ├── top_features.png
-│   ├── top_features_post_enhancement.png
-│   ├── top_features_tuned.png
-│   ├── top_features_xgb.png
-│   └── top_features_xgb_heatmap.png
-├── models
-│   ├── Attrition_AdvancedModels.ipynb
-│   ├── logistic_attrition_model.pkl
-│   ├── logistic_attrition_model_tuned.pkl
-│   ├── placeholder
-│   ├── random_forest_attrition_model.pkl
-│   ├── random_forest_tuned.pkl
-│   ├── scaler.pkl
-│   ├── trained_columns.pkl
-│   └── xgboost_attrition_model.pkl
-├── models_joblib
-│   ├── logistic_attrition_model.joblib
-│   ├── random_forest_attrition_model.joblib
-│   ├── scaler.joblib
-│   ├── trained_columns.joblib
-│   └── xgboost_attrition_model.joblib
-├── notebooks
-│   ├──  Attrition_PredictiveModel.ipynb
-│   ├── Attrition_AdvancedModels.ipynb
-│   ├── Attrition_ModelComparision.ipynb
-│   ├── Attrition_ModelExplainability.ipynb
-│   ├── Attrition_PredictiveModel_V2.ipynb
-│   ├── Attrition_PredictiveModel_V3.ipynb
-│   ├── Attrition_SQL_Integration-Git.ipynb
-│   ├── Attrition_Streamlit_Dashboard.ipynb
-│   ├── Day4-AttritionRiskAnalyzer.ipynb
-│   ├── Day4-AttritionRiskAnalyzer_v2.0.ipynb
-│   ├── baby_steps
-│   │   ├── Day1-Hello-Amlan.ipynb
-│   │   ├── Day2-Basics.ipynb
-│   │   └── Day3-DataTypesAndControl.ipynb
-│   └── baby_steps.gitkeep
-├── reports
-│   ├── Attrition_AdvancedModels_aa41c1310f907082a92a9e51b94010b5.pdf
-│   ├── Attrition_ModelComparision_009086358233572ffb338cf8f4ee6ab7.pdf
-│   ├── Attrition_ModelExplainability_52d61660976d1481ab051617939779a2.pdf
-│   ├── Attrition_Project_Summary.pdf
-│   ├── Attrition_SQL_Integration-Git_5bb7a8192e09a762c9dbe6088839adf4.pdf
-│   ├── Attrition_SQL_Integration_967dced0f92426fc0889ff773fe5ac24.pdf
-│   ├── Day4-AttritionRiskAnalyzer_v2.0_058b58b9bf5e96ac0c1bdaac1e7abdcc.pdf
-│   ├── HR_Data_Cleaning_Utility_V1_260622ce.pdf
-│   ├── HR_Data_Cleaning_Utility_V1_6501dfa8.pdf
-│   ├── HR_Data_Cleaning_Utility_V1_86b38b95.pdf
-│   └── HR_Data_Cleaning_Utility_V1_87664d4cc3eefa67f9fe549d33ef7c57.pdf
 ├── requirements.txt
 ├── runtime.txt
-├── scripts
-│   ├── export_pdf.py
-│   └── gen_tree.py
-└── sidequests
-    └── HR_Data_Cleaning_Utility_V1.ipynb
+├── README.md
+├── app.py
 ```
 <!-- REPO_TREE_END -->
 
