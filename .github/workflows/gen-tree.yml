@@ -23,10 +23,14 @@ jobs:
       - name: Run gen_tree.py
         run: python scripts/gen_tree.py
 
-      - name: Commit updated README
+      - name: Commit updated README (only if changed)
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
           git add README.md || true
-          git commit -m "Auto-update repo tree [skip ci]" || echo "⚠️ No changes"
-          git push origin main || true
+          if ! git diff --cached --quiet; then
+            git commit -m "Auto-update curated repo tree [skip ci]"
+            git push origin main
+          else
+            echo "✅ No changes in README, skipping commit."
+          fi
