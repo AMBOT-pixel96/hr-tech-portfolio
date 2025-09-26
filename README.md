@@ -64,11 +64,14 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │   ├── attrition_by_jobrole.png
 │   ├── confusion_matrix.png
 │   ├── confusion_matrix_xgb.png
+│   ├── department_attrition.png
+│   ├── donut_attrition.png
 │   ├── missing_values_after.png
 │   ├── missing_values_before.png
 │   ├── missing_values_collage.png
 │   ├── model_comparision.png
 │   ├── model_comparison_barplot.png
+│   ├── probability_distribution.png
 │   ├── roc_curve_comparison.png
 │   ├── screenshot1.png
 │   ├── shap_dependence_plot.png
