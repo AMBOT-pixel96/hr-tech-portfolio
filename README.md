@@ -55,7 +55,41 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │   ├── cleaned_hr_data.csv
 │   ├── employee_attrition.csv
 │   └── ... (7 more)
-└── ... (10 more)
+├── helper_scripts
+│   ├── hr_db.py
+│   └── sql_utils.py
+├── images
+│   ├── Attrition_by_dept.jpg
+│   ├── attrition_by_age.jpg
+│   ├── attrition_by_jobrole.png
+│   └── ... (26 more)
+├── models
+│   ├── Attrition_AdvancedModels.ipynb
+│   ├── logistic_attrition_model.pkl
+│   ├── logistic_attrition_model_tuned.pkl
+│   └── ... (6 more)
+├── models_joblib
+│   ├── logistic_attrition_model.joblib
+│   ├── random_forest_attrition_model.joblib
+│   ├── scaler.joblib
+│   └── ... (2 more)
+├── notebooks
+│   ├──  Attrition_PredictiveModel.ipynb
+│   ├── Attrition_AdvancedModels.ipynb
+│   ├── Attrition_ModelComparision.ipynb
+│   └── ... (9 more)
+├── reports
+│   ├── Attrition_AdvancedModels_aa41c1310f907082a92a9e51b94010b5.pdf
+│   ├── Attrition_ModelComparision_009086358233572ffb338cf8f4ee6ab7.pdf
+│   ├── Attrition_ModelExplainability_52d61660976d1481ab051617939779a2.pdf
+│   └── ... (8 more)
+├── requirements.txt
+├── runtime.txt
+├── scripts
+│   ├── export_pdf.py
+│   └── gen_tree.py
+└── sidequests
+    └── HR_Data_Cleaning_Utility_V1.ipynb
 ```
 <!-- REPO_TREE_END -->
 
