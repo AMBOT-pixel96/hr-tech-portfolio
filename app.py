@@ -119,7 +119,9 @@ st.dataframe(summary_df.style.format({"Accuracy":"{:.2f}","ROC_AUC":"{:.2f}"}),u
 fig_d,ax_d=plt.subplots(figsize=(4,4))
 ax_d.pie([at_risk,total-at_risk],labels=["At Risk","Safe"],autopct="%1.1f%%",
          colors=["#ef4444","#10b981"],startangle=90)
-plt.Circle((0,0),0.7,fc='white'); ax_d.axis('equal')
+circle = plt.Circle((0,0),0.7,fc='white')
+ax_d.add_artist(circle)
+ax_d.axis('equal')
 st.pyplot(fig_d); fig_d.savefig(os.path.join(TMP_DIR,"donut.png"))
 
 # Dept stacked
@@ -154,7 +156,7 @@ for name,model in models.items():
     if hasattr(model,"coef_"):
         vals=model.coef_[0]; fn=np.array(trained_cols)
         df=pd.DataFrame({"feature":fn,"importance":vals}).assign(abs_imp=lambda d:d.importance.abs())
-        feats[name]=df.sort_values("abs_imp",ascending=False).drop("abs_imp",1).head(10)
+        feats[name]=df.sort_values("abs_imp",ascending=False).drop("abs_imp",axis=1).head(10)
     elif hasattr(model,"feature_importances_"):
         vals=model.feature_importances_; fn=np.array(trained_cols)
         df=pd.DataFrame({"feature":fn,"importance":vals})
@@ -164,7 +166,7 @@ for n,f in feats.items(): st.write(f"**{n}**"); st.dataframe(f)
 # ===============================
 # SHAP for XGB
 # ===============================
-shap_bar=shap_swarm=shap_dep=shap_water=None
+shap_bar=shap_swarm=None
 try:
     import shap
     if models["XGBoost"] is not None:
@@ -183,11 +185,14 @@ except Exception as e: st.warning("SHAP skipped: "+str(e))
 # ===============================
 class PDF(FPDF):
     def header(self): 
-        if self.page_no()>1: self.set_font("Arial","B",12); self.cell(0,10,"HR Attrition Prediction Report",ln=True,align="C")
+        if self.page_no()>1: 
+            self.set_font("Arial","B",12)
+            self.cell(0,10,"HR Attrition Prediction Report",ln=True,align="C")
     def footer(self):
         self.set_y(-20); self.set_font("Arial","I",8); self.set_text_color(100,100,100)
         txt="Prepared with <3 by Amlan Mishra - HR Tech, People Analytics & C&B Specialist at KPMG India"
-        safe=txt.encode("latin-1","replace").decode("latin-1"); self.multi_cell(0,10,safe,align="C")
+        safe=txt.encode("latin-1","replace").decode("latin-1")
+        self.multi_cell(0,10,safe,align="C")
         self.set_text_color(30,100,200); self.set_font("Arial","U",8)
         self.cell(0,10,"Connect on LinkedIn",ln=True,align="C",link="https://www.linkedin.com/in/amlan-mishra-7aa70894")
 
@@ -207,21 +212,33 @@ if st.button("📑 Generate Executive PDF"):
     for h in ["Model","Accuracy","ROC AUC"]: pdf.cell(60,8,h,border=1,align="C")
     pdf.ln(8); pdf.set_font("Arial","",10)
     for _,r in summary_df.iterrows():
-        pdf.cell(60,8,str(r.Model),border=1); pdf.cell(60,8,f"{r.Accuracy:.2f}",border=1,align="C"); pdf.cell(60,8,f"{r.ROC_AUC:.2f}",border=1,align="C"); pdf.ln(8)
+        pdf.cell(60,8,str(r.Model),border=1)
+        pdf.cell(60,8,f"{r.Accuracy:.2f}",border=1,align="C")
+        pdf.cell(60,8,f"{r.ROC_AUC:.2f}",border=1,align="C"); pdf.ln(8)
     # Top 10 snapshot
     pdf.add_page(); pdf.set_font("Arial","B",12); pdf.cell(0,8,"Top 10 Employees (Ensemble)",ln=True)
-    snap=pd.DataFrame({"JobRole":raw_df.get("JobRole",[""]*len(raw_df)),
-        "Dept":raw_df.get("Department",[""]*len(raw_df)),"Age":raw_df.get("Age",[""]*len(raw_df)),
-        "Income":raw_df.get("MonthlyIncome",[""]*len(raw_df)),"Risk%":(ensemble_prob*100).round(1),
-        "Pred":np.where(ensemble_pred==1,"At Risk","Safe")})
+    snap=pd.DataFrame({
+        "JobRole":raw_df.get("JobRole",[""]*len(raw_df)),
+        "Dept":raw_df.get("Department",[""]*len(raw_df)),
+        "Age":raw_df.get("Age",[""]*len(raw_df)),
+        "Income":raw_df.get("MonthlyIncome",[""]*len(raw_df)),
+        "Risk%":(ensemble_prob*100).round(1),
+        "Pred":np.where(ensemble_pred==1,"At Risk","Safe")
+    })
     for _,row in snap.head(10).iterrows():
-        pdf.cell(50,8,str(row.JobRole)[:20],1); pdf.cell(40,8,str(row.Dept)[:15],1)
-        pdf.cell(20,8,str(row.Age),1,align="C"); pdf.cell(30,8,str(row.Income),1,align="R")
+        pdf.cell(50,8,str(row.JobRole)[:20],1)
+        pdf.cell(40,8,str(row.Dept)[:15],1)
+        pdf.cell(20,8,str(row.Age),1,align="C")
+        pdf.cell(30,8,str(row.Income),1,align="R")
         if row["Risk%"]>50: pdf.set_text_color(200,30,30)
-        pdf.cell(20,8,f"{row['Risk%']:.1f}",1,align="R"); pdf.set_text_color(0,0,0)
+        pdf.cell(20,8,f"{row['Risk%']:.1f}",1,align="R")
+        pdf.set_text_color(0,0,0)
         pdf.cell(30,8,row.Pred,1,align="C"); pdf.ln(8)
     # Charts & SHAP
     for fn in ["donut.png","dept.png","roc.png","shap_bar.png","shap_swarm.png"]:
         p=os.path.join(TMP_DIR,fn)
-        if os.path.exists(p): pdf.add_page(); pdf.image(p,x=20,y=30,w=170)
-    buf=io.BytesIO(); pdf.output(buf); st.download_button("📥 Download PDF",data=buf.getvalue(),file_name="attrition_report.pdf",mime="application/pdf")
+        if os.path.exists(p): 
+            pdf.add_page(); pdf.image(p,x=20,y=30,w=170)
+    buf=io.BytesIO()
+    pdf.output(buf, 'S')
+    st.download_button("📥 Download PDF",data=buf.getvalue(),file_name="attrition_report.pdf",mime="application/pdf")
