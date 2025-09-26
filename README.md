@@ -50,8 +50,8 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 ```text
 ├── requirements.txt
 ├── runtime.txt
-├── README.md
 ├── app.py
+├── README.md
 ```
 <!-- REPO_TREE_END -->
 
