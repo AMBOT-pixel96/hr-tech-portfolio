@@ -545,6 +545,67 @@ Deploy an interactive web app where HR leaders can upload data, run attrition pr
 ### 🚀 Next Steps  
 - Build **SQL + ML pipeline** to query databases + run predictions (Project 8).  
 - Extend dashboard with **Compensation Analytics** modules.
+## 📊 Project 8: SQL + ML Integration  
+
+**Objective:**  
+Bridge **SQL querying power** with **Machine Learning predictions** for HR attrition risk.  
+This project shows how HR teams can query their employee database (like an HRIS system) and instantly run ML predictions on the results.  
+
+**Why It Matters (Business Context):**  
+- HR data lives in **databases** (HRIS, payroll, ERP).  
+- Analysts need the ability to query + predict attrition directly.  
+- This integration makes predictive analytics **practical in enterprise settings**.  
+
+---
+
+### 🔑 Key Steps  
+1. **Database Creation** → Converted IBM dataset → SQLite DB (`hr_dataset.db`) with `employees` table.  
+2. **Helper Scripts** →  
+   - [`helper_scripts/hr_db.py`](helper_scripts/hr_db.py) → builds DB from CSV.  
+   - [`helper_scripts/sql_utils.py`](helper_scripts/sql_utils.py) → safe query execution + sample queries.  
+3. **SQL Queries** → Run HR-style queries (e.g., attrition by department, tenure distribution).  
+4. **ML Integration** → Query results → feature alignment → scaled → predictions using trained XGBoost model.  
+5. **Visuals** → Donut chart (Safe vs At Risk), Department stacked bars, Probability distribution.  
+6. **Optimized Predictions** →  
+   - Leakage fix (drops `Attrition` col).  
+   - Proper scaling.  
+   - Tuned threshold (`0.65`) for realistic at-risk counts.  
+
+---
+
+### 🖼️ Sample Visuals  
+
+**Donut Chart — Attrition Risk Split**  
+![Donut Chart](images/donut_attrition.png)  
+
+**Department Breakdown**  
+![Attrition by Dept](images/department_attrition.png)  
+
+**Predicted Attrition Probability Distribution**  
+![Probability Distribution](images/probability_distribution.png)  
+
+---
+
+### 📦 Artifacts  
+
+- **Notebook** → [Attrition_SQL_Integration-Git.ipynb](notebooks/Attrition_SQL_Integration-Git.ipynb)  
+- **Database** → [hr_dataset.db](data/hr_dataset.db)  
+- **Dataset** → [employee_attrition.csv](data/employee_attrition.csv)  
+- **Helper Scripts** → [`helper_scripts/`](helper_scripts/)  
+- **Predictions Export** → [Attrition_SQL_Predictions.csv](data/Attrition_SQL_Predictions.csv)  
+
+---
+
+### ✅ Conclusion  
+
+- SQL + ML pipeline works end-to-end.  
+- Analysts can run **attrition queries directly on DB** and immediately see predictions.  
+- Departments with high predicted risk can be flagged for **retention interventions**.  
+
+**Way Forward:**  
+- Expand SQL query library (e.g., gender pay parity, tenure buckets).  
+- Connect to **real HRIS / cloud DB** instead of static CSV.  
+- Build a Streamlit **C&B Dashboard** (next side quest).
 
 ## ⚒️ Tech Stack  
 
