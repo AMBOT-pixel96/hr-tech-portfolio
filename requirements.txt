@@ -1,11 +1,12 @@
 streamlit
 pandas
 numpy
-scikit-learn
 matplotlib
 seaborn
+plotly
+reportlab
+openpyxl
+scikit-learn
 xgboost
 shap
 fpdf2
-reportlab
-plotly
