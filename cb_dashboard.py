@@ -1,163 +1,152 @@
-# cb_dashboard.py -- Compensation & Benefits Dashboard (with Benchmarking, Heatmaps, Exports)
+# cb_dashboard.py -- Compensation & Benefits Dashboard
 import streamlit as st
 import pandas as pd
 import numpy as np
-import plotly.express as px
-from fpdf import FPDF
-import io
+import matplotlib.pyplot as plt
+import seaborn as sns
+from io import BytesIO
 
-# ===============================
-# CONFIG
-# ===============================
-st.set_page_config(page_title="💰 Compensation & Benefits Dashboard", layout="wide")
+st.set_page_config(page_title="Compensation & Benefits Dashboard", layout="wide")
 st.title("💰 Compensation & Benefits Dashboard")
 
-# ===============================
-# FILE UPLOAD
-# ===============================
-st.sidebar.header("⚙️ Settings")
-uploaded_file = st.sidebar.file_uploader("📂 Upload Compensation Dataset (CSV/XLSX)", type=["csv","xlsx"])
-
-sample_cols = ["EmployeeID","Department","JobRole","JobLevel","Gender","CTC","Bonus","PerformanceRating","MarketMedian"]
-st.sidebar.download_button(
-    "📥 Download Sample Template",
-    data=pd.DataFrame(columns=sample_cols).to_csv(index=False),
-    file_name="compensation_template.csv",
-    mime="text/csv"
-)
+# ==============================
+# Upload Section
+# ==============================
+uploaded_file = st.file_uploader("📂 Upload Compensation Dataset (CSV/XLSX)", type=["csv","xlsx"])
+benchmark_file = st.file_uploader("📂 Upload Benchmarking Dataset (CSV/XLSX)", type=["csv","xlsx"])
 
 if not uploaded_file:
-    st.info("⬆️ Please upload a dataset to continue.")
+    st.info("⬆️ Please upload your Compensation dataset to begin.")
     st.stop()
 
-# Load file
+# ==============================
+# Helper: Normalize Columns
+# ==============================
+def normalize_columns(df):
+    df.columns = df.columns.str.strip().str.lower()
+    rename_map = {
+        "department": "Department",
+        "jobrole": "JobRole",
+        "job role": "JobRole",
+        "joblevel": "JobLevel",
+        "job level": "JobLevel",
+        "ctc": "CTC",
+        "salary": "CTC",
+        "monthlyincome": "CTC",
+        "bonus": "Bonus",
+        "gender": "Gender",
+        "performance": "PerformanceRating",
+        "rating": "PerformanceRating"
+    }
+    df.rename(columns={k.lower(): v for k, v in rename_map.items()}, inplace=True)
+    return df
+
+# ==============================
+# Load Main Data
+# ==============================
 if uploaded_file.name.endswith("csv"):
     df = pd.read_csv(uploaded_file)
 else:
     df = pd.read_excel(uploaded_file)
 
-st.write("### 👀 Preview Uploaded Data")
+df = normalize_columns(df)
+
+# Load Benchmark Data (optional)
+benchmark_df = None
+if benchmark_file:
+    if benchmark_file.name.endswith("csv"):
+        benchmark_df = pd.read_csv(benchmark_file)
+    else:
+        benchmark_df = pd.read_excel(benchmark_file)
+    benchmark_df = normalize_columns(benchmark_df)
+
+# ==============================
+# Preview Data
+# ==============================
+st.subheader("👀 Preview Uploaded Data")
 st.dataframe(df.head(), use_container_width=True)
 
-# ===============================
-# METRICS
-# ===============================
-st.header("📊 Key Compensation Metrics")
+# ==============================
+# Key Metrics
+# ==============================
+st.subheader("📊 Key Compensation Metrics")
 
 # Avg CTC by Department
-avg_ctc_dept = df.groupby("Department")["CTC"].mean().reset_index()
-fig1 = px.bar(avg_ctc_dept, x="Department", y="CTC", title="Average CTC by Department", text_auto=".2s")
-st.plotly_chart(fig1, use_container_width=True)
+if "Department" in df.columns and "CTC" in df.columns:
+    avg_ctc_dept = df.groupby("Department")["CTC"].mean().reset_index()
+    st.markdown("### 🏢 Average CTC by Department")
+    st.dataframe(avg_ctc_dept, use_container_width=True)
+
+    fig, ax = plt.subplots(figsize=(8,4))
+    sns.barplot(data=avg_ctc_dept, x="Department", y="CTC", ax=ax)
+    plt.xticks(rotation=30)
+    st.pyplot(fig)
 
 # Avg CTC by Job Role
-avg_ctc_role = df.groupby("JobRole")["CTC"].mean().reset_index()
-fig2 = px.bar(avg_ctc_role, x="JobRole", y="CTC", title="Average CTC by Job Role", text_auto=".2s")
-st.plotly_chart(fig2, use_container_width=True)
+if "JobRole" in df.columns and "CTC" in df.columns:
+    avg_ctc_role = df.groupby("JobRole")["CTC"].mean().reset_index()
+    st.markdown("### 👔 Average CTC by Job Role")
+    st.dataframe(avg_ctc_role, use_container_width=True)
 
-# Quartile Placement Analysis
-def quartile_flag(x, q1, q2, q3):
-    if x <= q1: return "Q1 (Low)"
-    elif x <= q2: return "Q2"
-    elif x <= q3: return "Q3"
-    else: return "Q4 (High)"
+    fig, ax = plt.subplots(figsize=(8,4))
+    sns.barplot(data=avg_ctc_role, x="JobRole", y="CTC", ax=ax)
+    plt.xticks(rotation=45)
+    st.pyplot(fig)
 
-quartile_df = df.copy()
-q1, q2, q3 = quartile_df["CTC"].quantile([0.25,0.5,0.75])
-quartile_df["Quartile"] = quartile_df["CTC"].apply(lambda x: quartile_flag(x,q1,q2,q3))
-heatmap_data = quartile_df.pivot_table(index="JobRole", columns="Quartile", values="CTC", aggfunc="count", fill_value=0)
+# Quartile Analysis
+if "JobRole" in df.columns and "CTC" in df.columns:
+    st.markdown("### 📐 Quartile Placement Analysis")
+    q_summary = df.groupby("JobRole")["CTC"].describe(percentiles=[0.25,0.5,0.75]).reset_index()
+    st.dataframe(q_summary, use_container_width=True)
 
-st.write("### 📐 Quartile Distribution by Job Role")
-st.dataframe(heatmap_data)
+    fig, ax = plt.subplots(figsize=(10,6))
+    sns.boxplot(data=df, x="JobRole", y="CTC", ax=ax)
+    plt.xticks(rotation=45)
+    st.pyplot(fig)
 
-fig3 = px.imshow(heatmap_data, text_auto=True, aspect="auto", title="Quartile Heatmap by Job Role")
-st.plotly_chart(fig3, use_container_width=True)
+# Bonus as % of CTC
+if "Bonus" in df.columns and "CTC" in df.columns:
+    df["BonusPct"] = (df["Bonus"] / df["CTC"]) * 100
+    bonus_summary = df.groupby("Department")["BonusPct"].mean().reset_index()
+    st.markdown("### 🎁 Avg Bonus % of CTC by Department")
+    st.dataframe(bonus_summary, use_container_width=True)
 
-# Bonus % of CTC
-df["BonusPct"] = (df["Bonus"] / df["CTC"] * 100).round(2)
-bonus_dept = df.groupby("Department")["BonusPct"].mean().reset_index()
-fig4 = px.bar(bonus_dept, x="Department", y="BonusPct", title="Average Bonus % of CTC by Department", text_auto=".2f")
-st.plotly_chart(fig4, use_container_width=True)
-
-bonus_gender = df.groupby("Gender")["BonusPct"].mean().reset_index()
-fig5 = px.bar(bonus_gender, x="Gender", y="BonusPct", title="Average Bonus % of CTC by Gender", text_auto=".2f")
-st.plotly_chart(fig5, use_container_width=True)
+    fig, ax = plt.subplots(figsize=(8,4))
+    sns.barplot(data=bonus_summary, x="Department", y="BonusPct", ax=ax)
+    plt.xticks(rotation=30)
+    st.pyplot(fig)
 
 # Performance x Compensation
-perf_ctc = df.groupby(["PerformanceRating","JobLevel"])["CTC"].mean().reset_index()
-fig6 = px.bar(perf_ctc, x="PerformanceRating", y="CTC", color="JobLevel", barmode="group",
-              title="Avg CTC by Performance Rating & Job Level")
-st.plotly_chart(fig6, use_container_width=True)
+if "PerformanceRating" in df.columns and "CTC" in df.columns:
+    st.markdown("### ⭐ Performance vs Compensation")
+    perf_summary = df.groupby("PerformanceRating")["CTC"].mean().reset_index()
+    st.dataframe(perf_summary, use_container_width=True)
 
-# ===============================
-# BENCHMARKING
-# ===============================
-if "MarketMedian" in df.columns:
-    st.header("📊 Benchmarking: Company vs Market Medians")
+    fig, ax = plt.subplots(figsize=(6,4))
+    sns.barplot(data=perf_summary, x="PerformanceRating", y="CTC", ax=ax)
+    st.pyplot(fig)
 
-    bench = df.groupby("JobRole")[["CTC","MarketMedian"]].median().reset_index()
-    bench["Delta"] = (bench["CTC"] - bench["MarketMedian"]).round(2)
+# Benchmark Comparison
+if benchmark_df is not None and "JobRole" in df.columns and "CTC" in df.columns:
+    st.markdown("### 📊 Company vs Market Benchmarking (Median CTC)")
+    company_median = df.groupby("JobRole")["CTC"].median().reset_index().rename(columns={"CTC":"CompanyMedian"})
+    market_median = benchmark_df.groupby("JobRole")["CTC"].median().reset_index().rename(columns={"CTC":"MarketMedian"})
+    compare = pd.merge(company_median, market_median, on="JobRole", how="inner")
+    st.dataframe(compare, use_container_width=True)
 
-    fig7 = px.bar(
-        bench, x="JobRole", y=["CTC","MarketMedian"], 
-        barmode="group", title="Company Median vs Market Median (by Job Role)"
-    )
-    st.plotly_chart(fig7, use_container_width=True)
+    fig, ax = plt.subplots(figsize=(10,6))
+    compare.set_index("JobRole")[["CompanyMedian","MarketMedian"]].plot(kind="bar", ax=ax)
+    plt.xticks(rotation=45)
+    st.pyplot(fig)
 
-    # Heatmap of pay gaps
-    heatmap_bench = bench.set_index("JobRole")[["Delta"]]
-    fig8 = px.imshow(
-        heatmap_bench.T, text_auto=True, aspect="auto", color_continuous_scale="RdYlGn_r",
-        title="⚖️ Pay Gap Heatmap (Company vs Market)"
-    )
-    st.plotly_chart(fig8, use_container_width=True)
+# ==============================
+# Export Section
+# ==============================
+st.subheader("📥 Export Reports")
+def convert_df(df):
+    return df.to_csv(index=False).encode("utf-8")
 
-    st.write("### 🔍 Benchmarking Table")
-    st.dataframe(bench)
+st.download_button("⬇️ Download Processed Dataset (CSV)", convert_df(df), "processed_compensation.csv", "text/csv")
 
-# ===============================
-# PDF EXPORT
-# ===============================
-st.header("📑 Export Report")
-if st.button("📥 Generate PDF Report"):
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial","B",16)
-    pdf.cell(200,10,"Compensation & Benefits Report", ln=True, align="C")
-
-    pdf.set_font("Arial","",12)
-    pdf.multi_cell(0,10,"This report contains key metrics on compensation, quartiles, bonuses, performance linkage, and benchmarking.")
-
-    if "MarketMedian" in df.columns:
-        pdf.set_font("Arial","B",12)
-        pdf.cell(0,10,"Company vs Market Medians", ln=True)
-        pdf.set_font("Arial","",10)
-        for _,row in bench.iterrows():
-            pdf.cell(0,8,f"{row['JobRole']}: Company {row['CTC']:.2f}, Market {row['MarketMedian']:.2f}, Δ {row['Delta']:.2f}", ln=True)
-
-    buf = io.BytesIO()
-    pdf.output(buf)
-    st.download_button(
-        "📥 Download PDF",
-        data=buf.getvalue(),
-        file_name="Compensation_Report.pdf",
-        mime="application/pdf"
-    )
-
-# ===============================
-# CSV EXPORT
-# ===============================
-st.header("📦 Export Data")
-st.download_button(
-    "📥 Download Quartile Analysis CSV",
-    data=quartile_df.to_csv(index=False),
-    file_name="quartile_analysis.csv",
-    mime="text/csv"
-)
-
-if "MarketMedian" in df.columns:
-    st.download_button(
-        "📥 Download Benchmarking CSV",
-        data=bench.to_csv(index=False),
-        file_name="benchmarking_results.csv",
-        mime="text/csv"
-    )
+if benchmark_df is not None:
+    st.download_button("⬇️ Download Benchmark Comparison (CSV)", convert_df(compare), "benchmark_comparison.csv", "text/csv")
