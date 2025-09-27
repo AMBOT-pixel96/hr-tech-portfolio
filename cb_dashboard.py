@@ -1,160 +1,145 @@
-# app.py -- Compensation & Benefits Dashboard
+# cb_dashboard.py -- Compensation & Benefits Dashboard (with Benchmarking)
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
+import plotly.express as px
 from fpdf import FPDF
-import io, os
-from datetime import datetime
+import io
 
-# ==============================
-# Config
-# ==============================
-st.set_page_config(page_title="💰 C&B Dashboard", layout="wide")
+# ===============================
+# CONFIG
+# ===============================
+st.set_page_config(page_title="💰 Compensation & Benefits Dashboard", layout="wide")
 st.title("💰 Compensation & Benefits Dashboard")
 
-# ==============================
-# File Uploads
-# ==============================
-uploaded_file = st.file_uploader("📂 Upload Employee Dataset (CSV/Excel)", type=["csv", "xlsx"])
-benchmark_file = st.file_uploader("📂 Upload Market Benchmark File (optional, CSV)", type=["csv"])
+# ===============================
+# FILE UPLOAD
+# ===============================
+st.sidebar.header("⚙️ Settings")
+uploaded_file = st.sidebar.file_uploader("📂 Upload Compensation Dataset (CSV/XLSX)", type=["csv","xlsx"])
 
-sample_headers = ["EmployeeID","Department","JobRole","JobLevel","Gender","CTC","Bonus","PerfRating"]
-st.download_button(
-    "📥 Download Sample Employee Template",
-    data=pd.DataFrame(columns=sample_headers).to_csv(index=False),
-    file_name="cb_dashboard_template.csv"
-)
-
-benchmark_headers = ["JobRole","MarketMedianCTC"]
-st.download_button(
-    "📥 Download Sample Benchmark Template",
-    data=pd.DataFrame(columns=benchmark_headers).to_csv(index=False),
-    file_name="benchmark_template.csv"
+sample_cols = ["EmployeeID","Department","JobRole","JobLevel","Gender","CTC","Bonus","PerformanceRating","MarketMedian"]
+st.sidebar.download_button(
+    "📥 Download Sample Template",
+    data=pd.DataFrame(columns=sample_cols).to_csv(index=False),
+    file_name="compensation_template.csv",
+    mime="text/csv"
 )
 
 if not uploaded_file:
-    st.info("⬆️ Upload your Employee dataset to get started.")
+    st.info("⬆️ Please upload a dataset to continue.")
     st.stop()
 
-# Load employee file
-if uploaded_file.name.endswith(".csv"):
+# Load file
+if uploaded_file.name.endswith("csv"):
     df = pd.read_csv(uploaded_file)
 else:
     df = pd.read_excel(uploaded_file)
 
-st.write("### 👀 Preview Employee Data")
+st.write("### 👀 Preview Uploaded Data")
 st.dataframe(df.head(), use_container_width=True)
 
-# Load benchmark file if provided
-benchmark_df = None
-if benchmark_file:
-    benchmark_df = pd.read_csv(benchmark_file)
-    st.write("### 📊 Preview Benchmark Data")
-    st.dataframe(benchmark_df.head(), use_container_width=True)
+# ===============================
+# METRICS
+# ===============================
+st.header("📊 Key Compensation Metrics")
 
-# ==============================
-# Metrics Calculations
-# ==============================
-st.header("📊 Key Metrics")
-
-# 1. Avg CTC by Department
+# Avg CTC by Department
 avg_ctc_dept = df.groupby("Department")["CTC"].mean().reset_index()
+fig1 = px.bar(avg_ctc_dept, x="Department", y="CTC", title="Average CTC by Department", text_auto=".2s")
+st.plotly_chart(fig1, use_container_width=True)
 
-# 2. Avg CTC by Job Role
+# Avg CTC by Job Role
 avg_ctc_role = df.groupby("JobRole")["CTC"].mean().reset_index()
+fig2 = px.bar(avg_ctc_role, x="JobRole", y="CTC", title="Average CTC by Job Role", text_auto=".2s")
+st.plotly_chart(fig2, use_container_width=True)
 
-# 3. Gender Pay Gap (% difference)
-gender_pay = df.groupby("Gender")["CTC"].mean()
-if len(gender_pay) >= 2:
-    gap = (gender_pay.max() - gender_pay.min()) / gender_pay.max() * 100
-else:
-    gap = np.nan
+# Quartile Placement Analysis
+def quartile_flag(x, q1, q2, q3):
+    if x <= q1: return "Q1 (Low)"
+    elif x <= q2: return "Q2"
+    elif x <= q3: return "Q3"
+    else: return "Q4 (High)"
 
-# 4. Bonus % of CTC by Dept
-df["BonusPct"] = (df["Bonus"] / df["CTC"]) * 100
+quartile_df = df.copy()
+q1, q2, q3 = quartile_df["CTC"].quantile([0.25,0.5,0.75])
+quartile_df["Quartile"] = quartile_df["CTC"].apply(lambda x: quartile_flag(x,q1,q2,q3))
+heatmap_data = quartile_df.pivot_table(index="JobRole", columns="Quartile", values="CTC", aggfunc="count", fill_value=0)
+st.write("### 📐 Quartile Distribution by Job Role")
+st.dataframe(heatmap_data)
+
+fig3 = px.imshow(heatmap_data, text_auto=True, aspect="auto", title="Quartile Heatmap by Job Role")
+st.plotly_chart(fig3, use_container_width=True)
+
+# Bonus % of CTC
+df["BonusPct"] = (df["Bonus"] / df["CTC"] * 100).round(2)
 bonus_dept = df.groupby("Department")["BonusPct"].mean().reset_index()
+fig4 = px.bar(bonus_dept, x="Department", y="BonusPct", title="Average Bonus % of CTC by Department", text_auto=".2f")
+st.plotly_chart(fig4, use_container_width=True)
 
-# 5. Perf Rating x CTC
-perf_ctc = df.groupby("PerfRating")["CTC"].mean().reset_index()
+bonus_gender = df.groupby("Gender")["BonusPct"].mean().reset_index()
+fig5 = px.bar(bonus_gender, x="Gender", y="BonusPct", title="Average Bonus % of CTC by Gender", text_auto=".2f")
+st.plotly_chart(fig5, use_container_width=True)
 
-# 6. Benchmark comparison
-benchmark_merge = None
-if benchmark_df is not None:
-    benchmark_merge = pd.merge(avg_ctc_role, benchmark_df, on="JobRole", how="left")
-    benchmark_merge["GapVsMarket"] = benchmark_merge["CTC"] - benchmark_merge["MarketMedianCTC"]
+# Performance x Compensation
+perf_ctc = df.groupby(["PerformanceRating","Department"])["CTC"].mean().reset_index()
+fig6 = px.bar(perf_ctc, x="PerformanceRating", y="CTC", color="Department", barmode="group",
+              title="Avg CTC by Performance Rating (Dept-wise)")
+st.plotly_chart(fig6, use_container_width=True)
 
-# ==============================
-# Visuals
-# ==============================
-st.header("📈 Visual Insights")
+# ===============================
+# BENCHMARKING
+# ===============================
+if "MarketMedian" in df.columns:
+    st.header("📊 Benchmarking: Company vs Market Medians")
 
-# Donut chart - Gender distribution
-fig1, ax1 = plt.subplots()
-ax1.pie(gender_pay, labels=gender_pay.index, autopct="%1.1f%%", startangle=90)
-st.pyplot(fig1)
-
-# Bar - Avg CTC by Dept
-fig2, ax2 = plt.subplots()
-sns.barplot(x="Department", y="CTC", data=avg_ctc_dept, ax=ax2)
-plt.xticks(rotation=30)
-st.pyplot(fig2)
-
-# Heatmap - Quartile distribution by Job Level
-quartiles = df.groupby("JobRole")["CTC"].apply(
-    lambda x: pd.qcut(x, q=4, labels=["Q1","Q2","Q3","Q4"]).value_counts()
-).unstack().fillna(0)
-fig3, ax3 = plt.subplots(figsize=(10,6))
-sns.heatmap(quartiles, annot=True, cmap="YlOrBr", fmt="g", ax=ax3)
-st.pyplot(fig3)
-
-# Benchmark barplot
-if benchmark_merge is not None:
-    fig4, ax4 = plt.subplots()
-    benchmark_merge.plot(
-        x="JobRole", y=["CTC","MarketMedianCTC"], kind="bar", ax=ax4
+    bench = df.groupby("JobRole")[["CTC","MarketMedian"]].median().reset_index()
+    fig7 = px.bar(
+        bench, x="JobRole", y=["CTC","MarketMedian"], 
+        barmode="group", title="Company Median vs Market Median (by Job Role)"
     )
-    plt.title("Company vs Market Median (by JobRole)")
-    plt.xticks(rotation=30)
-    st.pyplot(fig4)
+    st.plotly_chart(fig7, use_container_width=True)
 
-# ==============================
-# Export PDF
-# ==============================
-class PDF(FPDF):
-    def header(self):
-        self.set_font("Arial","B",14)
-        self.cell(0,10,"Compensation & Benefits Dashboard Report",ln=True,align="C")
-    def footer(self):
-        self.set_y(-20)
-        self.set_font("Arial","I",8)
-        self.cell(0,10,"Prepared with <3 by Amlan Mishra",align="C")
+    bench["Delta"] = (bench["CTC"] - bench["MarketMedian"]).round(2)
+    st.write("### 🔍 Benchmarking Table")
+    st.dataframe(bench)
 
-if st.button("📑 Generate PDF Report"):
-    pdf = PDF()
+# ===============================
+# PDF EXPORT
+# ===============================
+st.header("📑 Export Report")
+if st.button("📥 Generate PDF Report"):
+    pdf = FPDF()
     pdf.add_page()
+    pdf.set_font("Arial","B",16)
+    pdf.cell(200,10,"Compensation & Benefits Report", ln=True, align="C")
+
     pdf.set_font("Arial","",12)
-    pdf.multi_cell(0,10,"Executive Summary:\nThis report provides insights on compensation & benefits including CTC, bonus, gender parity, and market benchmarking.")
+    pdf.multi_cell(0,10,"This report contains key metrics on employee compensation, quartiles, bonuses, performance linkage, and market benchmarking.")
 
-    # Avg CTC by Dept
-    pdf.ln(5)
     pdf.set_font("Arial","B",12)
-    pdf.cell(0,10,"Avg CTC by Department",ln=True)
+    pdf.cell(0,10,"Company vs Market Medians (Sample)", ln=True)
     pdf.set_font("Arial","",10)
-    for _, row in avg_ctc_dept.iterrows():
-        pdf.cell(0,10,f"{row['Department']}: {row['CTC']:.2f}",ln=True)
+    if "MarketMedian" in df.columns:
+        for _,row in bench.iterrows():
+            pdf.cell(0,8,f"{row['JobRole']}: Company {row['CTC']:.2f}, Market {row['MarketMedian']:.2f}, Δ {row['Delta']:.2f}", ln=True)
 
-    # Benchmark summary
-    if benchmark_merge is not None:
-        pdf.ln(5)
-        pdf.set_font("Arial","B",12)
-        pdf.cell(0,10,"Benchmark Comparison",ln=True)
-        pdf.set_font("Arial","",10)
-        for _, row in benchmark_merge.iterrows():
-            pdf.cell(0,10,f"{row['JobRole']}: Co Avg {row['CTC']:.2f} vs Market {row['MarketMedianCTC']:.2f} (Gap {row['GapVsMarket']:.2f})",ln=True)
-
-    # Save PDF
     buf = io.BytesIO()
     pdf.output(buf)
-    st.download_button("📥 Download PDF", data=buf.getvalue(), file_name="cb_dashboard_report.pdf", mime="application/pdf")
+    st.download_button(
+        "📥 Download PDF",
+        data=buf.getvalue(),
+        file_name="Compensation_Report.pdf",
+        mime="application/pdf"
+    )
+
+# ===============================
+# CSV EXPORT
+# ===============================
+st.header("📦 Export Data")
+st.download_button(
+    "📥 Download Quartile Analysis CSV",
+    data=quartile_df.to_csv(index=False),
+    file_name="quartile_analysis.csv",
+    mime="text/csv"
+)
