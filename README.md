@@ -50,6 +50,7 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 ```text
 ├── README.md
 ├── app.py
+├── cb_dashboard.py
 ├── data
 │   ├── Attrition_SQL_Predictions.csv
 │   ├── cleaned_hr_data.csv
