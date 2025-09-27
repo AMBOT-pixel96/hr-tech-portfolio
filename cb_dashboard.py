@@ -38,31 +38,29 @@ TMP_DIR = "temp_charts_cb"
 os.makedirs(TMP_DIR, exist_ok=True)
 
 # -----------------------
-# Sample CSV Template
+# Sample CSV Templates
 # -----------------------
 sample_cols = ["EmployeeID","Department","JobRole","JobLevel","CTC","Bonus","Gender","PerformanceRating"]
 sample_csv = pd.DataFrame(columns=sample_cols).to_csv(index=False)
 
-st.download_button(
-    "📥 Download Sample Compensation CSV",
-    data=sample_csv,
-    file_name="sample_compensation_template.csv",
-    mime="text/csv"
-)
-
-# -----------------------
-# Sample Benchmark CSV Template
-# -----------------------
 benchmark_cols = ["JobRole","CTC"]
 benchmark_csv = pd.DataFrame(columns=benchmark_cols).to_csv(index=False)
 
-st.download_button(
-    "📥 Download Sample Benchmark CSV",
-    data=benchmark_csv,
-    file_name="sample_benchmark_template.csv",
-    mime="text/csv"
-)
-
+col1, col2 = st.columns(2)
+with col1:
+    st.download_button(
+        "📥 Download Sample Compensation CSV",
+        data=sample_csv,
+        file_name="sample_compensation_template.csv",
+        mime="text/csv"
+    )
+with col2:
+    st.download_button(
+        "📥 Download Sample Benchmark CSV",
+        data=benchmark_csv,
+        file_name="sample_benchmark_template.csv",
+        mime="text/csv"
+    )
 # -----------------------
 # Upload Section
 # -----------------------
