@@ -7,3 +7,6 @@ seaborn
 xgboost
 shap
 fpdf2
+plotly
+openpyxl
+altair
