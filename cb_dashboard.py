@@ -1,4 +1,4 @@
-# cb_dashboard.py -- Compensation & Benefits Dashboard (with Benchmarking)
+# cb_dashboard.py -- Compensation & Benefits Dashboard (with Benchmarking, Heatmaps, Exports)
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -65,6 +65,7 @@ quartile_df = df.copy()
 q1, q2, q3 = quartile_df["CTC"].quantile([0.25,0.5,0.75])
 quartile_df["Quartile"] = quartile_df["CTC"].apply(lambda x: quartile_flag(x,q1,q2,q3))
 heatmap_data = quartile_df.pivot_table(index="JobRole", columns="Quartile", values="CTC", aggfunc="count", fill_value=0)
+
 st.write("### 📐 Quartile Distribution by Job Role")
 st.dataframe(heatmap_data)
 
@@ -82,9 +83,9 @@ fig5 = px.bar(bonus_gender, x="Gender", y="BonusPct", title="Average Bonus % of 
 st.plotly_chart(fig5, use_container_width=True)
 
 # Performance x Compensation
-perf_ctc = df.groupby(["PerformanceRating","Department"])["CTC"].mean().reset_index()
-fig6 = px.bar(perf_ctc, x="PerformanceRating", y="CTC", color="Department", barmode="group",
-              title="Avg CTC by Performance Rating (Dept-wise)")
+perf_ctc = df.groupby(["PerformanceRating","JobLevel"])["CTC"].mean().reset_index()
+fig6 = px.bar(perf_ctc, x="PerformanceRating", y="CTC", color="JobLevel", barmode="group",
+              title="Avg CTC by Performance Rating & Job Level")
 st.plotly_chart(fig6, use_container_width=True)
 
 # ===============================
@@ -94,13 +95,22 @@ if "MarketMedian" in df.columns:
     st.header("📊 Benchmarking: Company vs Market Medians")
 
     bench = df.groupby("JobRole")[["CTC","MarketMedian"]].median().reset_index()
+    bench["Delta"] = (bench["CTC"] - bench["MarketMedian"]).round(2)
+
     fig7 = px.bar(
         bench, x="JobRole", y=["CTC","MarketMedian"], 
         barmode="group", title="Company Median vs Market Median (by Job Role)"
     )
     st.plotly_chart(fig7, use_container_width=True)
 
-    bench["Delta"] = (bench["CTC"] - bench["MarketMedian"]).round(2)
+    # Heatmap of pay gaps
+    heatmap_bench = bench.set_index("JobRole")[["Delta"]]
+    fig8 = px.imshow(
+        heatmap_bench.T, text_auto=True, aspect="auto", color_continuous_scale="RdYlGn_r",
+        title="⚖️ Pay Gap Heatmap (Company vs Market)"
+    )
+    st.plotly_chart(fig8, use_container_width=True)
+
     st.write("### 🔍 Benchmarking Table")
     st.dataframe(bench)
 
@@ -115,12 +125,12 @@ if st.button("📥 Generate PDF Report"):
     pdf.cell(200,10,"Compensation & Benefits Report", ln=True, align="C")
 
     pdf.set_font("Arial","",12)
-    pdf.multi_cell(0,10,"This report contains key metrics on employee compensation, quartiles, bonuses, performance linkage, and market benchmarking.")
+    pdf.multi_cell(0,10,"This report contains key metrics on compensation, quartiles, bonuses, performance linkage, and benchmarking.")
 
-    pdf.set_font("Arial","B",12)
-    pdf.cell(0,10,"Company vs Market Medians (Sample)", ln=True)
-    pdf.set_font("Arial","",10)
     if "MarketMedian" in df.columns:
+        pdf.set_font("Arial","B",12)
+        pdf.cell(0,10,"Company vs Market Medians", ln=True)
+        pdf.set_font("Arial","",10)
         for _,row in bench.iterrows():
             pdf.cell(0,8,f"{row['JobRole']}: Company {row['CTC']:.2f}, Market {row['MarketMedian']:.2f}, Δ {row['Delta']:.2f}", ln=True)
 
@@ -143,3 +153,11 @@ st.download_button(
     file_name="quartile_analysis.csv",
     mime="text/csv"
 )
+
+if "MarketMedian" in df.columns:
+    st.download_button(
+        "📥 Download Benchmarking CSV",
+        data=bench.to_csv(index=False),
+        file_name="benchmarking_results.csv",
+        mime="text/csv"
+    )
