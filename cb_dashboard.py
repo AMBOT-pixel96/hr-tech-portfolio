@@ -51,6 +51,19 @@ st.download_button(
 )
 
 # -----------------------
+# Sample Benchmark CSV Template
+# -----------------------
+benchmark_cols = ["JobRole","CTC"]
+benchmark_csv = pd.DataFrame(columns=benchmark_cols).to_csv(index=False)
+
+st.download_button(
+    "📥 Download Sample Benchmark CSV",
+    data=benchmark_csv,
+    file_name="sample_benchmark_template.csv",
+    mime="text/csv"
+)
+
+# -----------------------
 # Upload Section
 # -----------------------
 uploaded_file = st.file_uploader("📂 Upload Compensation Dataset (CSV/XLSX)", type=["csv","xlsx"])
