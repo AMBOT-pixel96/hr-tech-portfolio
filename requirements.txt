@@ -7,6 +7,5 @@ seaborn
 xgboost
 shap
 fpdf2
+reportlab
 plotly
-openpyxl
-altair
