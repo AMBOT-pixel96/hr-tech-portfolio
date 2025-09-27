@@ -18,7 +18,18 @@ benchmark_file = st.file_uploader("📂 Upload Benchmarking Dataset (CSV/XLSX)",
 if not uploaded_file:
     st.info("⬆️ Please upload your Compensation dataset to begin.")
     st.stop()
+# ==============================
+# Sample CSV Template
+# ==============================
+sample_cols = ["EmployeeID","Department","JobRole","JobLevel","CTC","Bonus","Gender","PerformanceRating"]
+sample_csv = pd.DataFrame(columns=sample_cols).to_csv(index=False)
 
+st.download_button(
+    "📥 Download Sample Compensation CSV",
+    data=sample_csv,
+    file_name="sample_compensation_template.csv",
+    mime="text/csv"
+)
 # ==============================
 # Helper: Normalize Columns
 # ==============================
