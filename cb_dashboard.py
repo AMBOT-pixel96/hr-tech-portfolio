@@ -420,30 +420,41 @@ images_for_download.append({"title":"Avg Bonus % of CTC","asset":assetD})
 # -----------------------
 if bench_df is not None:
     st.subheader("📉 Company vs Market (Median CTC)")
-    dfE=metric_filters_ui(emp_df,"E_")
-    comp=dfE.groupby("JobLevel")["CTC"].median().reset_index().rename(columns={"CTC":"CompanyMedian"})
-    bench=bench_df.groupby("JobLevel")["MarketMedianCTC"].median().reset_index()
+    dfE = metric_filters_ui(emp_df, "E_")
+
+    # Company medians
+    comp = dfE.groupby("JobLevel")["CTC"].median().reset_index().rename(columns={"CTC": "CompanyMedian"})
+    # Market medians
+    bench = bench_df.groupby("JobLevel")["MarketMedianCTC"].median().reset_index()
+
+    # Merge & calculate gap
     compare = pd.merge(comp, bench, on="JobLevel", how="outer")
-compare["Gap %"] = np.where(
-    compare["MarketMedianCTC"] > 0,
-    (compare["CompanyMedian"] - compare["MarketMedianCTC"]) / compare["MarketMedianCTC"] * 100,
-    np.nan
-).round(2)
+    compare["Gap %"] = np.where(
+        compare["MarketMedianCTC"] > 0,
+        (compare["CompanyMedian"] - compare["MarketMedianCTC"]) / compare["MarketMedianCTC"] * 100,
+        np.nan
+    ).round(2)
 
-# 🪄 Polish column names + convert to Lakhs
-compare["Company Median (₹ Lakhs)"] = compare["CompanyMedian"].apply(readable_lakhs_number)
-compare["Market Median (₹ Lakhs)"] = compare["MarketMedianCTC"].apply(readable_lakhs_number)
-compare = compare[["JobLevel", "Company Median (₹ Lakhs)", "Market Median (₹ Lakhs)", "Gap %"]]
+    # Format Lakhs for readability
+    compare["Company Median (₹ Lakhs)"] = compare["CompanyMedian"].apply(readable_lakhs_number)
+    compare["Market Median (₹ Lakhs)"] = compare["MarketMedianCTC"].apply(readable_lakhs_number)
 
-st.dataframe(compare)
-    figE=go.Figure()
-    figE.add_trace(go.Bar(x=compare["JobLevel"],y=compare["CompanyMedian"],name="Company"))
-    figE.add_trace(go.Scatter(x=compare["JobLevel"],y=compare["MarketMedianCTC"],name="Market",mode="lines+markers"))
-    assetE=save_plotly_asset(figE,safe_filename("cmp_vs_market"))
-    st.plotly_chart(figE)
-    sections.append(("Company vs Market","Company vs Market medians.",compare,assetE))
-    images_for_download.append({"title":"Company vs Market","asset":assetE})
+    # Reorder for neatness
+    compare = compare[["JobLevel", "Company Median (₹ Lakhs)", "Market Median (₹ Lakhs)", "Gap %"]]
 
+    # Show table
+    st.dataframe(compare, use_container_width=True)
+
+    # Chart
+    figE = go.Figure()
+    figE.add_trace(go.Bar(x=compare["JobLevel"], y=compare["Company Median (₹ Lakhs)"], name="Company"))
+    figE.add_trace(go.Scatter(x=compare["JobLevel"], y=compare["Market Median (₹ Lakhs)"], name="Market", mode="lines+markers"))
+    assetE = save_plotly_asset(figE, safe_filename("cmp_vs_market"))
+    st.plotly_chart(figE, use_container_width=True)
+
+    # Save to report sections
+    sections.append(("Company vs Market", "Company vs Market medians.", compare, assetE))
+    images_for_download.append({"title": "Company vs Market", "asset": assetE})
 # -----------------------
 # Metric F: Avg CTC by Gender & Job Level
 # -----------------------
@@ -568,12 +579,15 @@ if st.button("🧾 Compile Selected Report"):
         # Consolidated Conclusions
         story.append(Paragraph("Consolidated Conclusions (Actionable)", h2))
         conc_rows = [["Metric / JobLevel", "Actionable Insight"]]
+
+        # Company vs Market insights (row-level, if selected)
         if any(s[0] == "Company vs Market" for s in selected_sections):
             try:
                 comp_tbl = next(s for s in selected_sections if s[0] == "Company vs Market")[2]
-                if comp_tbl is not None and "Gap %" in comp_tbl.columns:
+                if comp_tbl is not None and any(col.strip() == "Gap %" for col in comp_tbl.columns):
                     for _, r in comp_tbl.iterrows():
-                        jl, gap = r.get("JobLevel", "Unknown"), r.get("Gap %", None)
+                        jl = r.get("JobLevel", "Unknown")
+                        gap = r.get("Gap %", None)
                         if pd.notna(gap):
                             if gap < -5:
                                 conc_rows.append([jl, f"⚠️ {gap}% behind market — consider repricing."])
@@ -582,20 +596,30 @@ if st.button("🧾 Compile Selected Report"):
                             elif gap > 5:
                                 conc_rows.append([jl, f"✅ {gap}% ahead of market — monitor retention."])
                             else:
-                                conc_rows.append([jl, f"{gap}% near market — stable."])
+                                conc_rows.append([jl, f"~ {gap}% near market — stable."])
+                else:
+                    conc_rows.append(["Company vs Market", "No valid gap data available."])
             except StopIteration:
-                pass
+                conc_rows.append(["Company vs Market", "Not selected."])
+
+        # Generic placeholders for all other metrics
         for title, _, _, _ in selected_sections:
             if title != "Company vs Market":
                 conc_rows.append([title, "Review chart/table for insights."])
+
+        # Build the conclusions table
         try:
             conc_tbl = Table(conc_rows, repeatRows=1, hAlign="LEFT")
-            conc_tbl.setStyle(TableStyle([("GRID",(0,0),(-1,-1),0.25,colors.black),
-                                          ("BACKGROUND",(0,0),(-1,0),colors.whitesmoke)]))
+            conc_tbl.setStyle(TableStyle([
+                ("GRID",(0,0),(-1,-1),0.25,colors.black),
+                ("BACKGROUND",(0,0),(-1,0),colors.whitesmoke),
+                ("ALIGN", (0,0), (-1,-1), "LEFT")
+            ]))
             story.append(conc_tbl)
         except Exception:
             story.append(Paragraph("Unable to render consolidated conclusions.", body))
 
+        # Finalize compiled PDF
         doc.build(story,
                   onFirstPage=lambda c,d:(draw_background(c,d), add_page_number(c,d)),
                   onLaterPages=lambda c,d:(draw_background(c,d), add_page_number(c,d)))
