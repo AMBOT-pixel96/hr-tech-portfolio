@@ -318,22 +318,39 @@ images_for_download.append({"title": "Average CTC by Gender & Job Level", "asset
 # -----------------------
 st.subheader("⭐ Average CTC by Rating & Job Level")
 dfG = metric_filters_ui(emp_df, prefix="G")
+
+# Group and compute
 r = dfG.groupby(["JobLevel", "PerformanceRating"])["CTC"].mean().reset_index()
 r["Lakhs"] = r["CTC"].apply(readable_lakhs_number)
 
+# Convert ratings to strings so colors are categorical (avoids black charts on export)
+r["PerformanceRating"] = r["PerformanceRating"].astype(str)
+
+# Pivot table for clean layout
 pivot_r = r.pivot(index="JobLevel", columns="PerformanceRating", values="Lakhs").reset_index().fillna("")
-pivot_r.columns = ["JobLevel"] + [f"Rater {int(c)}" for c in pivot_r.columns[1:]]
+pivot_r.columns = ["JobLevel"] + [f"Rater {c}" for c in pivot_r.columns[1:]]
 st.dataframe(pivot_r)
 
-figG = px.bar(r, x="JobLevel", y="CTC", color="PerformanceRating", barmode="group",
-              color_discrete_sequence=PALETTE, title="Average CTC by Performance Rating & Job Level",
-              labels={"CTC": "Average CTC (₹)", "PerformanceRating": "Rating"})
-figG.update_layout(template="plotly_white")
+# Chart
+figG = px.bar(
+    r, x="JobLevel", y="CTC", color="PerformanceRating", barmode="group",
+    color_discrete_sequence=PALETTE,
+    title="Average CTC by Performance Rating & Job Level",
+    labels={"CTC": "Average CTC (₹)", "PerformanceRating": "Rating"}
+)
+
+# Ensure white background + styled title for PDF/PNG export
+figG.update_layout(
+    template="plotly_white",
+    title_font=dict(size=18, color="black", family="Helvetica"),
+    plot_bgcolor="white",
+    paper_bgcolor="white"
+)
+
 assetG = save_plotly_asset(figG, safe_filename("rating_ctc"))
 st.plotly_chart(figG)
 sections.append(("Average CTC by Rating & Job Level", "Pay differentiation by performance rating.", pivot_r, assetG))
 images_for_download.append({"title": "Average CTC by Rating & Job Level", "asset": assetG})
-
 # -----------------------
 # Compiled PDF Report
 # -----------------------
