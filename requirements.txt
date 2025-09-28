@@ -10,4 +10,4 @@ scikit-learn
 xgboost
 shap
 fpdf2
-weasyprint
+kaleido
