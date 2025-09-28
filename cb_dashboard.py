@@ -1,11 +1,12 @@
 # ============================================================
 # cb_dashboard.py — Compensation & Benefits Dashboard
-# Version: 4.0 (UAT-2 Final)
+# Version: 4.1 (UAT-2 Final, Keys Fix)
 # Last Updated: 2025-09-30
 # Notes:
 # - UAT Observations 1..18 implemented
 # - Styled PDF (cover, TOC, headings, zebra tables, actionable insights)
 # - Clean filters/labels, donut quartile, per-metric downloads
+# - FIXED: StreamlitDuplicateElementId via prefix keys
 # ============================================================
 
 import streamlit as st
@@ -126,7 +127,6 @@ def create_howto_pdf_bytes():
     story.append(Paragraph("📘 How to Upload Data — User Guide", h1))
     story.append(Spacer(1, 12))
 
-    # Sections
     sections = [
         ("✅ General Instructions", [
             "Download the official templates (Employee & Benchmark).",
@@ -214,33 +214,25 @@ if benchmark_file:
     if not ok_b: st.error(msg_b); st.stop()
 
 # -----------------------
-# Preview
+# Filters per-metric (patched with prefix keys)
 # -----------------------
-st.subheader("Preview Data")
-st.dataframe(emp_df.head(10))
-if bench_df is not None:
-    st.write("Benchmark Preview:")
-    st.dataframe(bench_df.head(10))
-
-# -----------------------
-# Filters per-metric
-# -----------------------
-def metric_filters_ui(df):
+def metric_filters_ui(df, prefix=""):
     st.markdown("**Filters (for this metric only):**")
     c1, c2, c3 = st.columns(3)
     with c1:
-        dept = st.selectbox("Department", ["All"]+sorted(df["Department"].dropna().unique()))
+        dept = st.selectbox("Department", ["All"]+sorted(df["Department"].dropna().unique()), key=f"{prefix}_dept")
     with c2:
         roles = sorted(df[df["Department"]==dept]["JobRole"].unique()) if dept!="All" else sorted(df["JobRole"].unique())
-        sel_roles = st.multiselect("Job Role", roles)
+        sel_roles = st.multiselect("Job Role", roles, key=f"{prefix}_roles")
     with c3:
         levels = sorted(df["JobLevel"].dropna().unique())
-        sel_levels = st.multiselect("Job Level", levels)
+        sel_levels = st.multiselect("Job Level", levels, key=f"{prefix}_levels")
     out = df.copy()
     if dept!="All": out=out[out["Department"]==dept]
     if sel_roles: out=out[out["JobRole"].isin(sel_roles)]
     if sel_levels: out=out[out["JobLevel"].isin(sel_levels)]
     return out
+
 # -----------------------
 # Metrics storage
 # -----------------------
@@ -250,7 +242,7 @@ sections=[]; images_for_download=[]
 # Metric A: Avg CTC by Job Level
 # -----------------------
 st.subheader("🏷️ Average CTC by Job Level")
-dfA=metric_filters_ui(emp_df)
+dfA=metric_filters_ui(emp_df, prefix="A")
 avg=dfA.groupby("JobLevel")["CTC"].mean().reset_index()
 avg["Average CTC (₹ Lakhs)"]=avg["CTC"].apply(readable_lakhs_number)
 st.dataframe(avg[["JobLevel","Average CTC (₹ Lakhs)"]])
@@ -265,7 +257,7 @@ images_for_download.append({"title":"Average CTC by Job Level","asset":assetA})
 # Metric B: Median CTC by Job Level
 # -----------------------
 st.subheader("📏 Median CTC by Job Level")
-dfB=metric_filters_ui(emp_df)
+dfB=metric_filters_ui(emp_df, prefix="B")
 med=dfB.groupby("JobLevel")["CTC"].median().reset_index()
 med["Median CTC (₹ Lakhs)"]=med["CTC"].apply(readable_lakhs_number)
 st.dataframe(med[["JobLevel","Median CTC (₹ Lakhs)"]])
@@ -280,8 +272,7 @@ images_for_download.append({"title":"Median CTC by Job Level","asset":assetB})
 # Metric C: Quartile Placement (Donut)
 # -----------------------
 st.subheader("🍩 Quartile Placement (Share of Employees)")
-dfC=metric_filters_ui(emp_df)
-qcat=lambda x: "NA" if pd.isna(x) else pd.qcut(dfC["CTC"],4,labels=["Q1","Q2","Q3","Q4"]).get(x,"NA")
+dfC=metric_filters_ui(emp_df, prefix="C")
 rows=[]
 for lvl,g in dfC.groupby("JobLevel"):
     vc=pd.qcut(g["CTC"],4,labels=["Q1","Q2","Q3","Q4"]).value_counts(normalize=True)*100
@@ -298,7 +289,7 @@ images_for_download.append({"title":"Quartile Distribution","asset":assetC})
 # Metric D: Bonus % by Job Level
 # -----------------------
 st.subheader("🎁 Bonus % of CTC by Job Level")
-dfD=metric_filters_ui(emp_df)
+dfD=metric_filters_ui(emp_df, prefix="D")
 dfD["Bonus %"]=np.where(dfD["CTC"]>0,(dfD["Bonus"]/dfD["CTC"])*100,np.nan)
 bonus=dfD.groupby("JobLevel")["Bonus %"].mean().reset_index()
 st.dataframe(bonus)
@@ -310,160 +301,227 @@ images_for_download.append({"title":"Bonus % of CTC","asset":assetD})
 # -----------------------
 # Metric E: Company vs Market
 # -----------------------
-if bench_df is not None:
+if 'bench_df' in globals() and bench_df is not None:
     st.subheader("📉 Company vs Market (Median CTC)")
-    dfE=metric_filters_ui(emp_df)
-    comp=dfE.groupby("JobLevel")["CTC"].median().reset_index().rename(columns={"CTC":"CompanyMedian"})
-    bench=bench_df.groupby("JobLevel")["MarketMedianCTC"].median().reset_index()
-    compare=pd.merge(comp,bench,on="JobLevel",how="outer")
-    compare["Gap %"]=np.where(compare["MarketMedianCTC"]>0,
-                              (compare["CompanyMedian"]-compare["MarketMedianCTC"])/compare["MarketMedianCTC"]*100,
-                              np.nan).round(2)
-    compare["Company (₹ Lakhs)"]=compare["CompanyMedian"].apply(readable_lakhs_number)
-    compare["Market (₹ Lakhs)"]=compare["MarketMedianCTC"].apply(readable_lakhs_number)
-    compare=compare[["JobLevel","Company (₹ Lakhs)","Market (₹ Lakhs)","Gap %"]]
-    st.dataframe(compare)
-    figE=go.Figure()
-    figE.add_trace(go.Bar(x=compare["JobLevel"],y=compare["Company (₹ Lakhs)"],name="Company"))
-    figE.add_trace(go.Scatter(x=compare["JobLevel"],y=compare["Market (₹ Lakhs)"],name="Market",mode="lines+markers"))
-    assetE=save_plotly_asset(figE,safe_filename("cmp_vs_market"))
-    st.plotly_chart(figE)
-    sections.append(("Company vs Market","Company vs Market median comparison.",compare,assetE))
-    images_for_download.append({"title":"Company vs Market","asset":assetE})
+    dfE = metric_filters_ui(emp_df, prefix="E")
+    comp = dfE.groupby("JobLevel")["CTC"].median().reset_index().rename(columns={"CTC": "CompanyMedian"})
+    bench = bench_df.groupby("JobLevel")["MarketMedianCTC"].median().reset_index()
+    compare = pd.merge(comp, bench, on="JobLevel", how="outer")
+    compare["Gap %"] = np.where(
+        compare["MarketMedianCTC"] > 0,
+        (compare["CompanyMedian"] - compare["MarketMedianCTC"]) / compare["MarketMedianCTC"] * 100,
+        np.nan
+    ).round(2)
+    compare["Company (₹ Lakhs)"] = compare["CompanyMedian"].apply(readable_lakhs_number)
+    compare["Market (₹ Lakhs)"] = compare["MarketMedianCTC"].apply(readable_lakhs_number)
+    compare = compare[["JobLevel", "Company (₹ Lakhs)", "Market (₹ Lakhs)", "Gap %"]]
+    st.dataframe(compare, use_container_width=True)
+
+    # Dual chart: company bars + market line (Lakhs)
+    figE = go.Figure()
+    figE.add_trace(go.Bar(x=compare["JobLevel"], y=compare["Company (₹ Lakhs)"], name="Company"))
+    figE.add_trace(go.Scatter(x=compare["JobLevel"], y=compare["Market (₹ Lakhs)"], name="Market", mode="lines+markers", yaxis="y1"))
+    figE.update_layout(yaxis_title="₹ Lakhs", legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
+    assetE = save_plotly_asset(figE, safe_filename("cmp_vs_market"))
+    st.plotly_chart(figE, use_container_width=True)
+
+    sections.append(("Company vs Market", "Company vs Market median comparison.", compare, assetE))
+    images_for_download.append({"title": "Company vs Market", "asset": assetE})
 
 # -----------------------
 # Metric F: Avg CTC by Gender & Job Level
 # -----------------------
 st.subheader("👫 Average CTC by Gender & Job Level")
-dfF=metric_filters_ui(emp_df)
-g=dfF.groupby(["JobLevel","Gender"])["CTC"].mean().reset_index()
-g["₹ Lakhs"]=g["CTC"].apply(readable_lakhs_number)
-st.dataframe(g.pivot(index="JobLevel",columns="Gender",values="₹ Lakhs").reset_index())
-figF=px.bar(g,x="JobLevel",y="CTC",color="Gender",barmode="group",color_discrete_sequence=PALETTE,
-            labels={"CTC":"Average CTC (₹)"})
-assetF=save_plotly_asset(figF,safe_filename("gender_ctc"))
+dfF = metric_filters_ui(emp_df, prefix="F")
+g = dfF.groupby(["JobLevel", "Gender"])["CTC"].mean().reset_index()
+g["₹ Lakhs"] = g["CTC"].apply(readable_lakhs_number)
+pivot_g = g.pivot(index="JobLevel", columns="Gender", values="₹ Lakhs").reset_index().fillna("")
+st.dataframe(pivot_g)
+figF = px.bar(g, x="JobLevel", y="CTC", color="Gender", barmode="group", color_discrete_sequence=PALETTE,
+              labels={"CTC": "Average CTC (₹)"})
+assetF = save_plotly_asset(figF, safe_filename("gender_ctc"))
 st.plotly_chart(figF)
-sections.append(("Average CTC by Gender & Job Level","Gender pay splits across levels.",g,assetF))
-images_for_download.append({"title":"Average CTC by Gender & Job Level","asset":assetF})
-
+sections.append(("Average CTC by Gender & Job Level", "Gender pay splits across levels.", g, assetF))
+images_for_download.append({"title": "Average CTC by Gender & Job Level", "asset": assetF})
 
 # -----------------------
 # Metric G: Avg CTC by Rating & Job Level
 # -----------------------
 st.subheader("⭐ Average CTC by Rating & Job Level")
-dfG=metric_filters_ui(emp_df)
-r=dfG.groupby(["JobLevel","PerformanceRating"])["CTC"].mean().reset_index()
-r["₹ Lakhs"]=r["CTC"].apply(readable_lakhs_number)
-st.dataframe(r.pivot(index="JobLevel",columns="PerformanceRating",values="₹ Lakhs").reset_index())
-figG=px.bar(r,x="JobLevel",y="CTC",color="PerformanceRating",barmode="group",
-            color_discrete_sequence=PALETTE,labels={"CTC":"Average CTC (₹)"})
-assetG=save_plotly_asset(figG,safe_filename("rating_ctc"))
+dfG = metric_filters_ui(emp_df, prefix="G")
+r = dfG.groupby(["JobLevel", "PerformanceRating"])["CTC"].mean().reset_index()
+r["₹ Lakhs"] = r["CTC"].apply(readable_lakhs_number)
+pivot_r = r.pivot(index="JobLevel", columns="PerformanceRating", values="₹ Lakhs").reset_index().fillna("")
+st.dataframe(pivot_r)
+figG = px.bar(r, x="JobLevel", y="CTC", color="PerformanceRating", barmode="group",
+              color_discrete_sequence=PALETTE, labels={"CTC": "Average CTC (₹)"})
+assetG = save_plotly_asset(figG, safe_filename("rating_ctc"))
 st.plotly_chart(figG)
-sections.append(("Average CTC by Rating & Job Level","Pay differentiation by performance rating.",r,assetG))
-images_for_download.append({"title":"Average CTC by Rating & Job Level","asset":assetG})
+sections.append(("Average CTC by Rating & Job Level", "Pay differentiation by performance rating.", r, assetG))
+images_for_download.append({"title": "Average CTC by Rating & Job Level", "asset": assetG})
 # -----------------------
 # Compiled Report (with PDF bookmarks / clickable outline)
 # -----------------------
 class PDFBookmark(Flowable):
     def __init__(self, name, title):
-        super().__init__(); self.name=name; self.title=title
-    def wrap(self, availWidth, availHeight): return (0,0)
+        super().__init__()
+        self.name = name
+        self.title = title
+    def wrap(self, availWidth, availHeight):
+        return (0,0)
     def draw(self):
         try:
             self.canv.bookmarkPage(self.name)
-            self.canv.addOutlineEntry(self.title,self.name,level=0,closed=False)
-        except: pass
+            self.canv.addOutlineEntry(self.title, self.name, level=0, closed=False)
+        except Exception:
+            pass
 
 st.header("📥 Download Reports")
 st.write("Choose metrics to include in the compiled PDF:")
 
-kpi_check = {title: st.checkbox(title, key=f"chk_{i}") for i,(title,_,_,_) in enumerate(sections)}
+# dynamic checkboxes (unique keys)
+kpi_check = {title: st.checkbox(title, key=f"chk_{i}") for i, (title, _, _, _) in enumerate(sections)}
 
 if st.button("🧾 Compile Selected Report"):
-    selected_titles=[t for t,v in kpi_check.items() if v]
-    if not selected_titles: st.warning("Select at least one metric to include.")
+    selected_titles = [t for t, v in kpi_check.items() if v]
+    if not selected_titles:
+        st.warning("Select at least one metric to include.")
     else:
-        selected_sections=[s for s in sections if s[0] in selected_titles]
-        buf=BytesIO()
-        doc=SimpleDocTemplate(buf,pagesize=A4,rightMargin=18*mm,leftMargin=18*mm,topMargin=20*mm,bottomMargin=20*mm)
-        styles=getSampleStyleSheet()
-        h1,h2,normal=styles["Title"],styles["Heading2"],styles["Normal"]
-        body=ParagraphStyle("body",parent=normal,fontName=BODY_FONT,fontSize=10,leading=13)
+        selected_sections = [s for s in sections if s[0] in selected_titles]
 
-        story=[]
-        # Cover
-        story.append(Paragraph("<para align=center><font size=24 color='#4B0082'><b>Compensation & Benefits Report</b></font></para>", body))
-        story.append(Spacer(1,30))
+        buf = BytesIO()
+        doc = SimpleDocTemplate(buf, pagesize=A4,
+                                rightMargin=18*mm, leftMargin=18*mm,
+                                topMargin=20*mm, bottomMargin=20*mm)
+        styles = getSampleStyleSheet()
+        h1, h2, normal = styles["Title"], styles["Heading2"], styles["Normal"]
+        body = ParagraphStyle("body", parent=normal, fontName=BODY_FONT, fontSize=10, leading=13)
+
+        story = []
+        # Cover (bigger, coloured headline)
+        cover_title = "<para align=center><font size=28 color='#4B0082'><b>Compensation & Benefits Report</b></font></para>"
+        story.append(Paragraph(cover_title, body))
+        story.append(Spacer(1, 18))
         story.append(Paragraph(f"<para align=center>Generated: {datetime.now().strftime('%d-%b-%Y %H:%M')}</para>", body))
+        story.append(Spacer(1, 12))
+        story.append(Paragraph("<para align=center>Prepared by: Compensation Analytics</para>", body))
         story.append(PageBreak())
 
         # TOC
         story.append(Paragraph("Table of Contents", h2))
-        for idx,(title,_,_,_) in enumerate(selected_sections,1):
+        for idx, (title, _, _, _) in enumerate(selected_sections, 1):
             story.append(Paragraph(f"{idx}. {title}", body))
         story.append(PageBreak())
 
-        # Sections
-        for title,desc,tbl,asset in selected_sections:
-            bname=sanitize_anchor(title)
-            story.append(PDFBookmark(bname,title))
-            story.append(Paragraph(f"<b>{title}</b>", h2)); story.append(Spacer(1,6))
-            if desc: story.append(Paragraph(desc, body)); story.append(Spacer(1,6))
+        # Sections (chart + table + metric-level insight)
+        for title, desc, tbl, asset in selected_sections:
+            bname = sanitize_anchor(title)
+            story.append(PDFBookmark(bname, title))
+            story.append(Paragraph(f"<b>{title}</b>", h2))
+            story.append(Spacer(1, 6))
+            if desc:
+                story.append(Paragraph(desc, body))
+                story.append(Spacer(1, 6))
+
+            # Render table if present
             if tbl is not None and not tbl.empty:
                 try:
-                    data=[list(tbl.columns)]+tbl.fillna("").values.tolist()
-                    tstyle=TableStyle([("GRID",(0,0),(-1,-1),0.25,colors.black),
-                                       ("BACKGROUND",(0,0),(-1,0),colors.whitesmoke)])
-                    for r in range(1,len(data)):
-                        if r%2==0: tstyle.add("BACKGROUND",(0,r),(-1,r),TABLE_ZEBRA)
-                    t=Table(data,repeatRows=1,hAlign="LEFT"); t.setStyle(tstyle); story.append(t)
+                    data = [list(tbl.columns)] + tbl.fillna("").values.tolist()
+                    tstyle = TableStyle([
+                        ("GRID", (0,0), (-1,-1), 0.25, colors.black),
+                        ("BACKGROUND", (0,0), (-1,0), colors.whitesmoke),
+                    ])
+                    for r in range(1, len(data)):
+                        if r % 2 == 0:
+                            tstyle.add("BACKGROUND", (0,r), (-1,r), TABLE_ZEBRA)
+                    t = Table(data, repeatRows=1, hAlign="LEFT")
+                    t.setStyle(tstyle)
+                    story.append(t)
+                    story.append(Spacer(1, 8))
                 except Exception as e:
-                    story.append(Paragraph(f"Table render error: {e}", body))
+                    story.append(Paragraph(f"Unable to render table: {e}", body))
+
+            # Embed PNG if available
             if asset:
                 if asset.get("png") and os.path.exists(asset["png"]):
-                    try: story.append(RLImage(asset["png"],width=170*mm,height=90*mm))
-                    except: story.append(Paragraph("Image could not be embedded", body))
-                elif asset.get("html"): story.append(Paragraph("Interactive chart saved separately (HTML).", body))
-            # Metric-specific conclusion
-            story.append(Spacer(1,6))
-            story.append(Paragraph(f"<i>Insight:</i> Review {title} for key trends and actions.", body))
+                    try:
+                        story.append(RLImage(asset["png"], width=170*mm, height=90*mm))
+                        story.append(Spacer(1, 6))
+                    except Exception:
+                        story.append(Paragraph("Image exists but couldn't be embedded.", body))
+                elif asset.get("html") and os.path.exists(asset["html"]):
+                    story.append(Paragraph(f"Interactive chart saved as HTML: {os.path.basename(asset['html'])}", body))
+
+            # Metric-level conclusion (basic template — can be enhanced)
+            insight_text = "Review chart/table for insights."
+            # Small heuristics for automated hints (example: if company vs market table available)
+            if title == "Company vs Market" and tbl is not None and "Gap %" in tbl.columns:
+                # build a short, high-level paragraph
+                try:
+                    gaps = tbl["Gap %"].dropna()
+                    if not gaps.empty:
+                        worst = gaps.min()
+                        best = gaps.max()
+                        insight_text = f"Worst gap: {worst}%. Best gap: {best}%. Focus on roles with >5% negative gap."
+                except Exception:
+                    pass
+            story.append(Paragraph(f"<i>Insight:</i> {insight_text}", body))
             story.append(PageBreak())
-
-        # Consolidated conclusions
+# Consolidated Conclusions
         story.append(Paragraph("Consolidated Conclusions (Actionable)", h2))
-        conc_rows=[["Metric / JobLevel","Actionable Insight"]]
-        for title,_,tbl,_ in selected_sections:
-            if title=="Company vs Market" and tbl is not None and "Gap %" in tbl.columns:
-                for _,r in tbl.iterrows():
-                    jl,gap=r.get("JobLevel","Unknown"),r.get("Gap %",None)
+        conc_rows = [["Metric / JobLevel", "Actionable Insight"]]
+
+        # If company vs market selected, add row-level guidance
+        for title, _, tbl, _ in selected_sections:
+            if title == "Company vs Market" and tbl is not None and "Gap %" in tbl.columns:
+                for _, r in tbl.iterrows():
+                    jl = r.get("JobLevel", "Unknown")
+                    gap = r.get("Gap %", None)
                     if pd.notna(gap):
-                        if gap<-5: conc_rows.append([jl,f"⚠️ {gap}% behind market — consider repricing."])
-                        elif gap<0: conc_rows.append([jl,f"🔍 {gap}% behind market — review."])
-                        elif gap>5: conc_rows.append([jl,f"✅ {gap}% ahead — monitor retention."])
-                        else: conc_rows.append([jl,f"{gap}% near market — stable."])
+                        if gap < -5:
+                            conc_rows.append([jl, f"⚠️ {gap}% behind market — consider repricing."])
+                        elif gap < 0:
+                            conc_rows.append([jl, f"🔍 {gap}% behind market — review."])
+                        elif gap > 5:
+                            conc_rows.append([jl, f"✅ {gap}% ahead — monitor retention."])
+                        else:
+                            conc_rows.append([jl, f"{gap}% near market — stable."])
             else:
-                conc_rows.append([title,"See metric chart/table for actionable notes."])
-        conc_tbl=Table(conc_rows,repeatRows=1,hAlign="LEFT")
-        conc_tbl.setStyle(TableStyle([("GRID",(0,0),(-1,-1),0.25,colors.black),
-                                      ("BACKGROUND",(0,0),(-1,0),colors.whitesmoke)]))
-        story.append(conc_tbl)
+                conc_rows.append([title, "See metric chart/table for actionable notes."])
 
-        doc.build(story,onFirstPage=lambda c,d:(draw_background(c,d),add_page_number(c,d)),
-                         onLaterPages=lambda c,d:(draw_background(c,d),add_page_number(c,d)))
-        st.download_button("⬇️ Download Compiled PDF",buf.getvalue(),"cb_dashboard_compiled.pdf","application/pdf")
+        try:
+            conc_tbl = Table(conc_rows, repeatRows=1, hAlign="LEFT")
+            conc_tbl.setStyle(TableStyle([
+                ("GRID", (0,0), (-1,-1), 0.25, colors.black),
+                ("BACKGROUND", (0,0), (-1,0), colors.whitesmoke),
+                ("ALIGN", (0,0), (-1,-1), "LEFT")
+            ]))
+            story.append(conc_tbl)
+        except Exception:
+            story.append(Paragraph("Unable to render consolidated conclusions table.", body))
 
+        # Build PDF
+        doc.build(story,
+                  onFirstPage=lambda c,d: (draw_background(c,d), add_page_number(c,d)),
+                  onLaterPages=lambda c,d: (draw_background(c,d), add_page_number(c,d)))
+        # Offer download
+        st.download_button("⬇️ Download Compiled PDF", buf.getvalue(),
+                           file_name="cb_dashboard_compiled.pdf", mime="application/pdf")
 # -----------------------
 # Quick image downloads
 # -----------------------
 st.subheader("📸 Quick Chart Downloads")
 for item in images_for_download:
-    title,asset=item.get("title","chart"),item.get("asset",{})
+    title = item.get("title", "chart")
+    asset = item.get("asset", {})
     if asset.get("png") and os.path.exists(asset["png"]):
-        with open(asset["png"],"rb") as f: st.download_button(f"⬇️ {title} (PNG)",f.read(),file_name=os.path.basename(asset["png"]),mime="image/png")
+        with open(asset["png"], "rb") as f:
+            st.download_button(f"⬇️ {title} (PNG)", f.read(), file_name=os.path.basename(asset["png"]), mime="image/png")
     elif asset.get("html") and os.path.exists(asset["html"]):
-        with open(asset["html"],"rb") as f: st.download_button(f"⬇️ {title} (HTML)",f.read(),file_name=os.path.basename(asset["html"]),mime="text/html")
+        with open(asset["html"], "rb") as f:
+            st.download_button(f"⬇️ {title} (HTML)", f.read(), file_name=os.path.basename(asset["html"]), mime="text/html")
 
 # -----------------------
 # Wrap
 # -----------------------
-st.success("Dashboard loaded ✅ Filters, per-metric exports, and compiled PDF with insights are ready.")
+st.success("Dashboard loaded ✅ Filters (per metric) fixed, per-metric exports, and compiled PDF with actionable summaries are ready.")
