@@ -1,4 +1,3 @@
-# Graphics / Rendering
 libgl1
 libglib2.0-0
 libsm6
@@ -7,22 +6,14 @@ libxrender1
 libcairo2
 libpango-1.0-0
 libpangocairo-1.0-0
-
-# Fonts (PDF + matplotlib + reportlab)
 fonts-dejavu-core
 fonts-dejavu-extra
 fonts-liberation
 fonts-freefont-ttf
-
-# Compression / Images
 zlib1g
 libjpeg62-turbo
 libpng16-16
 libtiff5
-
-# Optional (useful for pandas Excel, etc.)
 libxml2
 libxslt1.1
-
-# General build tools (safe baseline)
 build-essential
