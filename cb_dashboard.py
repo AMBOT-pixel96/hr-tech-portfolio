@@ -424,7 +424,11 @@ if bench_df is not None:
     comp=dfE.groupby("JobLevel")["CTC"].median().reset_index().rename(columns={"CTC":"CompanyMedian"})
     bench=bench_df.groupby("JobLevel")["MarketMedianCTC"].median().reset_index()
     compare=pd.merge(comp,bench,on="JobLevel",how="outer")
-    compare["Gap%"]=np.where(compare["MarketMedianCTC"]>0,(compare["CompanyMedian"]-compare["MarketMedianCTC"])/compare["MarketMedianCTC"]*100,np.nan).round(2)
+    compare["Gap %"] = np.where(
+    compare["MarketMedianCTC"] > 0,
+    (compare["CompanyMedian"] - compare["MarketMedianCTC"]) / compare["MarketMedianCTC"] * 100,
+    np.nan
+).round(2)
     st.dataframe(compare)
     figE=go.Figure()
     figE.add_trace(go.Bar(x=compare["JobLevel"],y=compare["CompanyMedian"],name="Company"))
