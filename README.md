@@ -4,7 +4,7 @@
 🌍 Live Demo - Attrition Prediction Dashboard [AttritionDashboard](https://hr-tech-portfolio.streamlit.app/)  
 🌍 Live Demo - Compensation Dashboard [CompensationDashboard](https://cb-dashboard.streamlit.app/)
 
-## [PDF Available](https://camo.githubusercontent.com/24aea9a7d40090f4492f8eeefb37c97d1b4a54a5a5894345f0f8f754b2242439/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f5044462d417661696c61626c652d627269676874677265656e3f6c6f676f3d61646f62656163726f626174726561646572)
+## [![PDF Available](https://img.shields.io/badge/PDF-Available-brightgreen?logo=adobeacrobatreader)](https://github.com/AMBOT-pixel96/hr-tech-portfolio/raw/main/reports/Attrition_Project_Summary.pdf?download=1)
 
 ## 📑 Reports Panel
 
