@@ -557,6 +557,49 @@ This project shows how HR teams can query their employee database (like an HRIS 
 - Connect to **real HRIS / cloud DB** instead of static CSV.  
 - Build a Streamlit **C&B Dashboard** (next side quest).
 
+---
+
+## 📊 Project 9 (Sidequest 2): Compensation & Benefits Dashboard (v4.3)
+
+**Objective:** Deliver a **Streamlit dashboard** for Compensation & Benefits analytics — from descriptive pay splits to market benchmarking — with **board-ready PDF reports**.  
+
+**Why It Matters (Business Context):**  
+- Compensation is the largest HR cost driver (60–70% of OPEX).  
+- Leaders need **fast, reliable insights** into pay fairness, bonus distribution, gender equity, and market competitiveness.  
+- This dashboard automates C&B analysis → actionable outputs in seconds.  
+
+### 🔑 Key Features
+1. **Upload Employee & Benchmark Data**  
+   - Strict header validation ensures HRIS-ready inputs.  
+2. **Per-Metric Insights**  
+   - Avg/Median CTC by level  
+   - Quartile distribution (donut)  
+   - Bonus % analysis  
+   - Gender pay splits + Gap %  
+   - Company vs Market benchmarking  
+   - Performance rating pay distribution  
+3. **Board-Ready Reports**  
+   - Export to PDF with zebra-styled tables, actionable summaries, cover + TOC.  
+   - One-click chart/image downloads.  
+   - Consolidated “Actionable Conclusions” page.  
+
+### 📈 Results (v4.3 — Final UAT Polish)
+- **Tables:** Clean layouts (gender, rating, quartile).  
+- **Charts:** Color-consistent, titles standardized, gender gap % visible.  
+- **Reports:** Styled PDF with per-metric insights and consolidated summary.  
+- **Deployability:** Streamlit-ready, recruiter-demo friendly.  
+
+### 📂 Artifacts
+- [`cb_dashboard.py`](https://github.com/AMBOT-pixel96/hr-tech-portfolio/blob/main/cb_dashboard.py)  
+- [`requirements.txt`](https://github.com/AMBOT-pixel96/hr-tech-portfolio/blob/main/requirements.txt)  
+
+### ✅ Conclusions
+- Demonstrates ability to build **Compensation dashboards at consulting-grade polish**.  
+- Turns a sidequest into a **SaaS-level showcase project**.  
+- Validates **C&B domain expertise + HR Tech delivery skills**.
+
+---
+
 ## ⚒️ Tech Stack  
 
 - Python (Pandas, Matplotlib, Seaborn, scikit-learn, Jupyter Notebook)  
