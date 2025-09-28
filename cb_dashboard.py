@@ -1,6 +1,16 @@
-# cb_dashboard.py — Compensation & Benefits Dashboard (Hybrid Mode, with clickable PDF TOC)
-# Updated: Implements Step A (PDF styling) and Step B (11+ items), strict templates, dependent filters,
-# per-metric image + PDF export, compile-multi-metric PDF, quartile placement, company vs market, etc.
+# ============================================================
+# cb_dashboard.py — Compensation & Benefits Dashboard
+# Version: 2.0 (Post Step A + Step B integration)
+# Last Updated: 2025-09-28 21:00 IST
+# Notes:
+# - Implements Step A (PDF styling) and Step B (12 asks)
+# - Strict header validation (exact match, case-sensitive)
+# - Dependent filters (Department → JobRole)
+# - Per-metric PNG + PDF export
+# - Multi-metric compiled PDF (cover + TOC + insights)
+# - Quartile placement, Company vs Market gap analysis
+# - All metrics include Image Export (PNG) and Metric PDF export
+# ============================================================
 
 import streamlit as st
 import pandas as pd
@@ -18,7 +28,7 @@ import json
 import math
 
 # ReportLab for PDF composition (used for single and combined PDFs)
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Table, TableStyle, Image as RLImage, KeepTogether
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Table, TableStyle, Image as RLImage
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
@@ -56,6 +66,7 @@ TEXT_COLOR = colors.black
 def save_plotly_png(fig, filename, width=1200, height=700, scale=2):
     """Save plotly figure to file (PNG) and return path."""
     p = os.path.join(TMP_DIR, filename)
+    # plotly needs kaleido installed; fig.to_image uses kaleido
     img_bytes = fig.to_image(format="png", width=width, height=height, scale=scale)
     with open(p, "wb") as f:
         f.write(img_bytes)
@@ -214,16 +225,13 @@ def read_file(file):
 emp_df = read_file(uploaded_file)
 
 # make sure columns haven't been auto-normalized; we require exact headers for validation first
-# But we'll also accept .csv's where Excel might have trimmed whitespace; to be strict, require exact headers.
 if emp_df is None:
     st.error("Unable to read uploaded employee file.")
     st.stop()
 
-# If columns are not exact, show the preview and fail
-ok, msg = validate_exact_headers(list(emp_df.columns), EMP_REQUIRED), None
+# ✅ FIXED: Correct header validation call
+ok, msg = validate_exact_headers(emp_df, EMP_REQUIRED)
 if not ok:
-    # Try to repair common issues where headers may have extra spaces or lower/upper case by stripping whitespace & exact map
-    # But per requirement: strict exact matching. So show explicit error and fail.
     st.error("Employee file headers do not exactly match required template.")
     st.write("Expected:", EMP_REQUIRED)
     st.write("Found:", list(emp_df.columns))
@@ -247,7 +255,8 @@ if benchmark_file:
         st.warning("Could not read benchmark file. Ignoring benchmark.")
         bench_df = None
     else:
-        ok_b, _ = validate_exact_headers(list(bench_df.columns), BENCH_REQUIRED), None
+        # ✅ FIXED: Correct header validation call
+        ok_b, _ = validate_exact_headers(bench_df, BENCH_REQUIRED)
         if not ok_b:
             st.error("Benchmark file headers do not exactly match required template.")
             st.write("Expected:", BENCH_REQUIRED)
@@ -485,6 +494,53 @@ with col_qb:
 sections.append(("Quartile Placement", "Shows distribution buckets (Below Min, Q1..Q4, Beyond Max) for each Job Level."))
 images.append((png_path_box, "Quartile Distribution"))
 tables.append(("Quartile Placement", quartile_table))
+
+# ---------- Metric C2: Scatter Quadrant (StepB.7) - 4-quadrant scatter showing concentration
+st.subheader("⚫ Compensation Quadrant Concentration")
+# We will plot each employee as a dot located on X = percentile of JobLevel CTC; Y = CTC (absolute) or count density
+# For simplicity, X will be the percentile position within the JobLevel distribution scaled 0-100
+def add_percentile_within_group(df, group_col="JobLevel", value_col="CTC"):
+    df = df.copy()
+    df["pct_within_level"] = df.groupby(group_col)[value_col].rank(pct=True) * 100.0
+    return df
+
+quad_df = add_percentile_within_group(filtered_df, "JobLevel", "CTC")
+# define quadrant labels using the quartile categorizer
+cat_func_global, _ = make_quartile_categorizer(filtered_df["CTC"])
+quad_df["QuartileCat"] = quad_df["CTC"].apply(cat_func_global)
+
+# Map to 4 quadrants: combine Below Min+Q1, Q2, Q3, Q4+Beyond Max
+def quad_bucket(cat):
+    if cat in ["Below Min","Q1"]:
+        return "Q1+BelowMin"
+    if cat == "Q2":
+        return "Q2"
+    if cat == "Q3":
+        return "Q3"
+    return "Q4+BeyondMax"
+
+quad_df["QuadBucket"] = quad_df["QuartileCat"].apply(quad_bucket)
+
+fig_quad = px.scatter(quad_df, x="pct_within_level", y="CTC", color="QuadBucket", hover_data=["EmployeeID","JobLevel","JobRole","Department"], title="Quadrant concentration by percentile & CTC")
+# add quadrant vertical separators at 25/50/75 percent if helpful
+fig_quad.add_vline(x=25, line_dash="dash", line_color="lightgrey")
+fig_quad.add_vline(x=50, line_dash="dash", line_color="lightgrey")
+fig_quad.add_vline(x=75, line_dash="dash", line_color="lightgrey")
+png_quad = save_plotly_png(fig_quad, safe_filename("comp_quadrant"))
+st.plotly_chart(fig_quad, use_container_width=True)
+col_qa2, col_qb2 = st.columns([1,1])
+with col_qa2:
+    st.download_button("📸 Export Image (PNG) - Quadrant", data=open(png_quad,"rb").read(), file_name=os.path.basename(png_quad), mime="image/png")
+with col_qb2:
+    if st.button("📄 Export Metric PDF - Quadrant Concentration"):
+        buf = BytesIO(); doc = SimpleDocTemplate(buf, pagesize=A4, rightMargin=18*mm, leftMargin=18*mm, topMargin=20*mm, bottomMargin=20*mm); styles=getSampleStyleSheet(); story=[]
+        create_metric_pdf_section(story, "Compensation Quadrant Concentration", "Shows employee concentration across quartile-based quadrants (filtered selection).", quad_df[["EmployeeID","Department","JobRole","JobLevel","CTC","QuadBucket"]].head(200), png_quad, styles)
+        doc.build(story); pdf_bytes = buf.getvalue(); buf.close()
+        st.download_button("⬇️ Download PDF (Quadrant Concentration)", data=pdf_bytes, file_name="quadrant_concentration.pdf", mime="application/pdf")
+
+sections.append(("Quadrant Concentration", "Scatter of employees by percentile within job level and CTC quadrant."))
+images.append((png_quad, "Quadrant Concentration"))
+tables.append(("Quadrant Concentration (sample)", quad_df[["EmployeeID","JobRole","JobLevel","CTC","QuadBucket"]].head(200)))
 
 # ---------- Metric D: Bonus % by JobLevel (StepB.8)
 st.subheader("🎁 Average Bonus % of CTC by Job Level")
