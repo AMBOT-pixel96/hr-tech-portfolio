@@ -10,4 +10,4 @@ scikit-learn
 xgboost
 shap
 fpdf2
-kaleido
+kaleido==0.2.1
