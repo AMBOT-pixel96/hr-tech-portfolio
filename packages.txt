@@ -13,7 +13,7 @@ fonts-freefont-ttf
 zlib1g
 libjpeg62-turbo
 libpng16-16
-libtiff5
+libtiff6
 libxml2
 libxslt1.1
 build-essential
