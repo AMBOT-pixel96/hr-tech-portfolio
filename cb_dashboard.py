@@ -1,7 +1,7 @@
 # ============================================================
 # cb_dashboard.py — Compensation & Benefits Dashboard
-# Version: 2.2 (Post Step A + Step B + Fixes)
-# Last Updated: 2025-09-29 12:30 IST
+# Version: 2.3 (Full code, Step A + Step B + Fixes)
+# Last Updated: 2025-09-29 13:15 IST
 # Notes:
 # - Implements Step A (PDF styling, pastel rose bg)
 # - Implements Step B (12 asks, strict headers)
@@ -10,7 +10,7 @@
 # - Multi-metric compiled PDF (cover + TOC + insights)
 # - Quartile placement, Company vs Market gap analysis
 # - Outliers grouped, Quadrant categories fixed
-# - Clickable TOC + page numbers in all PDFs
+# - Clickable TOC (anchor-safe) + page numbers in all PDFs
 # ============================================================
 
 import streamlit as st
@@ -113,6 +113,11 @@ def readable_currency(x):
     if abs(x) >= 1e6:
         return f"₹{x/1e6:,.2f}M"
     return f"₹{x:,.0f}"
+
+def sanitize_anchor(title: str) -> str:
+    """Replace spaces/special chars to make safe PDF anchor ids"""
+    return title.replace(" ", "_").replace("&", "and")
+
 # -----------------------
 # Templates + How-to Guide
 # -----------------------
@@ -180,7 +185,6 @@ def create_howto_pdf_bytes():
               onLaterPages=lambda c,d:(draw_background(c,d), add_page_number(c,d)))
     pdf_bytes = buf.getvalue(); buf.close()
     return pdf_bytes
-
 # -----------------------
 # Sidebar: Templates & Guide
 # -----------------------
@@ -251,6 +255,7 @@ st.dataframe(emp_df.head(10), use_container_width=True)
 if bench_df is not None:
     st.write("Benchmark Preview:")
     st.dataframe(bench_df.head(10), use_container_width=True)
+
 # -----------------------
 # Filters (Dept → JobRole)
 # -----------------------
@@ -303,7 +308,8 @@ def make_quartile_categorizer(series):
 # Helpers for per-metric PDF
 # -----------------------
 def create_metric_pdf_section(story, title, description, table_df=None, chart_path=None, styles=None):
-    story.append(Paragraph(f'<a name="{title}"/>{title}', styles["Heading2"]))
+    anchor = sanitize_anchor(title)
+    story.append(Paragraph(f'<a name="{anchor}"/>{title}', styles["Heading2"]))
     if description:
         story.append(Paragraph(description, styles["BodyText"]))
         story.append(Spacer(1,6))
@@ -322,14 +328,37 @@ def create_metric_pdf_section(story, title, description, table_df=None, chart_pa
         story.append(RLImage(chart_path, width=170*mm, height=90*mm))
         story.append(Spacer(1,6))
     story.append(PageBreak())
-
 # -----------------------
-# (METRICS IMPLEMENTATION HERE — unchanged from v2.1 except % fix)
+# METRICS IMPLEMENTATION
 # -----------------------
-# ⚡ For brevity: reuse your Metric A–E blocks (Avg CTC, Median, Quartile, Quadrant, Bonus, Benchmarking).
-# Only change was in build_quartile_table():
-# → "Total (%)" row now has Count = 100 instead of grand total.
+sections, images, tables = [], [], []
 
+# Metric A: Average CTC by Job Level
+st.subheader("🏷️ Average CTC by Job Level")
+avg_ctc_jl = filtered_df.groupby("JobLevel")["CTC"].mean().reset_index()
+avg_ctc_jl["CTC_fmt"] = avg_ctc_jl["CTC"].apply(readable_currency)
+st.dataframe(avg_ctc_jl[["JobLevel","CTC_fmt"]], use_container_width=True)
+fig_avg = px.bar(avg_ctc_jl, x="JobLevel", y="CTC", title="Average CTC by Job Level")
+png_avg = save_plotly_png(fig_avg, safe_filename("avg_ctc_joblevel"))
+st.plotly_chart(fig_avg, use_container_width=True)
+sections.append(("Average CTC by Job Level","Shows average pay across job levels."))
+images.append((png_avg,"Average CTC by Job Level"))
+tables.append(("Average CTC by Job Level",avg_ctc_jl))
+
+# Metric B: Median CTC by Job Level
+st.subheader("📏 Median CTC by Job Level")
+med_ctc_jl = filtered_df.groupby("JobLevel")["CTC"].median().reset_index().rename(columns={"CTC":"MedianCTC"})
+med_ctc_jl["MedianCTC_fmt"] = med_ctc_jl["MedianCTC"].apply(readable_currency)
+st.dataframe(med_ctc_jl[["JobLevel","MedianCTC_fmt"]], use_container_width=True)
+fig_med = px.bar(med_ctc_jl, x="JobLevel", y="MedianCTC", title="Median CTC by Job Level")
+png_med = save_plotly_png(fig_med, safe_filename("median_ctc_joblevel"))
+st.plotly_chart(fig_med, use_container_width=True)
+sections.append(("Median CTC by Job Level","Shows median pay across job levels."))
+images.append((png_med,"Median CTC by Job Level"))
+tables.append(("Median CTC by Job Level",med_ctc_jl))
+
+# Metric C: Quartile Placement by Job Level
+st.subheader("📊 Quartile Placement by Job Level")
 def build_quartile_table(df, group_col="JobLevel"):
     rows=[]
     for lvl,g in df.groupby(group_col):
@@ -350,6 +379,59 @@ def build_quartile_table(df, group_col="JobLevel"):
         perc.update({"Count":100})
         out.loc[len(out)]={"JobLevel":"Total (%)",**perc}
     return out
+quartile_tbl=build_quartile_table(filtered_df)
+st.dataframe(quartile_tbl,use_container_width=True)
+fig_box=px.box(filtered_df,x="JobLevel",y="CTC",points="all",title="CTC Distribution by JobLevel")
+png_box=save_plotly_png(fig_box,safe_filename("quartile_box"))
+st.plotly_chart(fig_box,use_container_width=True)
+sections.append(("Quartile Placement","Distribution by quartiles + outliers per Job Level."))
+images.append((png_box,"Quartile Placement"))
+tables.append(("Quartile Placement",quartile_tbl))
+
+# Metric C2: Scatter Quadrant
+st.subheader("⚫ Compensation Quadrant Concentration")
+quad_df=filtered_df.copy()
+cat_func,_=make_quartile_categorizer(quad_df["CTC"])
+quad_df["QuartileCat"]=quad_df["CTC"].apply(cat_func)
+quad_df["QuadBucket"]=quad_df["QuartileCat"].apply(lambda c: c if c in ["Q1","Q2","Q3","Q4"] else "Outlier")
+fig_quad=px.scatter(quad_df,x="JobLevel",y="CTC",color="QuadBucket",
+                    hover_data=["EmployeeID","Department","JobRole"],
+                    title="Quadrant Concentration per JobLevel")
+png_quad=save_plotly_png(fig_quad,safe_filename("quadrant"))
+st.plotly_chart(fig_quad,use_container_width=True)
+sections.append(("Quadrant Concentration","Scatter of employees in quartiles per JobLevel."))
+images.append((png_quad,"Quadrant Concentration"))
+tables.append(("Quadrant Concentration",quad_df[["EmployeeID","JobLevel","CTC","QuadBucket"]].head(100)))
+
+# Metric D: Bonus % by Job Level
+st.subheader("🎁 Average Bonus % of CTC by Job Level")
+filtered_df["BonusPct"]=np.where(filtered_df["CTC"]>0,(filtered_df["Bonus"]/filtered_df["CTC"])*100,np.nan)
+bonus_tbl=filtered_df.groupby("JobLevel")["BonusPct"].mean().reset_index().round(2)
+st.dataframe(bonus_tbl,use_container_width=True)
+fig_bonus=px.bar(bonus_tbl,x="JobLevel",y="BonusPct",title="Avg Bonus % by JobLevel")
+png_bonus=save_plotly_png(fig_bonus,safe_filename("bonus_pct"))
+st.plotly_chart(fig_bonus,use_container_width=True)
+sections.append(("Avg Bonus % of CTC","Shows avg bonus % by JobLevel."))
+images.append((png_bonus,"Avg Bonus % of CTC"))
+tables.append(("Avg Bonus % of CTC",bonus_tbl))
+
+# Metric E: Company vs Market Benchmarking
+if bench_df is not None:
+    st.subheader("📉 Company vs Market (Median CTC)")
+    comp_med=filtered_df.groupby("JobLevel")["CTC"].median().reset_index().rename(columns={"CTC":"CompanyMedian"})
+    bench_med=bench_df.groupby("JobLevel")["MarketMedianCTC"].median().reset_index().rename(columns={"MarketMedianCTC":"MarketMedian"})
+    compare=pd.merge(comp_med,bench_med,on="JobLevel",how="outer").fillna(0)
+    compare["Gap%"]=np.where(compare["MarketMedian"]>0,(compare["CompanyMedian"]-compare["MarketMedian"])/compare["MarketMedian"]*100,np.nan).round(2)
+    st.dataframe(compare,use_container_width=True)
+    fig_cmp=go.Figure()
+    fig_cmp.add_trace(go.Bar(x=compare["JobLevel"],y=compare["CompanyMedian"],name="CompanyMedian"))
+    fig_cmp.add_trace(go.Scatter(x=compare["JobLevel"],y=compare["MarketMedian"],name="MarketMedian",mode="lines+markers"))
+    fig_cmp.update_layout(title="Company vs Market Median CTC",xaxis_title="JobLevel",yaxis_title="CTC")
+    png_cmp=save_plotly_png(fig_cmp,safe_filename("company_vs_market"))
+    st.plotly_chart(fig_cmp,use_container_width=True)
+    sections.append(("Company vs Market","Median comparison by JobLevel."))
+    images.append((png_cmp,"Company vs Market"))
+    tables.append(("Company vs Market",compare))
 
 # -----------------------
 # Downloads area
@@ -385,7 +467,8 @@ if st.button("🧩 Compile Selected KPIs into Single PDF"):
         # TOC
         story.append(Paragraph("Table of Contents",styles["Heading2"]))
         for idx,t in enumerate(selected,1):
-            story.append(Paragraph(f'<a href="#{t}">{idx}. {t}</a>',styles["Normal"]))
+            anchor=sanitize_anchor(t)
+            story.append(Paragraph(f'<a href="#{anchor}">{idx}. {t}</a>',styles["Normal"]))
         story.append(PageBreak())
         # Sections
         for idx,title in enumerate(selected,1):
