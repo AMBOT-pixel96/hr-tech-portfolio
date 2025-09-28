@@ -132,17 +132,75 @@ def get_benchmark_template_csv():
 
 def get_howto_markdown_full():
     return """
-# How to Upload Data — C&B Dashboard
-Use only provided templates. Headers are case-sensitive.
+# 📘 How to Upload Data — User Guide
 
-## Internal Compensation Template
-- EmployeeID, Gender, Department, JobRole, JobLevel
-- CTC (annual INR), Bonus (annual INR), PerformanceRating (1–5)
+This dashboard requires data to be uploaded in **strictly defined templates**.  
+Please review these rules carefully before preparing files.
 
-## External Benchmarking Template
-- JobRole, JobLevel, MarketMedianCTC (annual INR)
+---
 
-All outputs standardized to **₹ Lakhs** (numeric).
+## ✅ 1. General Instructions
+- 📥 Download the official templates from the dashboard (Employee & Benchmark).  
+- ✏️ Fill in your organization’s data directly in those templates.  
+- ❌ Do not rename headers, add/remove/reorder columns, or merge cells.  
+- 💾 Files must be saved in **.xlsx** format (Excel).  
+- ⚠️ Any mismatch in headers will block the upload.
+
+---
+
+## 🧑‍💼 2. Internal Compensation Template
+
+**Required Columns (must match exactly):**
+1. EmployeeID  
+2. Gender  
+3. Department  
+4. JobRole  
+5. JobLevel  
+6. CTC  
+7. Bonus  
+8. PerformanceRating  
+
+**Column Descriptions with Examples:**
+
+| Column            | Description                                         | Example   |
+|-------------------|-----------------------------------------------------|-----------|
+| EmployeeID        | Unique employee identifier (string)                 | E1001     |
+| Gender            | Male / Female / Other                               | Male      |
+| Department        | Functional unit / business vertical                 | Finance   |
+| JobRole           | Standardized job role                               | Analyst   |
+| JobLevel          | Job grade / level                                   | Analyst   |
+| CTC               | Annual Cost to Company (₹, numeric)                 | 600000    |
+| Bonus             | Annual bonus / variable pay (₹, numeric)            | 50000     |
+| PerformanceRating | Scale **1 = highest, 5 = lowest** (numeric integer) | 3         |
+
+---
+
+## 🌐 3. External Benchmarking Template
+
+**Required Columns (must match exactly):**
+1. JobRole  
+2. JobLevel  
+3. MarketMedianCTC  
+
+**Column Descriptions with Examples:**
+
+| Column            | Description                                | Example     |
+|-------------------|--------------------------------------------|-------------|
+| JobRole           | Standardized job role                      | Analyst     |
+| JobLevel          | Job grade / level                          | Analyst     |
+| MarketMedianCTC   | Median annual benchmark pay (₹, numeric)   | 650000      |
+
+---
+
+## 📂 4. Upload Rules
+- 📊 Only Excel **.xlsx** files are accepted.  
+- 📑 Templates must be used **as-is** (no custom versions).  
+- 🔢 **PerformanceRating** must follow the rule:  
+  **1 = highest, 5 = lowest**.  
+- ⚠️ If errors occur, download fresh templates and re-enter data.  
+- ✅ Once uploaded, headers will be validated before proceeding to insights.
+
+---
 """
 
 def create_howto_pdf_bytes():
@@ -151,15 +209,39 @@ def create_howto_pdf_bytes():
                             rightMargin=18*mm, leftMargin=18*mm,
                             topMargin=20*mm, bottomMargin=20*mm)
     styles = getSampleStyleSheet()
+    body = ParagraphStyle("body", parent=styles["Normal"],
+                          fontName=BODY_FONT, fontSize=10, leading=14)
     story = []
-    body = ParagraphStyle("body", parent=styles["Normal"], fontName=BODY_FONT, fontSize=10, leading=14)
-    for para in get_howto_markdown_full().split("\n\n"):
-        story.append(Paragraph(para.replace("\n","<br/>"), body))
-        story.append(Spacer(1,6))
-    doc.build(story, onFirstPage=lambda c,d:(draw_background(c,d), add_page_number(c,d)),
-                   onLaterPages=lambda c,d:(draw_background(c,d), add_page_number(c,d)))
-    return buf.getvalue()
 
+    content = get_howto_markdown_full().split("\n\n")
+    for block in content:
+        if block.strip().startswith("|"):  # Markdown table block
+            lines = [ln.strip("|") for ln in block.strip().split("\n") if "|" in ln]
+            rows = [ [c.strip() for c in ln.split("|")] for ln in lines ]
+            if rows:
+                # Strip markdown separators (---)
+                if len(rows) > 1 and set("".join(rows[1])) <= set("-: "):
+                    rows = [rows[0]] + rows[2:]
+                # Zebra style
+                tstyle = TableStyle([
+                    ("GRID", (0,0), (-1,-1), 0.25, colors.black),
+                    ("BACKGROUND", (0,0), (-1,0), colors.whitesmoke),
+                ])
+                for r in range(1, len(rows)):
+                    if r % 2 == 0:
+                        tstyle.add("BACKGROUND", (0,r), (-1,r), TABLE_ZEBRA)
+                tbl = Table(rows, repeatRows=1, hAlign="LEFT", colWidths="*")
+                tbl.setStyle(tstyle)
+                story.append(tbl)
+                story.append(Spacer(1,6))
+        else:
+            story.append(Paragraph(block.replace("\n","<br/>"), body))
+            story.append(Spacer(1,6))
+
+    doc.build(story,
+              onFirstPage=lambda c,d:(draw_background(c,d), add_page_number(c,d)),
+              onLaterPages=lambda c,d:(draw_background(c,d), add_page_number(c,d)))
+    return buf.getvalue()
 # -----------------------
 # App header
 # -----------------------
