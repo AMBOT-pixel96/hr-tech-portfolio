@@ -596,6 +596,57 @@ This project shows how HR teams can query their employee database (like an HRIS 
 - Demonstrates ability to build **Compensation dashboards at consulting-grade polish**.  
 - Turns a sidequest into a **SaaS-level showcase project**.  
 - Validates **C&B domain expertise + HR Tech delivery skills**.
+---
+## 📊 Project 9: Attrition Explainability with SHAP (v1.0)
+
+**Objective:**  
+Enhance interpretability of advanced attrition models (Random Forest / XGBoost) using **SHAP** values.  
+This project makes the “black box” models explainable, showing **which features drive attrition** at both global (all employees) and local (individual employee) levels.  
+
+**Why This Matters (Business Context):**  
+- Executives need to know not just *who* is at risk, but *why*.  
+- SHAP (SHapley Additive exPlanations) builds trust by linking predictions to actionable factors.  
+- Transparency ensures fairness in HR decisions and strengthens adoption of predictive analytics.  
+
+### 🔑 Key Steps
+1. Loaded trained model + aligned dataset (clean features, leakage removed).  
+2. Generated **SHAP Summary Plot** → top global drivers of attrition.  
+3. Built **Top 15 Feature Importance (Bar Plot)** for easy business readability.  
+4. Exported **full feature importance table (44 features)** to CSV for reference.  
+5. Created **Dependence Plot** (MonthlyIncome vs Attrition risk).  
+6. Generated **Local Waterfall Plot** → explains why one employee was flagged “At Risk.”  
+7. Saved all charts + artifacts for portfolio showcase.  
+
+### 📈 Results
+- **Global Drivers:** Age, DailyRate, MonthlyIncome, OverTime consistently top predictors.  
+- **Top 15 Features:** Captured ~80% of SHAP importance (clear drivers visible in business plots).  
+- **Local Explanation:** Waterfall plots show *exactly which factors push an individual into attrition risk*.  
+- **Artifacts Exported:** All visuals and CSV available for download.  
+
+### 🖼️ Visuals
+- [SHAP Summary Plot (Global)](images/shap_summary_plot_v2.png) 🌍  
+- [Top 15 Feature Importance (Bar)](images/shap_feature_importance_top15.png) 📊  
+- [SHAP Dependence Plot — MonthlyIncome](images/shap_dependence_plot_v2.png) 💰  
+- [Local SHAP Waterfall (Employee 0)](images/shap_waterfall_employee0.png) 👤  
+
+### 📦 Artifacts
+### 📦 Artifacts
+- **Data File:** [`shap_feature_importance_full.csv`](data/shap_feature_importance_full.csv) → full table of all 44 features with mean SHAP values.  
+- **Images:**  
+  - SHAP Summary Plot (Global)  
+  - Top 15 Feature Importance (Bar)  
+  - SHAP Dependence Plot — MonthlyIncome  
+  - Local SHAP Waterfall (Employee 0)
+---
+
+📓 [View the Notebook → Attrition_SHAP_Explainability_V1.ipynb](notebooks/Attrition_SHAP_Explainability_V1.ipynb)  
+
+---
+
+### ✅ Conclusion
+- Project 9 brings **explainable AI** to the HR Attrition domain.  
+- Moves beyond prediction → **interpretation**.  
+- Business users now get *clear charts* + *tables* linking model predictions to real HR actions.
 
 ---
 
