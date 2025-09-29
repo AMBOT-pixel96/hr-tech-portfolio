@@ -55,7 +55,7 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │   ├── Attrition_SQL_Predictions.csv
 │   ├── cleaned_hr_data.csv
 │   ├── employee_attrition.csv
-│   └── ... (7 more)
+│   └── ... (8 more)
 ├── helper_scripts
 │   ├── hr_db.py
 │   └── sql_utils.py
