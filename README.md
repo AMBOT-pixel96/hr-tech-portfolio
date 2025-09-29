@@ -40,8 +40,7 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 | 7 | Interactive Attrition Dashboard | [app.py](https://github.com/AMBOT-pixel96/hr-tech-portfolio/blob/main/app.py) | Streamlit app → Upload CSV, run predictions & SHAP |
 | 8 | SQL + ML Integration | [Attrition_SQL_Integration-Git.ipynb](https://github.com/AMBOT-pixel96/hr-tech-portfolio/blob/main/notebooks/Attrition_SQL_Integration-Git.ipynb) | Query DB → Predict attrition + donut, dept. breakdown |
 | 9 | C&B Dashboard (Sidequest 2, v4.3) | [`cb_dashboard.py`](https://github.com/AMBOT-pixel96/hr-tech-portfolio/blob/main/cb_dashboard.py), [`requirements.txt`](https://github.com/AMBOT-pixel96/hr-tech-portfolio/blob/main/requirements.txt) <br> 🌍 [Live App](https://cb-dashboard.streamlit.app/) | Streamlit C&B tool → Avg/Median pay, bonus %, gender gap %, market benchmarking, board-ready PDF |
-
-
+| 10 | Attrition SHAP Explainability (v1.0) | [Attrition_SHAP_Explainability_V1.ipynb](https://github.com/AMBOT-pixel96/hr-tech-portfolio/blob/main/notebooks/Attrition_SHAP_Explainability_V1.ipynb) | SHAP explainability → global drivers, top 15 features, dependence, local employee waterfall |
 ---
 
 ## 📂 Repository Structure  
