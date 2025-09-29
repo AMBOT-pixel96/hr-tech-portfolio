@@ -63,7 +63,7 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │   ├── Attrition_by_dept.jpg
 │   ├── attrition_by_age.jpg
 │   ├── attrition_by_jobrole.png
-│   └── ... (26 more)
+│   └── ... (30 more)
 ├── models
 │   ├── Attrition_AdvancedModels.ipynb
 │   ├── logistic_attrition_model.pkl
