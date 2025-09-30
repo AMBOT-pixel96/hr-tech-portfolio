@@ -29,19 +29,19 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 ---
 ## 📋 Project Overview
 
-| #  | Project | Notebook / App | Highlight Results |
-|----|---------|----------------|------------------|
-| 1  | Attrition Risk Analyzer (v1.0) | [Day4-AttritionRiskAnalyzer.ipynb](notebooks/Day4-AttritionRiskAnalyzer.ipynb) | Attrition rate **16.1%**, highest in Sales Reps (**39%**) |
-| 2  | Predictive Attrition Model (Logistic v2.0 / v3.0) | [Attrition_PredictiveModel_V2.ipynb](notebooks/Attrition_PredictiveModel_V2.ipynb), [V3](notebooks/Attrition_PredictiveModel_V3.ipynb) | Logistic ~**75% acc**, ROC AUC ~**0.80** |
-| 3  | HR Data Cleaning Utility (Sidequest 1) | [HR_Data_Cleaning_Utility_V1.ipynb](sidequests/HR_Data_Cleaning_Utility_V1.ipynb) | Automated pipeline → `cleaned_hr_data.csv` |
-| 4  | Model Comparison (Logistic vs RF) | [Attrition_ModelComparision.ipynb](notebooks/Attrition_ModelComparision.ipynb) | Logistic **75%**, RF **83%** |
-| 5  | Advanced Models (RF + XGBoost) | [Attrition_AdvancedModels.ipynb](notebooks/Attrition_AdvancedModels.ipynb) | XGBoost best: **86.4% acc**, ROC AUC **0.774** |
-| 6  | Explainability with SHAP | [Attrition_ModelExplainability.ipynb](notebooks/Attrition_ModelExplainability.ipynb) | Global drivers: Overtime, JobRole, Income |
-| 7  | Interactive Attrition Dashboard | [app.py](app.py) | Streamlit app → Upload CSV, run predictions & SHAP |
-| 8  | SQL + ML Integration | [Attrition_SQL_Integration-Git.ipynb](notebooks/Attrition_SQL_Integration-Git.ipynb) | Query DB → Predict attrition + donut, dept. breakdown |
-| 9  | SHAP Explainability (Main Arc, v1) | [Attrition_SHAP_Explainability_V1.ipynb](notebooks/Attrition_SHAP_Explainability_V1.ipynb) | Top 15 drivers, dependence plots, local waterfall, artifacts exported |
-| 10 | C&B Dashboard (Sidequest 2, v4.3) | [cb_dashboard.py](cb_dashboard.py), [requirements.txt](requirements.txt) <br> 🌍 [Live App](https://cb-dashboard.streamlit.app/) | Streamlit C&B tool → Avg/Median pay, bonus %, gender gap %, market benchmarking, board-ready PDF |
-| 11 | Compensation Analytics (Seed – Day 2) | [LearningArc_Day-2.ipynb](notebooks/LearningArc_Day-2.ipynb) | Avg CTC by Level, Bonus %, Gender Pay Gap — seed for **C&B Dashboard v2.0** |
+| # | Project | Notebook / App | Highlight Results |
+|---|---------|----------------|------------------|
+| 1 | Attrition Risk Analyzer (v1.0) | [Day4-AttritionRiskAnalyzer.ipynb](notebooks/Day4-AttritionRiskAnalyzer.ipynb) | Attrition rate **16.1%**, highest in Sales Reps (**39%**) |
+| 2 | Predictive Attrition Model (Logistic v2.0 / v3.0) | [Attrition_PredictiveModel_V2.ipynb](notebooks/Attrition_PredictiveModel_V2.ipynb), [V3](notebooks/Attrition_PredictiveModel_V3.ipynb) | Logistic ~**75% acc**, ROC AUC ~**0.80** |
+| 3 | HR Data Cleaning Utility (Sidequest 1) | [HR_Data_Cleaning_Utility_V1.ipynb](sidequests/HR_Data_Cleaning_Utility_V1.ipynb) | Automated pipeline → `cleaned_hr_data.csv` |
+| 4 | Model Comparison (Logistic vs RF) | [Attrition_ModelComparision.ipynb](notebooks/Attrition_ModelComparision.ipynb) | Logistic **75%**, RF **83%** |
+| 5 | Advanced Models (RF + XGBoost) | [Attrition_AdvancedModels.ipynb](notebooks/Attrition_AdvancedModels.ipynb) | XGBoost best: **86.4% acc**, ROC AUC **0.774** |
+| 6 | Explainability with SHAP | [Attrition_ModelExplainability.ipynb](notebooks/Attrition_ModelExplainability.ipynb) | Global drivers: Overtime, JobRole, Income |
+| 7 | Interactive Attrition Dashboard | [app.py](app.py) | Streamlit app → Upload CSV, run predictions & SHAP |
+| 8 | SQL + ML Integration | [Attrition_SQL_Integration-Git.ipynb](notebooks/Attrition_SQL_Integration-Git.ipynb) | Query DB → Predict attrition + donut, dept. breakdown |
+| 9 | C&B Dashboard (Sidequest 2, v4.3) | [cb_dashboard.py](cb_dashboard.py), [requirements.txt](requirements.txt) <br> 🌍 [Live App](https://cb-dashboard.streamlit.app/) | Streamlit C&B tool → Avg/Median pay, bonus %, gender gap %, market benchmarking, board-ready PDF |
+| 10 | Attrition Explainability with SHAP (Advanced) | [Attrition_SHAP_Explainability_V1.ipynb](notebooks/Attrition_SHAP_Explainability_V1.ipynb) | Top 15 drivers (bar chart), 44-driver CSV export, dependence & local explanations |
+| 11 | Compensation Analytics (Day 2) | [Comp_Analytics_Day2.ipynb](notebooks/Comp_Analytics_Day2.ipynb) | Avg CTC, Bonus %, Gender Pay Gap with CSV + visuals |
 ---
 
 ## 📂 Repository Structure  
