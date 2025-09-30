@@ -41,7 +41,7 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 | 8 | SQL + ML Integration | [Attrition_SQL_Integration-Git.ipynb](notebooks/Attrition_SQL_Integration-Git.ipynb) | Query DB → Predict attrition + donut, dept. breakdown |
 | 9 | C&B Dashboard (Sidequest 2, v4.3) | [cb_dashboard.py](cb_dashboard.py), [requirements.txt](requirements.txt) <br> 🌍 [Live App](https://cb-dashboard.streamlit.app/) | Streamlit C&B tool → Avg/Median pay, bonus %, gender gap %, market benchmarking, board-ready PDF |
 | 10 | Attrition Explainability with SHAP (Advanced) | [Attrition_SHAP_Explainability_V1.ipynb](notebooks/Attrition_SHAP_Explainability_V1.ipynb) | Top 15 drivers (bar chart), 44-driver CSV export, dependence & local explanations |
-| 11 | Compensation Analytics (Day 2) | [Comp_Analytics_Day2.ipynb](notebooks/Comp_Analytics_Day2.ipynb) | Avg CTC, Bonus %, Gender Pay Gap with CSV + visuals |
+| 11 | Compensation Analytics (Day 2) | [Comp_Analytics_Day2.ipynb](notebooks/Compensation_Analytics_V1.ipynb) | Avg CTC, Bonus %, Gender Pay Gap with CSV + visuals |
 ---
 
 ## 📂 Repository Structure  
