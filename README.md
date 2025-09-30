@@ -669,6 +669,19 @@ Analyzed employee compensation dataset to practice salary distribution, bonus %,
   - Avg CTC by Job Level (📊 Bar Chart)  
   - Bonus % Distribution (🎁 Bar Chart)  
   - Gender Pay Gap (👫 Grouped Bars)
+---
+
+### 🔥 Sample Visuals
+
+**1. Average CTC by Job Level**  
+![Average CTC by Job Level](images/comp_ctc_by_joblevel.png)
+
+**2. Bonus % Distribution by Job Level**  
+![Bonus % Distribution](images/comp_bonus_dist.png)
+
+**3. Gender Pay Gap (Male vs Female, % Difference)**  
+![Gender Pay Gap](images/comp_gender_gap.png)
+---
 
 📓 Notebook: [LearningArc_Day-2.ipynb](notebooks/LearningArc_Day-2.ipynb)
 
