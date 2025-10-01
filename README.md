@@ -29,19 +29,20 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 ---
 ## 📋 Project Overview
 
-| # | Project | Notebook / App | Highlight Results |
-|---|---------|----------------|------------------|
-| 1 | Attrition Risk Analyzer (v1.0) | [Day4-AttritionRiskAnalyzer.ipynb](notebooks/Day4-AttritionRiskAnalyzer.ipynb) | Attrition rate **16.1%**, highest in Sales Reps (**39%**) |
-| 2 | Predictive Attrition Model (Logistic v2.0 / v3.0) | [Attrition_PredictiveModel_V2.ipynb](notebooks/Attrition_PredictiveModel_V2.ipynb), [V3](notebooks/Attrition_PredictiveModel_V3.ipynb) | Logistic ~**75% acc**, ROC AUC ~**0.80** |
-| 3 | HR Data Cleaning Utility (Sidequest 1) | [HR_Data_Cleaning_Utility_V1.ipynb](sidequests/HR_Data_Cleaning_Utility_V1.ipynb) | Automated pipeline → `cleaned_hr_data.csv` |
-| 4 | Model Comparison (Logistic vs RF) | [Attrition_ModelComparision.ipynb](notebooks/Attrition_ModelComparision.ipynb) | Logistic **75%**, RF **83%** |
-| 5 | Advanced Models (RF + XGBoost) | [Attrition_AdvancedModels.ipynb](notebooks/Attrition_AdvancedModels.ipynb) | XGBoost best: **86.4% acc**, ROC AUC **0.774** |
-| 6 | Explainability with SHAP | [Attrition_ModelExplainability.ipynb](notebooks/Attrition_ModelExplainability.ipynb) | Global drivers: Overtime, JobRole, Income |
-| 7 | Interactive Attrition Dashboard | [app.py](app.py) | Streamlit app → Upload CSV, run predictions & SHAP |
-| 8 | SQL + ML Integration | [Attrition_SQL_Integration-Git.ipynb](notebooks/Attrition_SQL_Integration-Git.ipynb) | Query DB → Predict attrition + donut, dept. breakdown |
-| 9 | C&B Dashboard (Sidequest 2, v4.3) | [cb_dashboard.py](cb_dashboard.py), [requirements.txt](requirements.txt) <br> 🌍 [Live App](https://cb-dashboard.streamlit.app/) | Streamlit C&B tool → Avg/Median pay, bonus %, gender gap %, market benchmarking, board-ready PDF |
+| #  | Project | Notebook / App | Highlight Results |
+|----|---------|----------------|------------------|
+| 1  | Attrition Risk Analyzer (v1.0) | [Day4-AttritionRiskAnalyzer.ipynb](notebooks/Day4-AttritionRiskAnalyzer.ipynb) | Attrition rate **16.1%**, highest in Sales Reps (**39%**) |
+| 2  | Predictive Attrition Model (Logistic v2.0 / v3.0) | [Attrition_PredictiveModel_V2.ipynb](notebooks/Attrition_PredictiveModel_V2.ipynb), [V3](notebooks/Attrition_PredictiveModel_V3.ipynb) | Logistic ~**75% acc**, ROC AUC ~**0.80** |
+| 3  | HR Data Cleaning Utility (Sidequest 1) | [HR_Data_Cleaning_Utility_V1.ipynb](sidequests/HR_Data_Cleaning_Utility_V1.ipynb) | Automated pipeline → `cleaned_hr_data.csv` |
+| 4  | Model Comparison (Logistic vs RF) | [Attrition_ModelComparision.ipynb](notebooks/Attrition_ModelComparision.ipynb) | Logistic **75%**, RF **83%** |
+| 5  | Advanced Models (RF + XGBoost) | [Attrition_AdvancedModels.ipynb](notebooks/Attrition_AdvancedModels.ipynb) | XGBoost best: **86.4% acc**, ROC AUC **0.774** |
+| 6  | Explainability with SHAP | [Attrition_ModelExplainability.ipynb](notebooks/Attrition_ModelExplainability.ipynb) | Global drivers: Overtime, JobRole, Income |
+| 7  | Interactive Attrition Dashboard | [app.py](app.py) | Streamlit app → Upload CSV, run predictions & SHAP |
+| 8  | SQL + ML Integration | [Attrition_SQL_Integration-Git.ipynb](notebooks/Attrition_SQL_Integration-Git.ipynb) | Query DB → Predict attrition + donut, dept. breakdown |
+| 9  | C&B Dashboard (Sidequest 2, v4.3) | [cb_dashboard.py](cb_dashboard.py), [requirements.txt](requirements.txt) <br> 🌍 [Live App](https://cb-dashboard.streamlit.app/) | Streamlit C&B tool → Avg/Median pay, bonus %, gender gap %, market benchmarking, board-ready PDF |
 | 10 | Attrition Explainability with SHAP (Advanced) | [Attrition_SHAP_Explainability_V1.ipynb](notebooks/Attrition_SHAP_Explainability_V1.ipynb) | Top 15 drivers (bar chart), 44-driver CSV export, dependence & local explanations |
-| 11 | Compensation Analytics (Day 2) | [Compensation_Analytics_V1.ipynb](notebooks/Compensation_Analytics_V1.ipynb) | Avg CTC, Bonus %, Gender Pay Gap with CSV + visuals |
+| 11 | Compensation Analytics (Day 2 – Seed) | [Compensation_Analytics_V1.ipynb](notebooks/Compensation_Analytics_V1.ipynb) | Avg CTC, Bonus %, Gender Pay Gap with CSV + visuals |
+| 12 | Compensation Analytics (Day 3 – Extension V2) | [Compensation_Analytics_V2.ipynb](notebooks/Compensation_Analytics_V2.ipynb) | Median CTC, Dept-wise pay, Bonus % by Dept, polished exports |
 ---
 
 ## 📂 Repository Structure  
@@ -688,6 +689,60 @@ Analyzed employee compensation dataset to practice salary distribution, bonus %,
 ---
 
 ✅ **Status:** Seed project complete — lays the foundation for **Project 10 (C&B Dashboard 2.0)**.
+
+---
+## 📊 Project 12: Compensation Analytics (Day 3 – Extension V2)
+
+**Objective:** Extend seed compensation analytics with **median CTC**, **department-level insights**, and **bonus % distribution**.  
+This iteration builds stronger analytical foundations, preparing for **C&B Dashboard v2.0**.
+
+---
+
+### 🔑 Key Steps
+1. **Median CTC by Job Level**  
+   - Calculated medians (not just averages).  
+   - Visualized with boxplot.  
+   - Exported → `comp_median_ctc.csv` + `comp_median_ctc.png`.  
+
+2. **Department-Wise Pay Comparison**  
+   - Grouped mean & median side by side.  
+   - Visualized as grouped bar chart.  
+   - Exported → `comp_ctc_by_department.csv` + `comp_ctc_by_dept.png`.  
+
+3. **Bonus % Distribution by Department**  
+   - Analyzed bonus share by department.  
+   - Visualized with violin plot.  
+   - Exported → `bonus_by_department.csv` + `bonus_by_department.png`.  
+
+4. **Artifact Push**  
+   - Notebook & outputs tracked in Git.  
+
+---
+
+### 🖼️ Visuals  
+
+**1. Median CTC by Job Level**  
+![Median CTC by Job Level](images/comp_median_ctc.png)  
+
+**2. CTC by Department (Mean vs Median)**  
+![CTC by Department](images/comp_ctc_by_dept.png)  
+
+**3. Bonus % Distribution by Department**  
+![Bonus % by Department](images/bonus_by_department.png)  
+
+---
+
+### 📦 Artifacts  
+- [comp_median_ctc.csv](data/comp_median_ctc.csv)  
+- [comp_ctc_by_department.csv](data/comp_ctc_by_department.csv)  
+- [bonus_by_department.csv](data/bonus_by_department.csv)  
+
+---
+📓 Notebook: [Compensation_Analytics_V2.ipynb](notebooks/Compensation_Analytics_V2.ipynb)  
+
+---
+
+✅ **Status:** Polished extension complete — sets stage for **C&B Dashboard v2.0**.
 
 ---
 ## ⚒️ Tech Stack  
