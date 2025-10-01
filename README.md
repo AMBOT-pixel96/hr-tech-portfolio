@@ -54,8 +54,8 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 ├── data
 │   ├── Attrition_SQL_Predictions.csv
 │   ├── Comp_Analytics_Processed.csv
-│   ├── cleaned_hr_data.csv
-│   └── ... (10 more)
+│   ├── bonus_by_department.csv
+│   └── ... (13 more)
 ├── helper_scripts
 │   ├── hr_db.py
 │   └── sql_utils.py
@@ -63,7 +63,7 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │   ├── Attrition_by_dept.jpg
 │   ├── attrition_by_age.jpg
 │   ├── attrition_by_jobrole.png
-│   └── ... (33 more)
+│   └── ... (36 more)
 ├── models
 │   ├── Attrition_AdvancedModels.ipynb
 │   ├── logistic_attrition_model.pkl
@@ -83,7 +83,7 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │   ├── Attrition_AdvancedModels_aa41c1310f907082a92a9e51b94010b5.pdf
 │   ├── Attrition_ModelComparision_009086358233572ffb338cf8f4ee6ab7.pdf
 │   ├── Attrition_ModelExplainability_52d61660976d1481ab051617939779a2.pdf
-│   └── ... (12 more)
+│   └── ... (13 more)
 ├── requirements.txt
 ├── runtime.txt
 ├── scripts
