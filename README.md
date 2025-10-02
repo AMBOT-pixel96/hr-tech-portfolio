@@ -58,8 +58,7 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │   ├── bonus_by_department.csv
 │   └── ... (13 more)
 ├── faker_data
-│   ├── employee_master.csv
-│   └── placeholder.txt
+│   └── employee_master.csv
 ├── helper_scripts
 │   ├── hr_db.py
 │   └── sql_utils.py
