@@ -748,46 +748,56 @@ This iteration builds stronger analytical foundations, preparing for **C&B Dashb
 ✅ **Status:** Polished extension complete — sets stage for **C&B Dashboard v2.0**.
 
 ---
-## 📊 Project 13: Compensation Analytics (Day 4 – V3 Bonus vs CTC)
 
-**Objective:** Push compensation analytics further by connecting **bonus % to total CTC**, alongside headcount and department-wise pay comparisons.
+## 📊 Project 13: Compensation Analytics
+(V3 - Bonus vs CTC, Gender Gap, Dept Pay)
+
+**Objective:** Extend compensation analytics by adding **bonus vs performance**, **gender pay gap**, and **departmental averages**. 
 
 ---
 
 ### 🔑 Key Steps
-1. **Bonus % vs CTC Trendline**  
+1. **Bonus % vs Performance**  
    - Derived `BonusPct = Bonus ÷ CTC × 100`.  
-   - Visualized average bonus % against CTC levels.  
-   - Exported → `bonus_vs_ctc.csv` + `bonus_vs_ctc.png`.
+   - Grouped by Performance bands.  
+   - Exported → `day4_bonus_vs_perf.csv` + `day4_bonus_vs_perf.png`.
 
 2. **Headcount by Job Level**  
    - Counted employees by `JobLevel`.  
-   - Clean bar chart with labels on each bar.  
-   - Exported → `joblevel_counts.csv` + `joblevel_counts.png`.
+   - Exported → `day4_joblevel_counts.csv` + `day4_joblevel_counts.png`.
 
 3. **Departmental Averages**  
-   - Grouped CTC by department (mean values).  
+   - Grouped mean CTC by department.  
    - Exported → `day4_ctc_by_dept.csv` + `day4_ctc_by_dept.png`.
+
+4. **Gender Pay Gap**  
+   - Compared avg CTC between Male vs Female.  
+   - Calculated pay gap % = (Male − Female)/Male × 100.  
+   - Exported → `day4_gender_paygap.csv` + `day4_gender_paygap.png`.
 
 ---
 
 ### 🖼️ Visuals  
 
-**1. Bonus % vs CTC**  
-![Bonus vs CTC](images/bonus_vs_ctc.png)  
+**1. Bonus % vs Performance**  
+![Bonus vs Performance](images/day4_bonus_vs_perf.png)  
 
 **2. Headcount by Job Level**  
-![Headcount by Job Level](images/joblevel_counts.png)  
+![Headcount by Job Level](images/day4_joblevel_counts.png)  
 
 **3. Avg CTC by Department**  
-![Avg CTC by Department](images/day4_ctc_by_dept.png)  
+![CTC by Department](images/day4_ctc_by_dept.png)  
+
+**4. Gender Pay Gap**  
+![Gender Pay Gap](images/day4_gender_paygap.png)  
 
 ---
 
 ### 📦 Artifacts  
-- [bonus_vs_ctc.csv](data/bonus_vs_ctc.csv)  
-- [joblevel_counts.csv](data/joblevel_counts.csv)  
+- [day4_bonus_vs_perf.csv](data/day4_bonus_vs_perf.csv)  
+- [day4_joblevel_counts.csv](data/day4_joblevel_counts.csv)  
 - [day4_ctc_by_dept.csv](data/day4_ctc_by_dept.csv)  
+- [day4_gender_paygap.csv](data/day4_gender_paygap.csv)  
 
 ---
 
@@ -795,7 +805,8 @@ This iteration builds stronger analytical foundations, preparing for **C&B Dashb
 
 ---
 
-✅ **Status:** Compensation analytics now spans **Day 2 (Seed)** → **Day 3 (Extension V2)** → **Day 4 (V3: Bonus Linkage)**, forming the backbone of **C&B Dashboard v2.0**.
+✅ **Status:** Compensation analytics now spans **Seed (Day 2)** → **Extension (Day 3)** → **Bonus/Gender/Dept (Day 4)**, powering **C&B Dashboard v2.0**.
+
 ---
 ## ⚒️ Tech Stack  
 
@@ -839,31 +850,14 @@ jupyter notebook
 
 5. Open and run the notebooks
 
-### 📘 Baby Steps (Learning Path)
-- [Day1-Hello-Amlan.ipynb](notebooks/Day1-Hello-Amlan.ipynb)  
-- [Day2-Basics.ipynb](notebooks/Day2-Basics.ipynb)  
-- [Day3-DataTypesAndControl.ipynb](notebooks/Day3-DataTypesAndControl.ipynb)  
-
-### 📊 Main Projects
-- [Day4-AttritionRiskAnalyzer.ipynb → Descriptive Analytics](notebooks/Day4-AttritionRiskAnalyzer.ipynb)  
-- [Day4-AttritionRiskAnalyzer_v2.0.ipynb → Enhanced Descriptive Analytics](notebooks/Day4-AttritionRiskAnalyzer_v2.0.ipynb)  
-- [Attrition_PredictiveModel_V2.ipynb → Predictive Modeling (Logistic Regression)](notebooks/Attrition_PredictiveModel_V2.ipynb)  
-- [Attrition_PredictiveModel_V3.ipynb → Predictive Modeling (Tuned Logistic Regression)](notebooks/Attrition_PredictiveModel_V3.ipynb)  
-- [Attrition_ModelComparision.ipynb → Logistic Regression vs Random Forest](notebooks/Attrition_ModelComparision.ipynb)  
-- [Attrition_AdvancedModels.ipynb → Advanced Models (RF + XGBoost)](notebooks/Attrition_AdvancedModels.ipynb)
 
 ---
 
-### 🧹 Side Quests
--[HR_Data_Cleaning_Utility_V1.ipynb → HR Data Cleanup Utility](sidequests/HR_Data_Cleaning_Utility_V1.ipynb)
-
----
 ## 🚀 Upcoming Projects  
 
 - Compensation Analytics Dashboard
 - SQL query library for HR datasets (attrition by job role, tenure, etc.)  
-- Feature engineering + cross-validation for predictive modeling  
-- Streamlit dashboard for interactive attrition prediction  
+- Feature engineering + cross-validation for predictive modeling.
 
 ---
 
