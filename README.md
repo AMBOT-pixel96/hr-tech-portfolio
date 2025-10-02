@@ -52,6 +52,8 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 ```text
 ├── README.md
 ├── app.py
+├── backups
+│   └── sample.txt
 ├── cb_dashboard.py
 ├── data
 │   ├── Attrition_SQL_Predictions.csv
