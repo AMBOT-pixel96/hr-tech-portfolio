@@ -43,6 +43,7 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 | 10 | Attrition Explainability with SHAP (Advanced) | [Attrition_SHAP_Explainability_V1.ipynb](notebooks/Attrition_SHAP_Explainability_V1.ipynb) | Top 15 drivers (bar chart), 44-driver CSV export, dependence & local explanations |
 | 11 | Compensation Analytics (Day 2 – Seed) | [Compensation_Analytics_V1.ipynb](notebooks/Compensation_Analytics_V1.ipynb) | Avg CTC, Bonus %, Gender Pay Gap with CSV + visuals |
 | 12 | Compensation Analytics (Day 3 – Extension V2) | [Compensation_Analytics_V2.ipynb](notebooks/Compensation_Analytics_V2.ipynb) | Median CTC, Dept-wise pay, Bonus % by Dept, polished exports |
+| 13 | Compensation Analytics (Day 4 – V3 Bonus vs CTC) | [Compensation_Analytics_V3.ipynb](notebooks/Compensation_Analytics_V3.ipynb) | Bonus% vs CTC trendline, JobLevel headcounts, Dept-wise averages |
 ---
 
 ## 📂 Repository Structure  
@@ -746,6 +747,55 @@ This iteration builds stronger analytical foundations, preparing for **C&B Dashb
 
 ✅ **Status:** Polished extension complete — sets stage for **C&B Dashboard v2.0**.
 
+---
+## 📊 Project 13: Compensation Analytics (Day 4 – V3 Bonus vs CTC)
+
+**Objective:** Push compensation analytics further by connecting **bonus % to total CTC**, alongside headcount and department-wise pay comparisons.
+
+---
+
+### 🔑 Key Steps
+1. **Bonus % vs CTC Trendline**  
+   - Derived `BonusPct = Bonus ÷ CTC × 100`.  
+   - Visualized average bonus % against CTC levels.  
+   - Exported → `bonus_vs_ctc.csv` + `bonus_vs_ctc.png`.
+
+2. **Headcount by Job Level**  
+   - Counted employees by `JobLevel`.  
+   - Clean bar chart with labels on each bar.  
+   - Exported → `joblevel_counts.csv` + `joblevel_counts.png`.
+
+3. **Departmental Averages**  
+   - Grouped CTC by department (mean values).  
+   - Exported → `day4_ctc_by_dept.csv` + `day4_ctc_by_dept.png`.
+
+---
+
+### 🖼️ Visuals  
+
+**1. Bonus % vs CTC**  
+![Bonus vs CTC](images/bonus_vs_ctc.png)  
+
+**2. Headcount by Job Level**  
+![Headcount by Job Level](images/joblevel_counts.png)  
+
+**3. Avg CTC by Department**  
+![Avg CTC by Department](images/day4_ctc_by_dept.png)  
+
+---
+
+### 📦 Artifacts  
+- [bonus_vs_ctc.csv](data/bonus_vs_ctc.csv)  
+- [joblevel_counts.csv](data/joblevel_counts.csv)  
+- [day4_ctc_by_dept.csv](data/day4_ctc_by_dept.csv)  
+
+---
+
+📓 Notebook: [Compensation_Analytics_V3.ipynb](notebooks/Compensation_Analytics_V3.ipynb)  
+
+---
+
+✅ **Status:** Compensation analytics now spans **Day 2 (Seed)** → **Day 3 (Extension V2)** → **Day 4 (V3: Bonus Linkage)**, forming the backbone of **C&B Dashboard v2.0**.
 ---
 ## ⚒️ Tech Stack  
 
