@@ -811,6 +811,55 @@ This iteration builds stronger analytical foundations, preparing for **C&B Dashb
 ✅ **Status:** Compensation analytics now spans **Seed (Day 2)** → **Extension (Day 3)** → **Bonus/Gender/Dept (Day 4)**, powering **C&B Dashboard v2.0**.
 
 ---
+## 📊 Project 14: Compensation Analytics
+(Day 5 – V4 Executive Insights)
+
+**Objective:** Deliver consulting-grade, executive visuals: **gender gap by level**, **bonus distribution KDE**, and **quartile pay bands**.  
+
+---
+
+### 🔑 Key Steps
+1. **Gender Pay Gap by Job Level**  
+   - Compared Male vs Female avg CTC across levels.  
+   - Exported → `day5_gender_gap_by_level.csv` + `day5_gender_gap_by_level.png`.  
+
+2. **Bonus % KDE (by Department)**  
+   - Kernel Density Estimation plot of BonusPct.  
+   - Exported → `day5_bonus_kde.png`.  
+
+3. **Quartile Pay Bands**  
+   - Q1, Median, Q3, Max by JobLevel.  
+   - Exported → `day5_ctc_quartiles.csv` + `day5_ctc_quartiles.png`.  
+
+---
+
+### 🖼️ Visuals  
+
+**1. Gender Pay Gap by Level**  
+![Gender Gap by Level](images/day5_gender_gap_by_level.png)  
+
+**2. Bonus % KDE (by Dept)**  
+![Bonus KDE](images/day5_bonus_kde.png)  
+
+**3. Quartile Pay Bands (CTC)**  
+![CTC Quartiles](images/day5_ctc_quartiles.png)  
+
+---
+
+### 📦 Artifacts  
+- [day5_gender_gap_by_level.csv](data/day5_gender_gap_by_level.csv)  
+- [day5_ctc_quartiles.csv](data/day5_ctc_quartiles.csv)  
+
+---
+
+📓 Notebook: [Compensation_Analytics_V4.ipynb](notebooks/Compensation_Analytics_V4.ipynb)  
+
+---
+
+✅ **Status:** With Day-5 complete, Compensation Analytics now spans **Seed → Extension → Bonus/Gender/Dept → Executive Insights**, powering **C&B Dashboard v2.0+**.
+
+---
+
 ## ⚒️ Tech Stack  
 
 - Python (Pandas, Matplotlib, Seaborn, scikit-learn, Jupyter Notebook)  
