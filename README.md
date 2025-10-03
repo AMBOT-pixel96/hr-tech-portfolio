@@ -43,7 +43,8 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 | 10 | Attrition Explainability with SHAP (Advanced) | [Attrition_SHAP_Explainability_V1.ipynb](notebooks/Attrition_SHAP_Explainability_V1.ipynb) | Top 15 drivers (bar chart), 44-driver CSV export, dependence & local explanations |
 | 11 | Compensation Analytics (Day 2 – Seed) | [Compensation_Analytics_V1.ipynb](notebooks/Compensation_Analytics_V1.ipynb) | Avg CTC, Bonus %, Gender Pay Gap with CSV + visuals |
 | 12 | Compensation Analytics (Day 3 – Extension V2) | [Compensation_Analytics_V2.ipynb](notebooks/Compensation_Analytics_V2.ipynb) | Median CTC, Dept-wise pay, Bonus % by Dept, polished exports |
-| 13 | Compensation Analytics (Day 4 – V3 Bonus vs CTC) | [Compensation_Analytics_V3.ipynb](notebooks/Compensation_Analytics_V3.ipynb) | Bonus% vs CTC trendline, JobLevel headcounts, Dept-wise averages |
+| 13 | Compensation Analytics (Day 4 – V3) | [Compensation_Analytics_V3.ipynb](notebooks/Compensation_Analytics_V3.ipynb) | Bonus% vs CTC, JobLevel headcounts, Dept-wise averages |
+| 14 | Compensation Analytics (Day 5 – V4 Exec Insights) | [Compensation_Analytics_V4.ipynb](notebooks/Compensation_Analytics_V4.ipynb) | Gender gap by level, Bonus % KDE, Quartile pay bands |
 ---
 
 ## 📂 Repository Structure  
