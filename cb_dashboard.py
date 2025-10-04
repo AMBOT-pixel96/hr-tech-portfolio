@@ -99,6 +99,22 @@ def save_plotly_asset(fig, filename_base, width=1200, height=700, scale=2):
             return {"png": None, "html": html_path}
         except Exception:
             return {"png": None, "html": None}
+def apply_chart_style(fig, title: str):
+    """Apply consistent style to all charts."""
+    fig.update_layout(
+        template="plotly_white",
+        title=title,
+        title_font=dict(size=18, color="black", family="Helvetica"),
+        font=dict(color="black", family="Helvetica"),
+        plot_bgcolor="white",
+        paper_bgcolor="white",
+        legend=dict(
+            orientation="h", yanchor="bottom", y=1.02,
+            xanchor="right", x=1, font=dict(size=10, color="black")
+        ),
+        margin=dict(t=60, l=40, r=40, b=40)
+    )
+    return fig
 # -----------------------
 # Templates + How-to Guide
 # -----------------------
@@ -209,6 +225,7 @@ figA = px.bar(avg, x="JobLevel", y="AverageCTC", color="JobLevel",
               color_discrete_sequence=PALETTE,
               labels={"AverageCTC": "Average CTC (₹)"},
               title="Average CTC by Job Level")
+figA = apply_chart_style(figA, "Average CTC by Job Level")   # ⬅️ add this
 assetA = save_plotly_asset(figA, safe_filename("avg_ctc"))
 st.plotly_chart(figA)
 
@@ -241,6 +258,7 @@ figB = px.bar(med, x="JobLevel", y="MedianCTC", color="JobLevel",
               color_discrete_sequence=PALETTE,
               labels={"MedianCTC": "Median CTC (₹)"},
               title="Median CTC by Job Level")
+figB = apply_chart_style(figB, "Median CTC by Job Level")   # ⬅️ add this
 assetB = save_plotly_asset(figB, safe_filename("median_ctc"))
 st.plotly_chart(figB)
 
@@ -264,6 +282,7 @@ quart_tbl=pd.DataFrame(rows).pivot(index="JobLevel",columns="Quartile",values="S
 st.dataframe(quart_tbl)
 figC=px.pie(pd.DataFrame(rows),names="Quartile",values="Share%",hole=0.4,
             color="Quartile",color_discrete_sequence=PALETTE, title="Quartile Distribution")
+figC = apply_chart_style(figC, "Quartile Distribution")   # ⬅️ add this
 assetC=save_plotly_asset(figC,safe_filename("quartile_donut"))
 st.plotly_chart(figC)
 sections.append(("Quartile Distribution","Proportion of employees in quartiles.",quart_tbl,assetC))
@@ -279,7 +298,8 @@ bonus["Bonus %"] = bonus["Bonus %"].round(2)
 st.dataframe(bonus)
 figD = px.bar(bonus, x="JobLevel", y="Bonus %", color="JobLevel",
               color_discrete_sequence=PALETTE, title="Average Bonus % of CTC by Job Level",
-              labels={"Bonus %": "Avg Bonus (%)"})
+
+    figD = apply_chart_style(figD, "Average Bonus % of CTC by Job Level")   # ⬅️ add this          labels={"Bonus %": "Avg Bonus (%)"})
 figD.update_layout(showlegend=False)
 assetD = save_plotly_asset(figD, safe_filename("bonus_pct"))
 st.plotly_chart(figD)
@@ -312,6 +332,7 @@ if bench_df is not None:
                               name="Market", mode="lines+markers",
                               marker=dict(size=8), line=dict(width=2)))
     figE.update_layout(title="Company vs Market — Median CTC (₹ Lakhs)",
+figE = apply_chart_style(figE, "Company vs Market — Median CTC (₹ Lakhs)")   # ⬅️ add this
                        yaxis_title="₹ Lakhs",
                        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
                        template="plotly_white")
@@ -339,6 +360,7 @@ st.dataframe(display_gender_tbl)
 
 figF = px.bar(g, x="JobLevel", y="CTC", color="Gender", barmode="group",
               color_discrete_sequence=PALETTE, title="Average CTC by Gender & Job Level",
+figF = apply_chart_style(figF, "Average CTC by Gender & Job Level")   # ⬅️ add this
               labels={"CTC": "Average CTC (₹)"})
 figF.update_layout(template="plotly_white")
 assetF = save_plotly_asset(figF, safe_filename("gender_ctc"))
@@ -369,6 +391,7 @@ figG = px.bar(
     r, x="JobLevel", y="CTC", color="PerformanceRating", barmode="group",
     color_discrete_sequence=PALETTE,
     title="Average CTC by Performance Rating & Job Level",
+figG = apply_chart_style(figG, "Average CTC by Performance Rating & Job Level")   # ⬅️ add this
     labels={"CTC": "Average CTC (₹)", "PerformanceRating": "Rating"}
 )
 
