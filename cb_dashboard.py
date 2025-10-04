@@ -524,3 +524,8 @@ def run_chatbot_ui():
         st.session_state["messages"].append({"role": "assistant", "content": response})
         with st.chat_message("assistant"):
             st.markdown(response)
+# Sidebar toggle
+st.sidebar.subheader("🤖 Chatbot Assistant")
+chat_mode = st.sidebar.checkbox("Enable Chatbot", value=False)
+if chat_mode:
+    run_chatbot_ui()
