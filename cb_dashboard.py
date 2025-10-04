@@ -438,37 +438,37 @@ for item in images_for_download:
                                file_name=os.path.basename(asset["html"]),mime="text/html")
 
 st.success("Dashboard loaded ✅ V4.3 ready: clean tables, consistent charts, gender gap %, PDF polish.")
-# -------------------------------
-# Step 1 — Chatbot UI Skeleton
-# -------------------------------
-import streamlit as st
-import pandas as pd
 
-# Sidebar toggle for chatbot mode
-st.sidebar.subheader("🤖 Chatbot Assistant")
-chat_mode = st.sidebar.checkbox("Enable Chatbot", value=False)
-
-if chat_mode:
+# -------------------------------
+# Enhancement - Chatbot Assistant Add-on
+# -------------------------------
+def run_chatbot_ui():
+    """Simple Chatbot UI for C&B Dashboard (placeholder engine)."""
     st.subheader("💬 C&B Data Chatbot")
 
-    # Initialize chat history in session_state
+    # Initialize chat history
     if "messages" not in st.session_state:
         st.session_state["messages"] = []
 
-    # Display history
+    # Display chat history
     for msg in st.session_state["messages"]:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
-    # User input box
+    # Handle new user input
     if prompt := st.chat_input("Ask me about CTC, Bonus %, Gender Gap..."):
-        # Save user input
         st.session_state["messages"].append({"role": "user", "content": prompt})
 
-        # For now: simple echo (placeholder)
+        # Placeholder response (future: plug analytics here)
         response = f"📊 You asked: **{prompt}**\n\nCurrently I'm in echo mode 😅 — analysis engine coming soon!"
         st.session_state["messages"].append({"role": "assistant", "content": response})
 
-        # Show the assistant reply
         with st.chat_message("assistant"):
             st.markdown(response)
+
+# Sidebar toggle
+st.sidebar.subheader("🤖 Chatbot Assistant")
+chat_mode = st.sidebar.checkbox("Enable Chatbot", value=False)
+
+if chat_mode:
+    run_chatbot_ui()
