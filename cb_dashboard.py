@@ -99,9 +99,8 @@ def save_plotly_asset(fig, filename_base, width=1200, height=700, scale=2):
             return {"png": None, "html": html_path}
         except Exception:
             return {"png": None, "html": None}
+
 def apply_chart_style(fig, title: str):
-    """Apply consistent style to all charts."""
-    def apply_chart_style(fig, title: str):
     """Apply consistent style to all charts (dark/light mode safe)."""
     fig.update_layout(
         template="plotly_white",
