@@ -63,7 +63,6 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │   └── ... (19 more)
 ├── faker_data
 │   ├── FakerGen_CB.ipynb
-│   ├── employee_compensation.csv
 │   └── employee_master.csv
 ├── helper_scripts
 │   ├── hr_db.py
