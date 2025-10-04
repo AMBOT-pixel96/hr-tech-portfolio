@@ -440,7 +440,7 @@ for item in images_for_download:
 st.success("Dashboard loaded ✅ V4.3 ready: clean tables, consistent charts, gender gap %, PDF polish.")
 
 # -------------------------------
-# Enhancement - Chatbot Assistant Add-on (v3)
+# Enhancement - Chatbot Assistant Add-on (v3 Clean)
 # -------------------------------
 
 def run_chatbot_ui():
@@ -450,10 +450,12 @@ def run_chatbot_ui():
     if "messages" not in st.session_state:
         st.session_state["messages"] = []
 
+    # Display history
     for msg in st.session_state["messages"]:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
+    # Chat input
     if prompt := st.chat_input("Ask about CTC, Bonus %, Gender Gap, Market vs Company..."):
         st.session_state["messages"].append({"role": "user", "content": prompt})
         query = prompt.lower()
@@ -513,3 +515,9 @@ def run_chatbot_ui():
         st.session_state["messages"].append({"role": "assistant", "content": response})
         with st.chat_message("assistant"):
             st.markdown(response)
+
+# Sidebar toggle
+st.sidebar.subheader("🤖 Chatbot Assistant")
+chat_mode = st.sidebar.checkbox("Enable Chatbot", value=False)
+if chat_mode:
+    run_chatbot_ui()
