@@ -101,18 +101,30 @@ def save_plotly_asset(fig, filename_base, width=1200, height=700, scale=2):
             return {"png": None, "html": None}
 def apply_chart_style(fig, title: str):
     """Apply consistent style to all charts."""
+    def apply_chart_style(fig, title: str):
+    """Apply consistent style to all charts (dark/light mode safe)."""
     fig.update_layout(
         template="plotly_white",
         title=title,
         title_font=dict(size=18, color="black", family="Helvetica"),
-        font=dict(color="black", family="Helvetica"),
+        font=dict(color="black", family="Helvetica", size=12),
         plot_bgcolor="white",
         paper_bgcolor="white",
-        legend=dict(
-            orientation="h", yanchor="bottom", y=1.02,
-            xanchor="right", x=1, font=dict(size=10, color="black")
+        xaxis=dict(
+            title_font=dict(size=12, color="black"),
+            tickfont=dict(size=11, color="black")
         ),
-        margin=dict(t=60, l=40, r=40, b=40)
+        yaxis=dict(
+            title_font=dict(size=12, color="black"),
+            tickfont=dict(size=11, color="black")
+        ),
+        legend=dict(
+            orientation="h",                # horizontal legend
+            yanchor="top", y=-0.25,         # push below chart
+            xanchor="center", x=0.5,
+            font=dict(size=11, color="black")
+        ),
+        margin=dict(t=60, l=60, r=40, b=80)  # extra bottom margin for legend
     )
     return fig
 # -----------------------
