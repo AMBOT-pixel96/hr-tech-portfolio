@@ -443,6 +443,15 @@ st.success("Dashboard loaded ✅ V4.3 ready: clean tables, consistent charts, ge
 # Enhancement - Chatbot Assistant Add-on (v3 Clean)
 # -------------------------------
 
+def safe_markdown_table(df):
+    """Try to render df as markdown table, fallback to st.dataframe if tabulate missing."""
+    try:
+        return df.to_markdown(index=False)
+    except Exception:
+        st.warning("⚠️ Markdown table requires `tabulate` (not installed). Showing as dataframe instead.")
+        st.dataframe(df)
+        return None
+
 def run_chatbot_ui():
     """Buffed rule-based chatbot for C&B Dashboard (free-tier)."""
     st.subheader("💬 C&B Data Chatbot")
@@ -467,20 +476,20 @@ def run_chatbot_ui():
             avg = emp_df.groupby("JobLevel")["CTC"].mean().reset_index()
             avg["Lakhs"] = avg["CTC"].apply(readable_lakhs_number)
             insight = f"👉 Directors earn ~{avg['Lakhs'].max()}L vs Analysts ~{avg['Lakhs'].min()}L."
-            response = f"📊 **Average CTC by JobLevel:**\n\n{avg.to_markdown(index=False)}\n\n**Insight:** {insight}"
-            st.dataframe(avg)
-            if any(word in query for word in ["plot", "show", "chart", "graph"]):
-                st.plotly_chart(px.bar(avg, x="JobLevel", y="Lakhs", title="Average CTC by Level", color="JobLevel"))
+            table_md = safe_markdown_table(avg)
+            if table_md:
+                response = f"📊 **Average CTC by JobLevel:**\n\n{table_md}\n\n**Insight:** {insight}"
+            st.plotly_chart(px.bar(avg, x="JobLevel", y="Lakhs", title="Average CTC by Level", color="JobLevel"))
 
         # === Metric F: Gender Gap ===
         elif "gender" in query or "pay gap" in query:
             g = emp_df.groupby(["JobLevel","Gender"])["CTC"].mean().reset_index()
             g["Lakhs"] = g["CTC"].apply(readable_lakhs_number)
             pivot = g.pivot(index="JobLevel", columns="Gender", values="Lakhs").reset_index().fillna("")
-            response = f"👫 **Gender Pay Gap (Lakhs):**\n\n{pivot.to_markdown(index=False)}\n\n**Insight:** Male vs Female CTC gap is {round((pivot['Male'].mean()-pivot['Female'].mean())/pivot['Female'].mean()*100,1)}% overall."
-            st.dataframe(pivot)
-            if "chart" in query or "plot" in query:
-                st.plotly_chart(px.bar(g, x="JobLevel", y="Lakhs", color="Gender", barmode="group", title="Gender Gap by Level"))
+            table_md = safe_markdown_table(pivot)
+            if table_md:
+                response = f"👫 **Gender Pay Gap (Lakhs):**\n\n{table_md}\n\n**Insight:** Male vs Female CTC gap is {round((pivot['Male'].mean()-pivot['Female'].mean())/pivot['Female'].mean()*100,1)}% overall."
+            st.plotly_chart(px.bar(g, x="JobLevel", y="Lakhs", color="Gender", barmode="group", title="Gender Gap by Level"))
 
         # === Metric D: Bonus % ===
         elif "bonus" in query:
@@ -488,10 +497,10 @@ def run_chatbot_ui():
             bonus = dfD.groupby("JobLevel")["Bonus %"].mean().reset_index()
             bonus["Bonus %"] = bonus["Bonus %"].round(2)
             insight = f"🎁 Highest bonus % at {bonus.loc[bonus['Bonus %'].idxmax(), 'JobLevel']} level."
-            response = f"🎁 **Bonus % of CTC by JobLevel:**\n\n{bonus.to_markdown(index=False)}\n\n**Insight:** {insight}"
-            st.dataframe(bonus)
-            if "chart" in query or "plot" in query:
-                st.plotly_chart(px.bar(bonus, x="JobLevel", y="Bonus %", title="Bonus % by Level", color="JobLevel"))
+            table_md = safe_markdown_table(bonus)
+            if table_md:
+                response = f"🎁 **Bonus % of CTC by JobLevel:**\n\n{table_md}\n\n**Insight:** {insight}"
+            st.plotly_chart(px.bar(bonus, x="JobLevel", y="Bonus %", title="Bonus % by Level", color="JobLevel"))
 
         # === Metric E: Market vs Company ===
         elif "market" in query or "comparison" in query:
@@ -501,13 +510,13 @@ def run_chatbot_ui():
                 compare = pd.merge(comp, bench, on="JobLevel", how="outer")
                 compare["Gap %"] = np.where(compare["MarketMedianCTC"]>0, (compare["CompanyMedian"]-compare["MarketMedianCTC"])/compare["MarketMedianCTC"]*100, np.nan).round(2)
                 insight = f"📉 Biggest negative gap is at {compare.loc[compare['Gap %'].idxmin(), 'JobLevel']} level."
-                response = f"📉 **Company vs Market (Median CTC):**\n\n{compare.to_markdown(index=False)}\n\n**Insight:** {insight}"
-                st.dataframe(compare)
-                if "chart" in query or "plot" in query:
-                    fig = go.Figure()
-                    fig.add_trace(go.Bar(x=compare["JobLevel"], y=compare["CompanyMedian"], name="Company"))
-                    fig.add_trace(go.Scatter(x=compare["JobLevel"], y=compare["MarketMedianCTC"], name="Market", mode="lines+markers"))
-                    st.plotly_chart(fig)
+                table_md = safe_markdown_table(compare)
+                if table_md:
+                    response = f"📉 **Company vs Market (Median CTC):**\n\n{table_md}\n\n**Insight:** {insight}"
+                fig = go.Figure()
+                fig.add_trace(go.Bar(x=compare["JobLevel"], y=compare["CompanyMedian"], name="Company"))
+                fig.add_trace(go.Scatter(x=compare["JobLevel"], y=compare["MarketMedianCTC"], name="Market", mode="lines+markers"))
+                st.plotly_chart(fig)
             else:
                 response = "⚠️ Please upload a benchmark dataset to compare against the market."
 
@@ -515,9 +524,3 @@ def run_chatbot_ui():
         st.session_state["messages"].append({"role": "assistant", "content": response})
         with st.chat_message("assistant"):
             st.markdown(response)
-
-# Sidebar toggle
-st.sidebar.subheader("🤖 Chatbot Assistant")
-chat_mode = st.sidebar.checkbox("Enable Chatbot", value=False)
-if chat_mode:
-    run_chatbot_ui()
