@@ -440,10 +440,10 @@ for item in images_for_download:
 st.success("Dashboard loaded ✅ V4.3 ready: clean tables, consistent charts, gender gap %, PDF polish.")
 
 # -------------------------------
-# Enhancement - Chatbot Assistant Add-on
+# Enhancement - Chatbot Assistant Add-on (v2)
 # -------------------------------
 def run_chatbot_ui():
-    """Simple Chatbot UI for C&B Dashboard (placeholder engine)."""
+    """Chatbot UI with simple analytics routing for C&B Dashboard."""
     st.subheader("💬 C&B Data Chatbot")
 
     # Initialize chat history
@@ -456,13 +456,72 @@ def run_chatbot_ui():
             st.markdown(msg["content"])
 
     # Handle new user input
-    if prompt := st.chat_input("Ask me about CTC, Bonus %, Gender Gap..."):
+    if prompt := st.chat_input("Ask me about CTC, Bonus %, Gender Gap, Market vs Company..."):
         st.session_state["messages"].append({"role": "user", "content": prompt})
+        query = prompt.lower()
 
-        # Placeholder response (future: plug analytics here)
-        response = f"📊 You asked: **{prompt}**\n\nCurrently I'm in echo mode 😅 — analysis engine coming soon!"
+        # Default response
+        response = "🤔 I didn’t catch that. Try asking about **average CTC**, **bonus %**, **gender gap**, **market comparison**, or **performance rating**."
+
+        # Metric A — Avg CTC
+        if "average" in query and "ctc" in query:
+            avg = emp_df.groupby("JobLevel")["CTC"].mean().reset_index()
+            avg["Lakhs"] = avg["CTC"].apply(readable_lakhs_number)
+            response = f"📊 **Average CTC by JobLevel:**\n\n{avg.to_markdown(index=False)}"
+            st.dataframe(avg)
+            fig = px.bar(avg, x="JobLevel", y="Lakhs", title="Average CTC by JobLevel", color="JobLevel")
+            st.plotly_chart(fig)
+
+        # Metric F — Gender Pay Gap
+        elif "gender" in query or "pay gap" in query:
+            g = emp_df.groupby(["JobLevel","Gender"])["CTC"].mean().reset_index()
+            g["Lakhs"] = g["CTC"].apply(readable_lakhs_number)
+            pivot = g.pivot(index="JobLevel", columns="Gender", values="Lakhs").reset_index().fillna("")
+            response = f"👫 **Gender Pay Gap (Lakhs):**\n\n{pivot.to_markdown(index=False)}"
+            st.dataframe(pivot)
+            fig = px.bar(g, x="JobLevel", y="Lakhs", color="Gender", barmode="group", title="Gender Pay Gap by Level")
+            st.plotly_chart(fig)
+
+        # Metric D — Bonus %
+        elif "bonus" in query:
+            dfD = emp_df.assign(**{"Bonus %": np.where(emp_df["CTC"] > 0, (emp_df["Bonus"] / emp_df["CTC"]) * 100, np.nan)})
+            bonus = dfD.groupby("JobLevel")["Bonus %"].mean().reset_index()
+            bonus["Bonus %"] = bonus["Bonus %"].round(2)
+            response = f"🎁 **Bonus % of CTC by JobLevel:**\n\n{bonus.to_markdown(index=False)}"
+            st.dataframe(bonus)
+            fig = px.bar(bonus, x="JobLevel", y="Bonus %", title="Bonus % by Level", color="JobLevel")
+            st.plotly_chart(fig)
+
+        # Metric E — Market Comparison (if benchmark uploaded)
+        elif "market" in query or "comparison" in query:
+            if bench_df is not None:
+                comp = emp_df.groupby("JobLevel")["CTC"].median().reset_index().rename(columns={"CTC": "CompanyMedian"})
+                bench = bench_df.groupby("JobLevel")["MarketMedianCTC"].median().reset_index()
+                compare = pd.merge(comp, bench, on="JobLevel", how="outer")
+                compare["Gap %"] = np.where(compare["MarketMedianCTC"] > 0,
+                                            (compare["CompanyMedian"] - compare["MarketMedianCTC"]) / compare["MarketMedianCTC"] * 100,
+                                            np.nan).round(2)
+                response = f"📉 **Company vs Market (Median CTC):**\n\n{compare.to_markdown(index=False)}"
+                st.dataframe(compare)
+                fig = go.Figure()
+                fig.add_trace(go.Bar(x=compare["JobLevel"], y=compare["CompanyMedian"], name="Company"))
+                fig.add_trace(go.Scatter(x=compare["JobLevel"], y=compare["MarketMedianCTC"], name="Market", mode="lines+markers"))
+                st.plotly_chart(fig)
+            else:
+                response = "⚠️ Please upload a benchmark dataset to compare against the market."
+
+        # Metric G — Performance Rating Pay
+        elif "performance" in query or "rating" in query:
+            r = emp_df.groupby(["JobLevel", "PerformanceRating"])["CTC"].mean().reset_index()
+            r["Lakhs"] = r["CTC"].apply(readable_lakhs_number)
+            response = f"⭐ **Average CTC by Performance Rating & JobLevel:**\n\n{r.to_markdown(index=False)}"
+            st.dataframe(r)
+            fig = px.bar(r, x="JobLevel", y="Lakhs", color="PerformanceRating", barmode="group",
+                         title="CTC by Performance Rating", labels={"Lakhs":"₹ Lakhs"})
+            st.plotly_chart(fig)
+
+        # Save + display assistant reply
         st.session_state["messages"].append({"role": "assistant", "content": response})
-
         with st.chat_message("assistant"):
             st.markdown(response)
 
