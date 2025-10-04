@@ -20,6 +20,12 @@ from io import BytesIO
 from datetime import datetime
 import os
 
+# 🔑 Check if OpenAI key is loaded
+if "OPENAI_API_KEY" in st.secrets:
+    st.sidebar.success("🔐 OpenAI key loaded (Streamlit Secrets)")
+else:
+    st.sidebar.warning("⚠️ OPENAI_API_KEY missing.")
+
 # ReportLab
 from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, PageBreak,
