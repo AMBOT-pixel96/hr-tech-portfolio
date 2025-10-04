@@ -296,10 +296,13 @@ dfD = dfD.assign(**{"Bonus %": np.where(dfD["CTC"] > 0, (dfD["Bonus"] / dfD["CTC
 bonus = dfD.groupby("JobLevel")["Bonus %"].mean().reset_index()
 bonus["Bonus %"] = bonus["Bonus %"].round(2)
 st.dataframe(bonus)
-figD = px.bar(bonus, x="JobLevel", y="Bonus %", color="JobLevel",
-              color_discrete_sequence=PALETTE, title="Average Bonus % of CTC by Job Level",
-
-    figD = apply_chart_style(figD, "Average Bonus % of CTC by Job Level")   # ⬅️ add this          labels={"Bonus %": "Avg Bonus (%)"})
+figD = px.bar(
+    bonus, x="JobLevel", y="Bonus %", color="JobLevel",
+    color_discrete_sequence=PALETTE,
+    title="Average Bonus % of CTC by Job Level",
+    labels={"Bonus %": "Avg Bonus (%)"}
+)
+figD = apply_chart_style(figD, "Average Bonus % of CTC by Job Level")
 figD.update_layout(showlegend=False)
 assetD = save_plotly_asset(figD, safe_filename("bonus_pct"))
 st.plotly_chart(figD)
@@ -331,11 +334,14 @@ if bench_df is not None:
     figE.add_trace(go.Scatter(x=compare["JobLevel"], y=compare["Market (₹ Lakhs)"],
                               name="Market", mode="lines+markers",
                               marker=dict(size=8), line=dict(width=2)))
-    figE.update_layout(title="Company vs Market — Median CTC (₹ Lakhs)",
-figE = apply_chart_style(figE, "Company vs Market — Median CTC (₹ Lakhs)")   # ⬅️ add this
-                       yaxis_title="₹ Lakhs",
-                       legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-                       template="plotly_white")
+  figE.update_layout(
+    title="Company vs Market — Median CTC (₹ Lakhs)",
+    yaxis_title="₹ Lakhs",
+    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+    template="plotly_white"
+)
+figE = apply_chart_style(figE, "Company vs Market — Median CTC (₹ Lakhs)")
+figE.update_layout(template="plotly_white")
     assetE = save_plotly_asset(figE, safe_filename("cmp_vs_market"))
     st.plotly_chart(figE, use_container_width=True)
     sections.append(("Company vs Market", "Company vs Market median comparison (Lakhs).", compare_display, assetE))
@@ -358,10 +364,13 @@ pivot_g["Gap %"] = np.where(pivot_g["Female"] > 0, ((pivot_g["Male"] - pivot_g["
 display_gender_tbl = pivot_g.fillna("").copy()
 st.dataframe(display_gender_tbl)
 
-figF = px.bar(g, x="JobLevel", y="CTC", color="Gender", barmode="group",
-              color_discrete_sequence=PALETTE, title="Average CTC by Gender & Job Level",
-figF = apply_chart_style(figF, "Average CTC by Gender & Job Level")   # ⬅️ add this
-              labels={"CTC": "Average CTC (₹)"})
+figF = px.bar(
+    g, x="JobLevel", y="CTC", color="Gender", barmode="group",
+    color_discrete_sequence=PALETTE,
+    title="Average CTC by Gender & Job Level",
+    labels={"CTC": "Average CTC (₹)"}
+)
+figF = apply_chart_style(figF, "Average CTC by Gender & Job Level")
 figF.update_layout(template="plotly_white")
 assetF = save_plotly_asset(figF, safe_filename("gender_ctc"))
 st.plotly_chart(figF)
