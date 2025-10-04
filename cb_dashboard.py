@@ -191,36 +191,69 @@ sections=[]; images_for_download=[]
 # Metric A: Avg CTC by Job Level
 # -----------------------
 st.subheader("🏷️ Average CTC by Job Level")
-dfA=metric_filters_ui(emp_df, prefix="A")
-avg=dfA.groupby("JobLevel")["CTC"].mean().reset_index()
-avg["Average CTC (₹ Lakhs)"]=avg["CTC"].apply(readable_lakhs_number)
-st.dataframe(avg[["JobLevel","Average CTC (₹ Lakhs)"]])
-figA=px.bar(avg,x="JobLevel",y="CTC",color="JobLevel",color_discrete_sequence=PALETTE,
-            labels={"CTC":"Average CTC (₹)"}, title="Average CTC by Job Level")
-assetA=save_plotly_asset(figA,safe_filename("avg_ctc"))
+dfA = metric_filters_ui(emp_df, prefix="A")
+
+avg = dfA.groupby("JobLevel")["CTC"].agg(
+    TotalCTC="sum",
+    AverageCTC="mean"
+).reset_index()
+
+avg["Total CTC (Cr.)"] = (avg["TotalCTC"] / 1e7).round(2)
+avg["Average CTC (₹ Lakhs)"] = avg["AverageCTC"].apply(readable_lakhs_number)
+
+# Show clean table
+st.dataframe(avg[["JobLevel", "Total CTC (Cr.)", "Average CTC (₹ Lakhs)"]])
+
+# Chart (unchanged)
+figA = px.bar(avg, x="JobLevel", y="AverageCTC", color="JobLevel",
+              color_discrete_sequence=PALETTE,
+              labels={"AverageCTC": "Average CTC (₹)"},
+              title="Average CTC by Job Level")
+assetA = save_plotly_asset(figA, safe_filename("avg_ctc"))
 st.plotly_chart(figA)
-sections.append(("Average CTC by Job Level","Average pay across job levels.",avg,assetA))
-images_for_download.append({"title":"Average CTC by Job Level","asset":assetA})
+
+sections.append(("Average CTC by Job Level",
+                 "Average and total pay across job levels.",
+                 avg[["JobLevel", "Total CTC (Cr.)", "Average CTC (₹ Lakhs)"]],
+                 assetA))
+images_for_download.append({"title": "Average CTC by Job Level", "asset": assetA})
+
 
 # -----------------------
 # Metric B: Median CTC by Job Level
 # -----------------------
 st.subheader("📏 Median CTC by Job Level")
-dfB=metric_filters_ui(emp_df, prefix="B")
-med=dfB.groupby("JobLevel")["CTC"].median().reset_index()
-med["Median CTC (₹ Lakhs)"]=med["CTC"].apply(readable_lakhs_number)
-st.dataframe(med[["JobLevel","Median CTC (₹ Lakhs)"]])
-figB=px.bar(med,x="JobLevel",y="CTC",color="JobLevel",color_discrete_sequence=PALETTE,
-            labels={"CTC":"Median CTC (₹)"}, title="Median CTC by Job Level")
-assetB=save_plotly_asset(figB,safe_filename("median_ctc"))
+dfB = metric_filters_ui(emp_df, prefix="B")
+
+med = dfB.groupby("JobLevel")["CTC"].agg(
+    TotalCTC="sum",
+    MedianCTC="median"
+).reset_index()
+
+med["Total CTC (Cr.)"] = (med["TotalCTC"] / 1e7).round(2)
+med["Median CTC (₹ Lakhs)"] = med["MedianCTC"].apply(readable_lakhs_number)
+
+# Show clean table
+st.dataframe(med[["JobLevel", "Total CTC (Cr.)", "Median CTC (₹ Lakhs)"]])
+
+# Chart (unchanged)
+figB = px.bar(med, x="JobLevel", y="MedianCTC", color="JobLevel",
+              color_discrete_sequence=PALETTE,
+              labels={"MedianCTC": "Median CTC (₹)"},
+              title="Median CTC by Job Level")
+assetB = save_plotly_asset(figB, safe_filename("median_ctc"))
 st.plotly_chart(figB)
-sections.append(("Median CTC by Job Level","Median pay across job levels.",med,assetB))
-images_for_download.append({"title":"Median CTC by Job Level","asset":assetB})
+
+sections.append(("Median CTC by Job Level",
+                 "Median and total pay across job levels.",
+                 med[["JobLevel", "Total CTC (Cr.)", "Median CTC (₹ Lakhs)"]],
+                 assetB))
+images_for_download.append({"title": "Median CTC by Job Level", "asset": assetB})
 
 # -----------------------
 # Metric C: Quartile Placement
 # -----------------------
-st.subheader("🍩 Quartile Placement (Share of Employees)")
+st.subheader("📉 Quartile Placement (Share of Employees)")
 dfC=metric_filters_ui(emp_df, prefix="C")
 rows=[]
 for lvl,g in dfC.groupby("JobLevel"):
