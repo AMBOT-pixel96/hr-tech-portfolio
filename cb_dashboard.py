@@ -140,7 +140,7 @@ def _ensure_joblevel_order(df,col="JobLevel"):
     if col in df.columns:
         df=df.copy(); df[col]=pd.Categorical(df[col],categories=order,ordered=True)
     return df
-def average_ctc_by_joblevel(df,job_col="JobLevel",ctc_col="CTC"):
+def average_ctc_by_joblevel(df, job_col="JobLevel", ctc_col="CTC"):
     df=_safe_numeric(df,ctc_col); df=_ensure_joblevel_order(df,job_col)
     agg=df.groupby(job_col,observed=True)[ctc_col].agg(["mean","sum"]).reset_index()
     agg["Total CTC (₹ Cr.)"]=(agg["sum"]/1e7).round(2)
@@ -149,10 +149,17 @@ def average_ctc_by_joblevel(df,job_col="JobLevel",ctc_col="CTC"):
     fig=px.bar(agg,x=job_col,y="Avg CTC (₹ Lakhs)",color=job_col,
                text="Avg CTC (₹ Lakhs)",color_discrete_sequence=PALETTE)
     fig.update_traces(textposition="outside")
-    fig=apply_chart_style(fig,"Average CTC by Job Level",showlegend=False)
-    return agg,fig
 
-def median_ctc_by_joblevel(df,job_col="JobLevel",ctc_col="CTC"):
+    # ⬅️ Left align & smaller title font
+    fig.update_layout(
+        title=dict(text="Average CTC by Job Level", x=0.05, xanchor="left", font=dict(size=16))
+    )
+
+    fig=apply_chart_style(fig, showlegend=False)
+    return agg, fig
+
+
+def median_ctc_by_joblevel(df, job_col="JobLevel", ctc_col="CTC"):
     df=_safe_numeric(df,ctc_col); df=_ensure_joblevel_order(df,job_col)
     agg=df.groupby(job_col,observed=True)[ctc_col].agg(["median","sum"]).reset_index()
     agg["Total CTC (₹ Cr.)"]=(agg["sum"]/1e7).round(2)
@@ -161,15 +168,22 @@ def median_ctc_by_joblevel(df,job_col="JobLevel",ctc_col="CTC"):
     fig=px.bar(agg,x=job_col,y="Median CTC (₹ Lakhs)",color=job_col,
                text="Median CTC (₹ Lakhs)",color_discrete_sequence=PALETTE)
     fig.update_traces(textposition="outside")
-    fig=apply_chart_style(fig,"Median CTC by Job Level",showlegend=False)
-    return agg,fig
-# --- FIX C (v4.7 Functional Upgrade) ---
+
+    # ⬅️ Left align & smaller title font
+    fig.update_layout(
+        title=dict(text="Median CTC by Job Level", x=0.05, xanchor="left", font=dict(size=16))
+    )
+
+    fig=apply_chart_style(fig, showlegend=False)
+    return agg, fig
+# --- FIX C (v4.6.1 Stable) ---
 def quartile_distribution(df, ctc_col="CTC", job_col="JobLevel"):
     """
-    Quartile Distribution (Rewritten):
+    Quartile Distribution (Fixed):
     ✅ Uses employee counts instead of % share.
     ✅ Adds totals & grand total row.
     ✅ Donut reflects overall quartile distribution.
+    ✅ Handles missing/auto-generated column name bug.
     """
     df = _safe_numeric(df, ctc_col)
     df = _ensure_joblevel_order(df, job_col)
@@ -194,6 +208,7 @@ def quartile_distribution(df, ctc_col="CTC", job_col="JobLevel"):
 
     # Step 5 — Calculate grand total % distribution (for donut)
     total_employees = quartile_counts.loc[quartile_counts[job_col] == "Grand Total", "Total Employees"].values[0]
+
     donut_df = (
         quartile_counts[["Q1", "Q2", "Q3", "Q4"]]
         .iloc[-1]
@@ -201,7 +216,12 @@ def quartile_distribution(df, ctc_col="CTC", job_col="JobLevel"):
         .reset_index()
         .rename(columns={"index": "Quartile", 0: "Count"})
     )
-    donut_df["Percent"] = (donut_df["Count"] / total_employees * 100).round(1)
+
+    # 🔧 Patch: Ensure correct column name exists
+    if "Count" not in donut_df.columns:
+        donut_df.columns = ["Quartile", "Count"]
+
+    donut_df["Percent"] = (donut_df["Count"].astype(float) / total_employees * 100).round(1)
 
     # Step 6 — Donut chart: overall quartile distribution (company-wide)
     fig = go.Figure(go.Pie(
@@ -213,13 +233,14 @@ def quartile_distribution(df, ctc_col="CTC", job_col="JobLevel"):
     ))
     fig = apply_chart_style(
         fig,
-        title="Overall Employee Distribution by Quartile (CTC-based)",
+        title="Overall Employee Distribution by CTC Quartile",
         legend_below=True,
         showlegend=True
     )
 
     # Step 7 — Final Output Table
-    quartile_counts = quartile_counts.fillna(0).astype({c: "int" for c in ["Q1", "Q2", "Q3", "Q4", "Total Employees"] if c in quartile_counts.columns})
+    quartile_counts = quartile_counts.fillna(0)
+    quartile_counts = quartile_counts.astype({c: int for c in ["Q1", "Q2", "Q3", "Q4", "Total Employees"] if c in quartile_counts.columns})
     return quartile_counts, fig
 def company_vs_market(df_company,df_market,job_col="JobLevel",
                       company_col="CompanyMedian",market_col="MarketMedian"):
