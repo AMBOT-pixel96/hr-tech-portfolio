@@ -38,6 +38,40 @@ TMP_DIR = "temp_charts_cb"
 os.makedirs(TMP_DIR, exist_ok=True)
 
 # -----------------------
+# App Header (Dual-Mode Banner with Warning)
+# -----------------------
+st.markdown(f"""
+<div style="
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #ccc;
+    text-align: center;
+    background: linear-gradient(180deg, #0E1117 0%, #1E293B 100%);
+    color: white;
+">
+  <h1 style="margin: 0; padding: 0; font-size: 32px; color: #F9FAFB;">
+    📊 Compensation & Benefits Dashboard
+  </h1>
+  <p style="font-size: 15px; margin-top: 6px; color: #D1D5DB;">
+    Board-ready pay analytics — per-metric filters, exports, and benchmarks.
+  </p>
+
+  <div style="
+      display: inline-block;
+      margin-top: 10px;
+      background-color: #FFF3CD;
+      color: #856404;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid #FFECB5;
+  ">
+    ⚠️ Session resets after idle. Download PDF to save results.
+  </div>
+</div>
+""", unsafe_allow_html=True)
+# -----------------------
 # Required headers
 # -----------------------
 EMP_REQUIRED = [
@@ -616,7 +650,59 @@ class PDFBookmark(Flowable):
             self.canv.bookmarkPage(self.name)
             self.canv.addOutlineEntry(self.title, self.name, level=0, closed=False)
         except Exception: pass
+# -----------------------
+# Render All Metrics (Dashboard Display + PDF Linking)
+# -----------------------
 
+# 1️⃣ Average CTC by Job Level
+st.subheader("🏷️ Average CTC by Job Level")
+figA = average_ctc_by_joblevel(emp_df)
+st.plotly_chart(figA, use_container_width=True)
+sections.append(("Average CTC by Job Level", "Average pay by level.", None, {"png": None}))
+
+# 2️⃣ Median CTC by Job Level
+st.subheader("📏 Median CTC by Job Level")
+figB = median_ctc_by_joblevel(emp_df)
+st.plotly_chart(figB, use_container_width=True)
+sections.append(("Median CTC by Job Level", "Median pay across job levels.", None, {"png": None}))
+
+# 3️⃣ Quartile Distribution (Share of Employees)
+st.subheader("📉 Quartile Distribution (Share of Employees)")
+figC = quartile_distribution(emp_df)
+st.plotly_chart(figC, use_container_width=True)
+sections.append(("Quartile Distribution (Share of Employees)", "Proportion of employees across pay quartiles.", None, {"png": None}))
+
+# 4️⃣ Bonus % of CTC by Job Level
+st.subheader("🎁 Bonus % of CTC by Job Level")
+figD = bonus_pct_by_joblevel(emp_df)
+st.plotly_chart(figD, use_container_width=True)
+sections.append(("Bonus % of CTC by Job Level", "Average bonus share of CTC by level.", None, {"png": None}))
+
+# 5️⃣ Company vs Market (Median CTC)
+if bench_df is not None:
+    st.subheader("📊 Company vs Market (Median CTC)")
+    # Prepare company + market dataframes
+    df_company = emp_df.groupby("JobLevel", observed=True)["CTC"].median().reset_index().rename(columns={"CTC": "CompanyMedian"})
+    df_market = bench_df.groupby("JobLevel", observed=True)["MarketMedianCTC"].median().reset_index().rename(columns={"MarketMedianCTC": "MarketMedian"})
+    figE = company_vs_market(df_company, df_market)
+    st.plotly_chart(figE, use_container_width=True)
+    sections.append(("Company vs Market (Median CTC)", "Comparison of internal vs market median pay levels.", None, {"png": None}))
+else:
+    st.info("ℹ️ Upload a benchmark dataset to view Company vs Market comparison.")
+
+# 6️⃣ Average CTC by Gender & Job Level
+st.subheader("👫 Average CTC by Gender & Job Level")
+figF = average_ctc_by_gender_joblevel(emp_df)
+st.plotly_chart(figF, use_container_width=True)
+sections.append(("Average CTC by Gender & Job Level", "Gender pay differentiation across levels.", None, {"png": None}))
+
+# 7️⃣ Average CTC by Performance Rating & Job Level
+st.subheader("⭐ Average CTC by Performance Rating & Job Level")
+# rename PerformanceRating → Rating to match function signature
+emp_df = emp_df.rename(columns={"PerformanceRating": "Rating"})
+figG = average_ctc_by_rating_joblevel(emp_df)
+st.plotly_chart(figG, use_container_width=True)
+sections.append(("Average CTC by Performance Rating & Job Level", "Pay differentiation by performance rating.", None, {"png": None}))
 st.header("📥 Download Reports")
 st.write("Choose metrics to include in the compiled PDF:")
 kpi_check = {title: st.checkbox(title, key=f"chk_{i}") for i,(title,_,_,_) in enumerate(sections)}
