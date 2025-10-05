@@ -377,16 +377,6 @@ def get_benchmark_template_csv():
     return df.to_csv(index=False)
 
 # -----------------------
-# App header
-# -----------------------
-st.markdown(f"""
-<div style="padding:18px;border-radius:10px;border:1px solid #ddd;text-align:center">
-  <h1 style="margin:0;padding:0;font-size:30px;color:#4B0082">📊 Compensation & Benefits Dashboard</h1>
-  <p style="font-size:14px;">Board-ready pay analytics — per-metric filters, exports, and benchmarks.</p>
-</div>
-""", unsafe_allow_html=True)
-
-# -----------------------
 # Step 1: Templates & Guide
 # -----------------------
 st.header("Step 1 — Templates & Guide")
