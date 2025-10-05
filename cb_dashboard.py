@@ -112,6 +112,14 @@ def validate_exact_headers(df_or_cols, required_cols):
     cols = list(df_or_cols.columns) if hasattr(df_or_cols, "columns") else list(df_or_cols)
     ok = cols == required_cols
     return (ok, "OK" if ok else f"Header mismatch. Expected {required_cols}, found {cols}")
+def readable_lakhs_number(x):
+    """Return value in Lakhs (float) or None."""
+    if pd.isna(x):
+        return None
+    try:
+        return round(float(x) / 100000.0, 2)
+    except Exception:
+        return None
 def _detect_theme(theme_arg="auto"):
     """
     Detect current Streamlit theme or fallback to dark.
