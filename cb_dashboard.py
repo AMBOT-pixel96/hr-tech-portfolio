@@ -451,8 +451,9 @@ if st.button("🧾 Compile Selected Report"):
                 story.append(Spacer(1, 6))
 
             if tbl is not None and not tbl.empty:
-                tbl = tbl.astype(str).fillna("")
-data = [list(tbl.columns)] + tbl.values.tolist()
+                if tbl is not None and not tbl.empty:
+    tbl = tbl.astype(str).fillna("")
+    data = [list(tbl.columns)] + tbl.values.tolist()
                 col_width = (A4[0] - 40) / len(tbl.columns)
                 t = Table(data, colWidths=[col_width]*len(tbl.columns), repeatRows=1)
                 t_style = TableStyle([
