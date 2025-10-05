@@ -47,13 +47,20 @@ EMP_REQUIRED = [
 BENCH_REQUIRED = ["JobRole", "JobLevel", "MarketMedianCTC"]
 
 # -----------------------
-# Visual / PDF constants
+# Visual / PDF & Chart Constants (Unified Fix)
 # -----------------------
-PALETTE = px.colors.qualitative.Prism
+
+# === PDF Constants ===
 TABLE_ZEBRA = colors.HexColor("#F7F7F7")
 HEADER_FONT = "Helvetica-Bold"
 BODY_FONT = "Helvetica"
-TEXT_COLOR = colors.black
+TEXT_COLOR_PDF = colors.black   # only used for PDF text, not charts
+
+# === Chart Constants ===
+PALETTE = px.colors.qualitative.Vivid   # consistent, professional color palette
+CHART_BG_DARK = "#0E1117"
+CHART_TEXT_LIGHT = "#FFFFFF"
+CHART_TEXT_DARK = "#000000"
 # -----------------------
 # Helpers (Final Stable v5)
 # -----------------------
