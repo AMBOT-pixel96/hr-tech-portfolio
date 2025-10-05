@@ -430,12 +430,20 @@ if st.button("🧾 Compile Selected Report"):
             topMargin=20*mm, bottomMargin=20*mm
         )
         styles = getSampleStyleSheet()
-        body = ParagraphStyle("body", parent=styles["Normal"], fontName=BODY_FONT, fontSize=10, leading=13)
+        body = ParagraphStyle(
+            "body",
+            parent=styles["Normal"],
+            fontName=BODY_FONT,
+            fontSize=10,
+            leading=13
+        )
 
         story = []
-        story.append(Paragraph("<para align=center><font size=26 color='#4B0082'><b>Compensation & Benefits Report</b></font></para>", body))
+        story.append(Paragraph(
+            "<para align=center><font size=26 color='#4B0082'><b>Compensation & Benefits Report</b></font></para>", body))
         story.append(Spacer(1, 18))
-        story.append(Paragraph(f"<para align=center>Generated: {datetime.now().strftime('%d-%b-%Y %H:%M')}</para>", body))
+        story.append(Paragraph(
+            f"<para align=center>Generated: {datetime.now().strftime('%d-%b-%Y %H:%M')}</para>", body))
         story.append(PageBreak())
 
         story.append(Paragraph("<b>Table of Contents</b>", styles["Heading2"]))
@@ -451,9 +459,8 @@ if st.button("🧾 Compile Selected Report"):
                 story.append(Spacer(1, 6))
 
             if tbl is not None and not tbl.empty:
-                if tbl is not None and not tbl.empty:
-    tbl = tbl.astype(str).fillna("")
-    data = [list(tbl.columns)] + tbl.values.tolist()
+                tbl = tbl.astype(str).fillna("")
+                data = [list(tbl.columns)] + tbl.values.tolist()
                 col_width = (A4[0] - 40) / len(tbl.columns)
                 t = Table(data, colWidths=[col_width]*len(tbl.columns), repeatRows=1)
                 t_style = TableStyle([
@@ -471,9 +478,12 @@ if st.button("🧾 Compile Selected Report"):
             story.append(PageBreak())
 
         doc.build(story)
-        st.download_button("⬇️ Download Compiled PDF", buf.getvalue(),
-                           file_name="cb_dashboard_compiled.pdf", mime="application/pdf")
-
+        st.download_button(
+            "⬇️ Download Compiled PDF",
+            buf.getvalue(),
+            file_name="cb_dashboard_compiled.pdf",
+            mime="application/pdf"
+        )
 # -----------------------
 # Quick Chart Downloads (Stable v4.7)
 # -----------------------
