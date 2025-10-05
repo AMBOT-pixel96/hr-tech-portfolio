@@ -598,7 +598,11 @@ def bonus_pct_by_joblevel(df, job_col="JobLevel", bonus_col="Bonus", ctc_col="CT
     fig = apply_chart_style(fig, title="Average Bonus % of CTC by Job Level")
     fig.update_layout(showlegend=False)
     return fig
-
+# -----------------------
+# Initialize metric storage
+# -----------------------
+sections = []      # stores metric titles, tables, descriptions, and assets
+images_for_download = []   # stores images for quick chart downloads
 # -----------------------
 # Compiled PDF Report
 # -----------------------
