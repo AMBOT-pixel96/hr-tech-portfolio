@@ -67,7 +67,7 @@ st.markdown(f"""
       font-weight: 600;
       border: 1px solid #FFECB5;
   ">
-    ⚠️ Session resets after idle. Download PDF to save results.
+    ⚠️ Session resets if left idle for more than 3~5 mins or if page is reloaded. Download PDFs to save results.
   </div>
 </div>
 """, unsafe_allow_html=True)
