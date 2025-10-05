@@ -1,15 +1,7 @@
 # ============================================================
 # cb_dashboard.py — Compensation & Benefits Dashboard
-# Version: 4.3 (UAT-3 Final Polish)
-# Last Updated: 2025-09-30
-# Notes:
-# - UAT-3 Observations polished:
-#   * Fixed quartile + gender table layouts
-#   * Consistent palette across all charts
-#   * Chart titles standardized
-#   * PDF tables spread evenly with colWidths
-#   * Gender gap % visible in dashboard + PDF
-# ============================================================
+# Version: 4.4 (QF-6 Final Polish)
+# Last Updated: 2025-10-05 ============================================================
 
 import streamlit as st
 import pandas as pd
@@ -360,13 +352,6 @@ def metric_filters_ui(df, prefix=""):
     if sel_roles: out=out[out["JobRole"].isin(sel_roles)]
     if sel_levels: out=out[out["JobLevel"].isin(sel_levels)]
     return out
-
-# ======================
-# Metrics Block — v8 
-# ======================
-import plotly.express as px
-import plotly.graph_objects as go
-
 def _ensure_joblevel_order(df, col="JobLevel", order=None):
     """Dynamic job-level ordering."""
     if col not in df.columns:
@@ -375,150 +360,219 @@ def _ensure_joblevel_order(df, col="JobLevel", order=None):
     if order is None:
         unique = sorted(df[col].dropna().unique(), key=str)
         order = unique if unique else [
-            "Analyst","Assistant Manager","Manager","Senior Manager",
-            "Associate Partner","Director","Executive","Senior Executive"
+            "Analyst", "Assistant Manager", "Manager", "Senior Manager",
+            "Associate Partner", "Director", "Executive", "Senior Executive"
         ]
     df[col] = pd.Categorical(df[col], categories=order, ordered=True)
     return df
+# ======================
+# Metrics Block — v8 
+# ======================
 
-# ---- Metric A ----
+# ============================================================
+# METRICS A–C : FINAL (v4.4 QF-6 POLISH)
+# ============================================================
+
 def average_ctc_by_joblevel(df, job_col="JobLevel", ctc_col="CTC"):
     df = _ensure_joblevel_order(df, job_col)
     agg = df.groupby(job_col, observed=True)[ctc_col].mean().reset_index()
+    agg["Total CTC (₹ Cr.)"] = round(df.groupby(job_col)[ctc_col].sum() / 1e7, 2)
     agg["Avg CTC (₹ Lakhs)"] = agg[ctc_col].apply(readable_lakhs_number)
-    fig = px.bar(agg, x=job_col, y="Avg CTC (₹ Lakhs)",
-                 color=job_col, color_discrete_sequence=PALETTE, text_auto=True)
-    fig.update_traces(textposition="outside", textfont=dict(size=11,color="white"))
-    fig.update_layout(showlegend=False)
-    fig = apply_chart_style(fig, title="Average CTC by Job Level")
+    agg = agg[[job_col, "Total CTC (₹ Cr.)", "Avg CTC (₹ Lakhs)"]]
+    fig = px.bar(
+        agg, x=job_col, y="Avg CTC (₹ Lakhs)",
+        color=job_col, color_discrete_sequence=PALETTE, text_auto=True
+    )
+    fig.update_traces(textposition="outside", textfont=dict(size=11, color="white"))
+    fig = apply_chart_style(fig, title="Average CTC by Job Level", showlegend=False)
     return agg, fig
 
-# ---- Metric B ----
+
 def median_ctc_by_joblevel(df, job_col="JobLevel", ctc_col="CTC"):
     df = _ensure_joblevel_order(df, job_col)
     agg = df.groupby(job_col, observed=True)[ctc_col].median().reset_index()
+    agg["Total CTC (₹ Cr.)"] = round(df.groupby(job_col)[ctc_col].sum() / 1e7, 2)
     agg["Median CTC (₹ Lakhs)"] = agg[ctc_col].apply(readable_lakhs_number)
-    fig = px.bar(agg, x=job_col, y="Median CTC (₹ Lakhs)",
-                 color=job_col, color_discrete_sequence=PALETTE, text_auto=True)
-    fig.update_traces(textposition="outside", textfont=dict(size=11,color="white"))
-    fig.update_layout(showlegend=False)
-    fig = apply_chart_style(fig, title="Median CTC by Job Level")
+    agg = agg[[job_col, "Total CTC (₹ Cr.)", "Median CTC (₹ Lakhs)"]]
+    fig = px.bar(
+        agg, x=job_col, y="Median CTC (₹ Lakhs)",
+        color=job_col, color_discrete_sequence=PALETTE, text_auto=True
+    )
+    fig.update_traces(textposition="outside", textfont=dict(size=11, color="white"))
+    fig = apply_chart_style(fig, title="Median CTC by Job Level", showlegend=False)
     return agg, fig
 
-# ---- Metric C ----
-def quartile_distribution(df, ctc_col="CTC"):
-    qlabels = ["Q1","Q2","Q3","Q4"]
+
+def quartile_distribution(df, ctc_col="CTC", job_col="JobLevel"):
     df = df.copy()
-    df["Quartile"] = pd.qcut(df[ctc_col], q=4, labels=qlabels)
-    agg = df["Quartile"].value_counts().sort_index().reset_index()
-    agg.columns=["Quartile","Employees"]
-    fig = px.pie(agg, names="Quartile", values="Employees",
-                 color_discrete_sequence=PALETTE, hole=0.45)
-    fig.update_traces(textinfo="percent+label", textfont=dict(size=13))
-    fig = apply_chart_style(fig, title="Quartile Distribution (Share of Employees)")
+    df["Quartile"] = pd.qcut(df[ctc_col], q=4, labels=["Q1", "Q2", "Q3", "Q4"])
+    agg = pd.crosstab(df[job_col], df["Quartile"], normalize="index") * 100
+    agg = agg.reset_index().round(1)
+    fig = px.bar(
+        agg.melt(id_vars=job_col, var_name="Quartile", value_name="Percent"),
+        x=job_col, y="Percent", color="Quartile",
+        color_discrete_sequence=PALETTE, barmode="stack"
+    )
+    fig = apply_chart_style(
+        fig,
+        title="Quartile Distribution of Employees by Job Level (CTC Break-up)",
+        legend_below=False
+    )
     return agg, fig
 
-# ---- Metric D ----
+# ============================================================
+# METRICS D–E : FINAL (v4.4 QF-6 POLISH)
+# ============================================================
+
 def bonus_pct_by_joblevel(df, job_col="JobLevel", bonus_col="Bonus", ctc_col="CTC"):
     df = _ensure_joblevel_order(df, job_col)
-    df["Bonus %"] = np.where(df[ctc_col]>0,(df[bonus_col]/df[ctc_col])*100,np.nan)
-    agg = df.groupby(job_col,observed=True)["Bonus %"].mean().reset_index().round(2)
-    fig = px.bar(agg,x=job_col,y="Bonus %",color=job_col,
-                 color_discrete_sequence=PALETTE,text="Bonus %")
-    fig.update_traces(textposition="inside", textfont=dict(color="black",size=11))
-    fig.update_layout(showlegend=False)
-    fig = apply_chart_style(fig,title="Average Bonus % of CTC by Job Level")
+    df["Bonus %"] = np.where(df[ctc_col] > 0, (df[bonus_col] / df[ctc_col]) * 100, np.nan)
+    agg = df.groupby(job_col, observed=True)["Bonus %"].mean().reset_index().round(2)
+    fig = px.bar(
+        agg, x=job_col, y="Bonus %", color=job_col,
+        color_discrete_sequence=PALETTE, text="Bonus %"
+    )
+    fig.update_traces(textposition="inside", textfont=dict(color="black", size=11))
+    fig = apply_chart_style(fig, title="Average Bonus % of CTC by Job Level", showlegend=False)
     return agg, fig
 
-# ---- Metric E ----
-def company_vs_market(df_company,df_market,job_col="JobLevel",
-                      company_col="CompanyMedian",market_col="MarketMedian"):
-    left=_ensure_joblevel_order(df_company[[job_col,company_col]],job_col)
-    right=_ensure_joblevel_order(df_market[[job_col,market_col]],job_col)
-    merged=pd.merge(left,right,on=job_col,how="inner")
-    merged["Gap %"]=((merged[company_col]-merged[market_col])/merged[market_col]*100).round(1)
-    fig=go.Figure()
-    fig.add_trace(go.Bar(x=merged[job_col],y=merged[company_col],
-                         name="Company",marker_color="#22D3EE"))
-    fig.add_trace(go.Scatter(x=merged[job_col],y=merged[market_col],
-                             name="Market",mode="lines+markers",
-                             line=dict(color="#FB7185",width=3)))
-    fig=apply_chart_style(fig,title="Company vs Market — Median CTC (₹ Lakhs)")
-    fig.update_layout(legend=dict(orientation="h",y=-0.28,x=0.5,xanchor="center"))
-    return merged, fig
 
-# ---- Metric F ----
+def company_vs_market(df_company, df_market, job_col="JobLevel",
+                      company_col="CompanyMedian", market_col="MarketMedian"):
+    left = _ensure_joblevel_order(df_company[[job_col, company_col]], job_col)
+    right = _ensure_joblevel_order(df_market[[job_col, market_col]], job_col)
+    merged = pd.merge(left, right, on=job_col, how="inner")
+
+    merged["CompanyMedian (₹ L)"] = merged[company_col].apply(readable_lakhs_number)
+    merged["MarketMedian (₹ L)"] = merged[market_col].apply(readable_lakhs_number)
+    merged["Gap %"] = ((merged[company_col] - merged[market_col]) / merged[market_col] * 100).round(1)
+
+    display_cols = [job_col, "CompanyMedian (₹ L)", "MarketMedian (₹ L)", "Gap %"]
+    merged_display = merged[display_cols]
+
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=merged[job_col], y=merged["CompanyMedian (₹ L)"], name="Company", marker_color="#22D3EE"
+    ))
+    fig.add_trace(go.Scatter(
+        x=merged[job_col], y=merged["MarketMedian (₹ L)"],
+        name="Market", mode="lines+markers", line=dict(color="#FB7185", width=3)
+    ))
+    fig = apply_chart_style(
+        fig,
+        title="Company vs Market — Median CTC (₹ Lakhs)",
+        legend_below=False
+    )
+    fig.update_layout(legend=dict(orientation="h", y=1.05, x=0.5, xanchor="center"))
+    return merged_display, fig
+# ============================================================
+# METRICS F–G : FINAL (v4.4 QF-6 POLISH)
+# ============================================================
+
 def average_ctc_by_gender_joblevel(df, job_col="JobLevel", gender_col="Gender", ctc_col="CTC"):
-    df=_ensure_joblevel_order(df,job_col)
-    agg=df.groupby([job_col,gender_col],observed=True)[ctc_col].mean().reset_index()
-    agg["Avg CTC (₹ Lakhs)"]=agg[ctc_col].apply(readable_lakhs_number)
-    fig=px.bar(agg,x=job_col,y="Avg CTC (₹ Lakhs)",color=gender_col,
-               barmode="stack",color_discrete_sequence=PALETTE)
-    fig=apply_chart_style(fig,title="Average CTC by Gender & Job Level")
-    fig.update_layout(legend=dict(orientation="v",y=0.95,x=1.02))
-    return agg, fig
+    df = _ensure_joblevel_order(df, job_col)
+    agg = df.groupby([job_col, gender_col], observed=True)[ctc_col].mean().reset_index()
+    pivot = agg.pivot(index=job_col, columns=gender_col, values=ctc_col).fillna(0)
+    pivot["Avg. CTC (M)"] = (pivot.get("Male", 0) / 1e5).round(2)
+    pivot["Avg. CTC (F)"] = (pivot.get("Female", 0) / 1e5).round(2)
+    pivot["Gap (%)"] = np.where(pivot["Avg. CTC (F)"] > 0,
+                                ((pivot["Avg. CTC (M)"] - pivot["Avg. CTC (F)"]) /
+                                 pivot["Avg. CTC (F)"] * 100).round(1),
+                                np.nan)
+    pivot = pivot.reset_index()[[job_col, "Avg. CTC (M)", "Avg. CTC (F)", "Gap (%)"]]
 
-# ---- Metric G ----
+    fig = px.bar(
+        agg, x=job_col, y=ctc_col / 1e5, color=gender_col,
+        color_discrete_sequence=PALETTE, barmode="group"
+    )
+    fig = apply_chart_style(
+        fig, title="Average CTC by Gender & Job Level", legend_below=False
+    )
+    fig.update_layout(legend=dict(orientation="v", y=0.95, x=1.02))
+    return pivot, fig
+
+
 def average_ctc_by_rating_joblevel(df, job_col="JobLevel", rating_col="Rating", ctc_col="CTC"):
-    df=_ensure_joblevel_order(df,job_col)
-    agg=df.groupby([job_col,rating_col],observed=True)[ctc_col].mean().reset_index()
-    agg["Avg CTC (₹ Lakhs)"]=agg[ctc_col].apply(readable_lakhs_number)
-    fig=px.bar(agg,x=job_col,y="Avg CTC (₹ Lakhs)",color=rating_col,
-               color_discrete_sequence=px.colors.sequential.Blues,barmode="stack")
-    fig=apply_chart_style(fig,title="Average CTC by Performance Rating & Job Level")
-    return agg, fig
-# ============
-# Render Metrics + Tables (One Clean Pass)
-# ============
+    df = _ensure_joblevel_order(df, job_col)
+    agg = df.groupby([job_col, rating_col], observed=True)[ctc_col].mean().reset_index()
+    pivot = agg.pivot(index=job_col, columns=rating_col, values=ctc_col / 1e5).round(2)
+    pivot = pivot.reset_index().rename(columns=lambda x: f"Rater {x}" if isinstance(x, int) else x)
+
+    fig = px.bar(
+        agg, x=job_col, y=ctc_col / 1e5, color=rating_col,
+        color_discrete_sequence=px.colors.sequential.Blues, barmode="stack"
+    )
+    fig = apply_chart_style(
+        fig, title="Average CTC by Performance Rating & Job Level", legend_below=False
+    )
+    return pivot, fig
+# ============================================================
+# Render Metrics + Tables (v4.4 QF-6 Polished Layout)
+# ============================================================
+
 sections = []
 images_for_download = []
-metrics=[
-    ("🏷️ Average CTC by Job Level",average_ctc_by_joblevel,
+
+# Main metric group
+metrics = [
+    ("🏷️ Average CTC by Job Level", average_ctc_by_joblevel,
      "Average pay by level."),
-    ("📏 Median CTC by Job Level",median_ctc_by_joblevel,
+    ("📏 Median CTC by Job Level", median_ctc_by_joblevel,
      "Median pay across levels."),
-    ("📉 Quartile Distribution (Share of Employees)",quartile_distribution,
-     "Employee share by pay quartile."),
-    ("🎁 Bonus % of CTC by Job Level",bonus_pct_by_joblevel,
+    ("📊 Quartile Distribution (Share of Employees)", quartile_distribution,
+     "Distribution of employees by quartile across levels."),
+    ("🎁 Bonus % of CTC by Job Level", bonus_pct_by_joblevel,
      "Average bonus percentage by level."),
 ]
 
-for title,func,desc in metrics:
+for title, func, desc in metrics:
     st.subheader(title)
-    table,fig=func(emp_df)
-    st.dataframe(table,use_container_width=True)
-    st.plotly_chart(fig,use_container_width=True)
-    sections.append((title,desc,table,{"png":None}))
+    table, fig = func(emp_df)
+    st.dataframe(table, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True)
+    sections.append((title, desc, table, {"png": None}))
 
+# ------------------------------------------------------------
 # Company vs Market
+# ------------------------------------------------------------
 if bench_df is not None:
-    st.subheader("📊 Company vs Market (Median CTC)")
-    df_company=emp_df.groupby("JobLevel",observed=True)["CTC"].median().reset_index().rename(columns={"CTC":"CompanyMedian"})
-    df_market=bench_df.groupby("JobLevel",observed=True)["MarketMedianCTC"].median().reset_index().rename(columns={"MarketMedianCTC":"MarketMedian"})
-    tableE,figE=company_vs_market(df_company,df_market)
-    st.dataframe(tableE,use_container_width=True)
-    st.plotly_chart(figE,use_container_width=True)
-    sections.append(("Company vs Market","Internal vs market comparison.",tableE,{"png":None}))
+    st.subheader("📉 Company vs Market (Median CTC)")
+    df_company = (
+        emp_df.groupby("JobLevel", observed=True)["CTC"]
+        .median().reset_index().rename(columns={"CTC": "CompanyMedian"})
+    )
+    df_market = (
+        bench_df.groupby("JobLevel", observed=True)["MarketMedianCTC"]
+        .median().reset_index().rename(columns={"MarketMedianCTC": "MarketMedian"})
+    )
+    tableE, figE = company_vs_market(df_company, df_market)
+    st.dataframe(tableE, use_container_width=True)
+    st.plotly_chart(figE, use_container_width=True)
+    sections.append(("Company vs Market", "Internal vs market comparison.", tableE, {"png": None}))
 else:
     st.info("ℹ️ Upload benchmark data to see market comparison.")
 
-# Gender & Performance
-emp_df=emp_df.rename(columns={"PerformanceRating":"Rating"})
-last_metrics=[
-    ("👫 Average CTC by Gender & Job Level",average_ctc_by_gender_joblevel,
-     "Gender pay differentiation."),
-    ("⭐ Average CTC by Performance Rating & Job Level",average_ctc_by_rating_joblevel,
-     "Pay differentiation by performance rating.")
+# ------------------------------------------------------------
+# Gender & Rating Differentiation
+# ------------------------------------------------------------
+emp_df = emp_df.rename(columns={"PerformanceRating": "Rating"})
+
+last_metrics = [
+    ("👫 Average CTC by Gender & Job Level", average_ctc_by_gender_joblevel,
+     "Gender pay differentiation across levels."),
+    ("⭐ Average CTC by Performance Rating & Job Level", average_ctc_by_rating_joblevel,
+     "Pay differentiation by performance rating."),
 ]
-for title,func,desc in last_metrics:
+
+for title, func, desc in last_metrics:
     st.subheader(title)
-    table,fig=func(emp_df)
-    st.dataframe(table,use_container_width=True)
-    st.plotly_chart(fig,use_container_width=True)
-    sections.append((title,desc,table,{"png":None}))
-# ============================================================
+    table, fig = func(emp_df)
+    st.dataframe(table, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True)
+    sections.append((title, desc, table, {"png": None}))
+#========================
 # After Metrics Render → Proceed to PDF & Downloads
-# ============================================================
+# =======================
 
 st.header("📥 Download Reports")
 st.write("Choose metrics to include in the compiled PDF:")
