@@ -349,21 +349,32 @@ def metric_filters_ui(df, prefix=""):
 import plotly.express as px
 import plotly.graph_objects as go
 
-DEFAULT_JOBLEVEL_ORDER = [
-    "Analyst",
-    "Assistant Manager",
-    "Associate Partner",
-    "Director",
-    "Executive",
-    "Manager",
-    "Senior Executive",
-    "Senior Manager",
-]
+def _ensure_joblevel_order(df, col="JobLevel", order=None):
+    """
+    Dynamically detects and orders Job Levels if not provided.
+    Falls back to default if no clear order exists.
+    Ensures consistent plotting order regardless of naming format (E1/E2, M1/M2, etc.).
+    """
+    if col not in df.columns:
+        return df
 
-def _ensure_joblevel_order(df, col="JobLevel", order=DEFAULT_JOBLEVEL_ORDER):
-    if col in df.columns:
-        df = df.copy()
-        df[col] = pd.Categorical(df[col], categories=order, ordered=True)
+    df = df.copy()
+    if order is None:
+        # Detect unique job levels dynamically and sort them alphabetically
+        unique_levels = sorted(df[col].dropna().unique(), key=str)
+        # Fallback to canonical HR levels if empty
+        order = unique_levels if len(unique_levels) > 0 else [
+            "Analyst",
+            "Assistant Manager",
+            "Associate Partner",
+            "Director",
+            "Executive",
+            "Manager",
+            "Senior Executive",
+            "Senior Manager",
+        ]
+
+    df[col] = pd.Categorical(df[col], categories=order, ordered=True)
     return df
 
 
