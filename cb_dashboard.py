@@ -414,14 +414,11 @@ def metric_filters_ui(df, prefix=""):
     return out
 
 # -----------------------
-# Metrics block (copy-paste whole block)
+# Metrics block (Final Stable v6)
 # -----------------------
 import plotly.express as px
 import plotly.graph_objects as go
 
-# Use the helpers defined above: apply_chart_style, readable_lakhs_number, PALETTE
-
-# Standard job level order (optional - change to your canonical order)
 DEFAULT_JOBLEVEL_ORDER = [
     "Analyst",
     "Assistant Manager",
@@ -440,11 +437,11 @@ def _ensure_joblevel_order(df, col="JobLevel", order=DEFAULT_JOBLEVEL_ORDER):
         df[col] = pd.Categorical(df[col], categories=order, ordered=True)
     return df
 
+
+# -----------------------
+# 1️⃣ Average CTC by Job Level
+# -----------------------
 def average_ctc_by_joblevel(df, job_col="JobLevel", ctc_col="CTC"):
-    """
-    Simple bar: average CTC by job level (shows no legend to avoid overlap).
-    Returns a plotly figure already styled by apply_chart_style.
-    """
     df = _ensure_joblevel_order(df, job_col)
     agg = df.groupby(job_col, observed=True)[ctc_col].mean().reset_index()
     agg["ctc_lakhs"] = agg[ctc_col] / 100000.0
@@ -453,15 +450,18 @@ def average_ctc_by_joblevel(df, job_col="JobLevel", ctc_col="CTC"):
         agg,
         x=job_col,
         y="ctc_lakhs",
-        color=job_col,                # color per joblevel for consistent palette
+        color=job_col,
         color_discrete_sequence=PALETTE,
         labels={"ctc_lakhs": "Avg CTC (₹ Lakhs)"},
     )
-    # hide legend for a simple single-dimension bar (x labels suffice)
     fig.update_layout(showlegend=False)
-    fig = apply_chart_style(fig, title="Average CTC by Job Level", x_title="JobLevel", y_title="Avg CTC (₹ Lakhs)")
+    fig = apply_chart_style(fig, title="Average CTC by Job Level")
     return fig
 
+
+# -----------------------
+# 2️⃣ Median CTC by Job Level
+# -----------------------
 def median_ctc_by_joblevel(df, job_col="JobLevel", ctc_col="CTC"):
     df = _ensure_joblevel_order(df, job_col)
     agg = df.groupby(job_col, observed=True)[ctc_col].median().reset_index()
@@ -476,35 +476,32 @@ def median_ctc_by_joblevel(df, job_col="JobLevel", ctc_col="CTC"):
         labels={"ctc_lakhs": "Median CTC (₹ Lakhs)"},
     )
     fig.update_layout(showlegend=False)
-    fig = apply_chart_style(fig, title="Median CTC by Job Level", x_title="JobLevel", y_title="Median CTC (₹ Lakhs)")
+    fig = apply_chart_style(fig, title="Median CTC by Job Level")
     return fig
 
+
+# -----------------------
+# 3️⃣ Quartile Distribution (Share of Employees)
+# -----------------------
 def quartile_distribution(df, job_col="JobLevel", ctc_col="CTC"):
-    """
-    Returns a donut chart showing distribution across quartiles (Q1..Q4 or quartile labels in your data).
-    If your data already has quartile labels column, pass that instead of re-computing.
-    """
-    # If quartile column exists, use it; else compute quartiles across CTC
     if "Quartile" in df.columns:
-        qcol = "Quartile"
-        qdf = df.groupby(qcol).size().reset_index(name="count")
+        qdf = df.groupby("Quartile").size().reset_index(name="count")
     else:
         qlabels = ["Q1", "Q2", "Q3", "Q4"]
         df = df.copy()
         df["Quartile"] = pd.qcut(df[ctc_col], q=4, labels=qlabels)
         qdf = df.groupby("Quartile").size().reset_index(name="count")
 
-    fig = px.pie(qdf, names=qdf.iloc[:, 0], values="count", color_discrete_sequence=PALETTE)
-    # donut look and legend below
+    fig = px.pie(qdf, names="Quartile", values="count", color_discrete_sequence=PALETTE)
     fig.update_traces(hole=0.45, textinfo="percent+label")
-    fig = apply_chart_style(fig, title="Quartile Distribution (Share of Employees)", x_title="", y_title="")
+    fig = apply_chart_style(fig, title="Quartile Distribution (Share of Employees)")
     return fig
 
+
+# -----------------------
+# 4️⃣ Average CTC by Gender & Job Level
+# -----------------------
 def average_ctc_by_gender_joblevel(df, job_col="JobLevel", gender_col="Gender", ctc_col="CTC"):
-    """
-    Grouped bar: Average CTC by Gender & Job Level (barmode='group')
-    Legend stays (gender), placed below chart to avoid overlap.
-    """
     df = _ensure_joblevel_order(df, job_col)
     agg = df.groupby([job_col, gender_col], observed=True)[ctc_col].mean().reset_index()
     agg["ctc_lakhs"] = agg[ctc_col] / 100000.0
@@ -518,14 +515,14 @@ def average_ctc_by_gender_joblevel(df, job_col="JobLevel", gender_col="Gender", 
         color_discrete_sequence=PALETTE,
         labels={"ctc_lakhs": "Avg CTC (₹ Lakhs)"},
     )
-    fig = apply_chart_style(fig, title="Average CTC by Gender & Job Level", x_title="JobLevel", y_title="Avg CTC (₹ Lakhs)", showlegend=True)
+    fig = apply_chart_style(fig, title="Average CTC by Gender & Job Level")
     return fig
 
+
+# -----------------------
+# 5️⃣ Average CTC by Performance Rating & Job Level
+# -----------------------
 def average_ctc_by_rating_joblevel(df, job_col="JobLevel", rating_col="Rating", ctc_col="CTC"):
-    """
-    Grouped bar: Average CTC by Performance Rating & Job Level.
-    Rating legend placed below; tick angle & margins configured to avoid overlap.
-    """
     df = _ensure_joblevel_order(df, job_col)
     agg = df.groupby([job_col, rating_col], observed=True)[ctc_col].mean().reset_index()
     agg["ctc_lakhs"] = agg[ctc_col] / 100000.0
@@ -539,19 +536,69 @@ def average_ctc_by_rating_joblevel(df, job_col="JobLevel", rating_col="Rating", 
         color_discrete_sequence=PALETTE,
         labels={"ctc_lakhs": "Avg CTC (₹ Lakhs)", rating_col: "Rating"},
     )
-    fig = apply_chart_style(fig, title="Average CTC by Performance Rating & Job Level", x_title="JobLevel", y_title="Avg CTC (₹ Lakhs)", showlegend=True)
+    fig = apply_chart_style(fig, title="Average CTC by Performance Rating & Job Level")
     return fig
-
+# -----------------------
+# 6️⃣ Company vs Market (Median CTC)
+# -----------------------
 def company_vs_market(df_company, df_market, job_col="JobLevel", company_col="CompanyMedian", market_col="MarketMedian"):
     """
-    Combined bar (company) + line (market) comparison by job level.
-    df_company should be a DataFrame with job_col and company_col,
-    df_market with job_col and market_col. Both should share same job levels.
+    Combined bar (Company) + line (Market) comparison by job level.
+    df_company and df_market should share same JobLevel column.
     """
-    # Ensure order and aligned join
     left = _ensure_joblevel_order(df_company[[job_col, company_col]].copy(), job_col)
     right = _ensure_joblevel_order(df_market[[job_col, market_col]].copy(), job_col)
-    merged = pd.merge(left,
+    merged = pd.merge(left, right, on=job_col, how="inner")
+
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=merged[job_col],
+        y=merged[company_col],
+        name="Company",
+        marker_color="#22D3EE",  # teal accent
+        opacity=0.9
+    ))
+    fig.add_trace(go.Scatter(
+        x=merged[job_col],
+        y=merged[market_col],
+        name="Market",
+        mode="lines+markers",
+        line=dict(color="#FB7185", width=3),
+        marker=dict(size=7)
+    ))
+
+    fig = apply_chart_style(fig, title="Company vs Market — Median CTC (₹ Lakhs)")
+    return fig
+
+
+# -----------------------
+# 7️⃣ Bonus % of CTC by Job Level
+# -----------------------
+def bonus_pct_by_joblevel(df, job_col="JobLevel", bonus_col="Bonus", ctc_col="CTC"):
+    """
+    Bar chart: Average Bonus % of CTC by Job Level.
+    Displays neat pastel bars, white title, and centered legend.
+    """
+    df = _ensure_joblevel_order(df, job_col)
+    df = df.copy()
+    df["Bonus %"] = np.where(df[ctc_col] > 0, (df[bonus_col] / df[ctc_col]) * 100, np.nan)
+
+    agg = df.groupby(job_col, observed=True)["Bonus %"].mean().reset_index()
+    agg["Bonus %"] = agg["Bonus %"].round(2)
+
+    fig = px.bar(
+        agg,
+        x=job_col,
+        y="Bonus %",
+        color=job_col,
+        color_discrete_sequence=PALETTE,
+        labels={"Bonus %": "Avg Bonus (%)"},
+    )
+
+    fig = apply_chart_style(fig, title="Average Bonus % of CTC by Job Level")
+    fig.update_layout(showlegend=False)
+    return fig
+
 # -----------------------
 # Compiled PDF Report
 # -----------------------
