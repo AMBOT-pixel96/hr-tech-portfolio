@@ -278,7 +278,6 @@ def quartile_distribution(df, ctc_col="CTC", job_col="JobLevel"):
         insidetextorientation="radial"
     ))
     fig=apply_chart_style(fig, showlegend=False)
-    )
 
     # Step 7 — Final Output Table
     quartile_counts = quartile_counts.fillna(0)
