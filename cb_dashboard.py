@@ -54,58 +54,44 @@ TABLE_ZEBRA = colors.HexColor("#F7F7F7")
 HEADER_FONT = "Helvetica-Bold"
 BODY_FONT = "Helvetica"
 TEXT_COLOR = colors.black
-# ========================================
-# 🧩 Helper Functions — Universal Utilities for Dashboard
-# ========================================
-
+# -----------------------
+# Helpers (Final Stable v5)
+# -----------------------
 def validate_exact_headers(df_or_cols, required_cols):
     cols = list(df_or_cols.columns) if hasattr(df_or_cols, "columns") else list(df_or_cols)
-    return (
-        cols == required_cols,
-        "OK" if cols == required_cols else f"Header mismatch. Expected {required_cols}, found {cols}"
-    )
+    return (cols == required_cols, "OK" if cols == required_cols else f"Header mismatch. Expected {required_cols}, found {cols}")
 
 def sanitize_anchor(title: str) -> str:
-    """Generate bookmark-friendly anchors for PDF sections."""
     return "".join(ch if ch.isalnum() else "_" for ch in title).strip("_")
 
 def safe_filename(prefix: str) -> str:
-    """Generate a safe filename with timestamp."""
     return f"{prefix}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
 def readable_lakhs_number(x):
-    """Convert ₹ to lakhs for readability."""
-    if pd.isna(x): 
-        return None
-    try: 
-        return round(float(x) / 100000.0, 2)
-    except: 
-        return None
+    if pd.isna(x): return None
+    try: return round(float(x) / 100000.0, 2)
+    except: return None
 
 def draw_background(canvas, doc):
-    """Add border around every page in PDF."""
     canvas.saveState()
     canvas.setStrokeColor(colors.black)
     canvas.rect(5, 5, A4[0]-10, A4[1]-10, stroke=1, fill=0)
     canvas.restoreState()
 
 def add_page_number(canvas, doc):
-    """Add page numbers to PDF footer."""
     canvas.saveState()
     canvas.setFont("Helvetica", 8)
     canvas.drawString(280, 15, f"Page {doc.page}")
     canvas.restoreState()
 
 def save_plotly_asset(fig, filename_base, width=1200, height=700, scale=2):
-    """Save Plotly figure to PNG or HTML fallback."""
     base = os.path.join(TMP_DIR, filename_base)
     png_path, html_path = base + ".png", base + ".html"
     try:
-        fig.update_traces(marker=dict(line=dict(width=0)))
-        fig.update_layout(template="plotly_white", title_font=dict(size=18, color="black", family="Helvetica"))
+        fig.update_traces(marker=dict(line=dict(width=0.5, color="#1E293B")))
+        fig.update_layout(template="plotly_dark", title_font=dict(size=20, color="white", family="Helvetica"))
         img_bytes = fig.to_image(format="png", width=width, height=height, scale=scale)
-        with open(png_path, "wb") as f: 
-            f.write(img_bytes)
+        with open(png_path, "wb") as f: f.write(img_bytes)
         return {"png": png_path, "html": None}
     except Exception:
         try:
@@ -114,64 +100,32 @@ def save_plotly_asset(fig, filename_base, width=1200, height=700, scale=2):
         except Exception:
             return {"png": None, "html": None}
 
-#==============================================
-# Chart Styling — Dark/Light Adaptive Theme (Nightfall)
-#==============================================
-
 def apply_chart_style(fig, title: str):
-    """Adaptive dark/light chart styling — compatible with all trace types."""
-    bg_color = "#0f172a"     # Nightfall navy
-    text_color = "#f8fafc"   # Bright white
-    grid_color = "#334155"   # Slate gray lines
-    accent_palette = px.colors.qualitative.Set2
-
+    """Apply unified dark/light-mode-friendly style to all charts."""
     fig.update_layout(
-        title=dict(
-            text=title,
-            x=0.5, xanchor="center", yanchor="top",
-            font=dict(size=22, color=text_color, family="Helvetica-Bold")
-        ),
-        font=dict(color=text_color, family="Helvetica", size=13),
-        plot_bgcolor=bg_color,
-        paper_bgcolor=bg_color,
+        template="plotly_dark",
+        title=dict(text=title, font=dict(size=20, color="white", family="Helvetica"), x=0.5, xanchor="center"),
+        font=dict(color="white", family="Helvetica", size=13),
+        plot_bgcolor="#0E1117",
+        paper_bgcolor="#0E1117",
         xaxis=dict(
-            title="Job Level",
-            title_font=dict(size=14, color=text_color),
-            tickfont=dict(size=12, color=text_color),
-            gridcolor=grid_color,
-            showline=True,
-            linecolor=grid_color
+            title_font=dict(size=13, color="white"),
+            tickfont=dict(size=12, color="white"),
+            automargin=True
         ),
         yaxis=dict(
-            title_font=dict(size=14, color=text_color),
-            tickfont=dict(size=12, color=text_color),
-            gridcolor=grid_color,
-            showline=True,
-            linecolor=grid_color
+            title_font=dict(size=13, color="white"),
+            tickfont=dict(size=12, color="white"),
+            automargin=True
         ),
         legend=dict(
             orientation="h",
-            yanchor="top", y=-0.35,
+            yanchor="top", y=-0.25,
             xanchor="center", x=0.5,
-            font=dict(size=12, color=text_color),
-            bgcolor=bg_color,
-            bordercolor=grid_color,
-            borderwidth=0.5
+            font=dict(size=11, color="white")
         ),
-        margin=dict(t=80, l=60, r=60, b=150),
-        height=600,
-        colorway=accent_palette
+        margin=dict(t=80, l=60, r=60, b=100)
     )
-
-    # Safe marker updates only for supported trace types
-    try:
-        for trace in fig.data:
-            if trace.type in ["bar", "scatter", "box", "histogram"]:
-                trace.update(marker=dict(line=dict(width=0.4, color="#1e293b")))
-        fig.update_traces(width=0.55, selector=dict(type="bar"))
-    except Exception:
-        pass
-
     return fig
 # -----------------------
 # Templates + How-to Guide
