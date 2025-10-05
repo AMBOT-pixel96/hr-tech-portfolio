@@ -194,12 +194,6 @@ def average_ctc_by_joblevel(df, job_col="JobLevel", ctc_col="CTC"):
     fig=px.bar(agg,x=job_col,y="Avg CTC (₹ Lakhs)",color=job_col,
                text="Avg CTC (₹ Lakhs)",color_discrete_sequence=PALETTE)
     fig.update_traces(textposition="outside")
-
-    # ⬅️ Left align & smaller title font
-    fig.update_layout(
-        title=dict(text="Average CTC by Job Level", x=0.05, xanchor="left", font=dict(size=16))
-    )
-
     fig=apply_chart_style(fig, showlegend=False)
     return agg, fig
 
@@ -213,12 +207,6 @@ def median_ctc_by_joblevel(df, job_col="JobLevel", ctc_col="CTC"):
     fig=px.bar(agg,x=job_col,y="Median CTC (₹ Lakhs)",color=job_col,
                text="Median CTC (₹ Lakhs)",color_discrete_sequence=PALETTE)
     fig.update_traces(textposition="outside")
-
-    # ⬅️ Left align & smaller title font
-    fig.update_layout(
-        title=dict(text="Median CTC by Job Level", x=0.05, xanchor="left", font=dict(size=16))
-    )
-
     fig=apply_chart_style(fig, showlegend=False)
     return agg, fig
 # Metric 3
@@ -271,12 +259,13 @@ def quartile_distribution(df, ctc_col="CTC", job_col="JobLevel"):
 
     # Step 6 — Donut chart: overall quartile distribution (company-wide)
     fig = go.Figure(go.Pie(
-        labels=donut_df["Quartile"],
-        values=donut_df["Count"],
-        hole=0.5,
-        textinfo="label+percent",
-        insidetextorientation="radial"
-    ))
+    labels=donut_df["Quartile"],
+    values=donut_df["Count"],
+    hole=0.5,
+    textinfo="label+percent",
+    insidetextorientation="radial",
+    marker=dict(colors=PALETTE[:4], line=dict(color="#0E1117", width=2))
+))
     fig=apply_chart_style(fig, showlegend=False)
 
     # Step 7 — Final Output Table
@@ -307,7 +296,7 @@ def bonus_pct_by_joblevel(df,job_col="JobLevel",bonus_col="Bonus",ctc_col="CTC")
     df["Bonus %"]=np.where(df[ctc_col]>0,(df[bonus_col]/df[ctc_col])*100,np.nan)
     agg=df.groupby(job_col,observed=True)["Bonus %"].mean().reset_index().round(2)
     fig=px.bar(agg,x=job_col,y="Bonus %",color=job_col,text="Bonus %",color_discrete_sequence=PALETTE)
-    fig=apply_chart_style(fig, showlegend=False)
+    fig = apply_chart_style(fig, showlegend=True)
     return agg,fig
 # Metric 6
 def average_ctc_by_gender_joblevel(df,job_col="JobLevel",gender_col="Gender",ctc_col="CTC"):
@@ -319,7 +308,7 @@ def average_ctc_by_gender_joblevel(df,job_col="JobLevel",gender_col="Gender",ctc
                             ((pivot.get("Male",0)-pivot.get("Female",0))/pivot.get("Female",0)*100).round(1),np.nan)
     pivot=pivot.reset_index().rename(columns={"Male":"Avg CTC (M)","Female":"Avg CTC (F)"})
     fig=px.bar(agg,x=job_col,y="CTC_L",color=gender_col,barmode="group",color_discrete_sequence=PALETTE)
-    fig=apply_chart_style(fig, showlegend=False)
+    fig = apply_chart_style(fig, showlegend=True)
     return pivot,fig
 # Metric 7
 def average_ctc_by_rating_joblevel(df,job_col="JobLevel",rating_col="Rating",ctc_col="CTC"):
@@ -462,7 +451,8 @@ if st.button("🧾 Compile Selected Report"):
                 story.append(Spacer(1, 6))
 
             if tbl is not None and not tbl.empty:
-                data = [list(tbl.columns)] + tbl.fillna("").astype(str).values.tolist()
+                tbl = tbl.astype(str).fillna("")
+data = [list(tbl.columns)] + tbl.values.tolist()
                 col_width = (A4[0] - 40) / len(tbl.columns)
                 t = Table(data, colWidths=[col_width]*len(tbl.columns), repeatRows=1)
                 t_style = TableStyle([
@@ -484,37 +474,29 @@ if st.button("🧾 Compile Selected Report"):
                            file_name="cb_dashboard_compiled.pdf", mime="application/pdf")
 
 # -----------------------
-# Quick Chart Downloads (Final v4.6.2 Stable)
+# Quick Chart Downloads (Stable v4.7)
 # -----------------------
 st.subheader("📸 Quick Chart Downloads")
 
-downloaded_any = False
-for t, a in [(s[0], s[3]) for s in sections if s[3]]:
-    png_path = a.get("png", {}).get("path")
+for s in sections:
+    title = s[0]
+    a = s[3] if len(s) > 3 else {}
+    png_path = None
+
+    # Safely extract image path
+    if isinstance(a, dict):
+        png_path = a.get("png", {}).get("path") if isinstance(a.get("png"), dict) else None
+
     if png_path and os.path.exists(png_path):
         with open(png_path, "rb") as f:
             st.download_button(
-                f"⬇️ {t} (PNG)",
+                f"⬇️ {title} (PNG)",
                 f.read(),
                 file_name=os.path.basename(png_path),
-                mime="image/png"
+                mime="image/png",
             )
-        downloaded_any = True
-
-if not downloaded_any:
-    st.info("⚠️ Charts will appear here after metrics are rendered successfully.")
 
 st.success("✅ Dashboard Loaded — All metrics stable, charts aligned, PDF export ready.")
-
-# -----------------------
-# Safe Markdown Table Helper
-# -----------------------
-def safe_markdown_table(df):
-    try:
-        return df.to_markdown(index=False)
-    except Exception:
-        st.dataframe(df)
-        return None
 #=================
 # Chatbot Section
 #=================
