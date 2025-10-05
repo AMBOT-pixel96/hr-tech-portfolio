@@ -484,20 +484,40 @@ if st.button("🧾 Compile Selected Report"):
                            file_name="cb_dashboard_compiled.pdf", mime="application/pdf")
 
 # -----------------------
-# Quick Chart Downloads
+# Quick Chart Downloads (Final v4.6.2 Stable)
 # -----------------------
 st.subheader("📸 Quick Chart Downloads")
+
+downloaded_any = False
 for t, a in [(s[0], s[3]) for s in sections if s[3]]:
-    if a.get("png") and os.path.exists(a["png"]):
-        with open(a["png"], "rb") as f:
-            st.download_button(f"⬇️ {t} (PNG)", f.read(), file_name=os.path.basename(a["png"]), mime="image/png")
+    png_path = a.get("png", {}).get("path")
+    if png_path and os.path.exists(png_path):
+        with open(png_path, "rb") as f:
+            st.download_button(
+                f"⬇️ {t} (PNG)",
+                f.read(),
+                file_name=os.path.basename(png_path),
+                mime="image/png"
+            )
+        downloaded_any = True
+
+if not downloaded_any:
+    st.info("⚠️ Charts will appear here after metrics are rendered successfully.")
 
 st.success("✅ Dashboard Loaded — All metrics stable, charts aligned, PDF export ready.")
-def safe_markdown_table(df):
-    try: return df.to_markdown(index=False)
-    except Exception:
-        st.dataframe(df); return None
 
+# -----------------------
+# Safe Markdown Table Helper
+# -----------------------
+def safe_markdown_table(df):
+    try:
+        return df.to_markdown(index=False)
+    except Exception:
+        st.dataframe(df)
+        return None
+#=================
+# Chatbot Section
+#=================
 def run_chatbot_ui():
     st.subheader("💬 C&B Data Chatbot")
     if "messages" not in st.session_state: st.session_state["messages"]=[]
