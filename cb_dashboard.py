@@ -233,7 +233,8 @@ def metric_filters_ui(df, prefix=""):
 # -----------------------
 # Metrics storage
 # -----------------------
-sections=[]; images_for_download=[]
+sections = []
+images_for_download = []
 
 # -----------------------
 # Metric A: Avg CTC by Job Level
@@ -241,28 +242,21 @@ sections=[]; images_for_download=[]
 st.subheader("🏷️ Average CTC by Job Level")
 dfA = metric_filters_ui(emp_df, prefix="A")
 
-avg = dfA.groupby("JobLevel")["CTC"].agg(
-    TotalCTC="sum",
-    AverageCTC="mean"
-).reset_index()
-
+avg = dfA.groupby("JobLevel")["CTC"].agg(TotalCTC="sum", AverageCTC="mean").reset_index()
 avg["Total CTC (Cr.)"] = (avg["TotalCTC"] / 1e7).round(2)
 avg["Average CTC (₹ Lakhs)"] = avg["AverageCTC"].apply(readable_lakhs_number)
-
 st.dataframe(avg[["JobLevel", "Total CTC (Cr.)", "Average CTC (₹ Lakhs)"]])
 
-figA = px.bar(avg, x="JobLevel", y="AverageCTC", color="JobLevel",
-              color_discrete_sequence=PALETTE,
-              labels={"AverageCTC": "Average CTC (₹)"},
-              title="Average CTC by Job Level")
-figA = apply_chart_style(figA, "Average CTC by Job Level")
+figA = px.bar(
+    avg, x="JobLevel", y="AverageCTC", color="JobLevel",
+    color_discrete_sequence=px.colors.qualitative.Vivid,
+    labels={"AverageCTC": "Average CTC (₹)", "JobLevel": "Job Level"},
+    title="Average CTC by Job Level"
+)
+figA = apply_chart_style(figA, "Average CTC by Job Level", dark=True)
 assetA = save_plotly_asset(figA, safe_filename("avg_ctc"))
 st.plotly_chart(figA)
-
-sections.append(("Average CTC by Job Level",
-                 "Average and total pay across job levels.",
-                 avg[["JobLevel", "Total CTC (Cr.)", "Average CTC (₹ Lakhs)"]],
-                 assetA))
+sections.append(("Average CTC by Job Level", "Average and total pay across job levels.", avg[["JobLevel", "Total CTC (Cr.)", "Average CTC (₹ Lakhs)"]], assetA))
 images_for_download.append({"title": "Average CTC by Job Level", "asset": assetA})
 
 # -----------------------
@@ -270,81 +264,60 @@ images_for_download.append({"title": "Average CTC by Job Level", "asset": assetA
 # -----------------------
 st.subheader("📏 Median CTC by Job Level")
 dfB = metric_filters_ui(emp_df, prefix="B")
-
-med = dfB.groupby("JobLevel")["CTC"].agg(
-    TotalCTC="sum",
-    MedianCTC="median"
-).reset_index()
-
+med = dfB.groupby("JobLevel")["CTC"].agg(TotalCTC="sum", MedianCTC="median").reset_index()
 med["Total CTC (Cr.)"] = (med["TotalCTC"] / 1e7).round(2)
 med["Median CTC (₹ Lakhs)"] = med["MedianCTC"].apply(readable_lakhs_number)
-
 st.dataframe(med[["JobLevel", "Total CTC (Cr.)", "Median CTC (₹ Lakhs)"]])
 
-figB = px.bar(med, x="JobLevel", y="MedianCTC", color="JobLevel",
-              color_discrete_sequence=PALETTE,
-              labels={"MedianCTC": "Median CTC (₹)"},
-              title="Median CTC by Job Level")
-figB = apply_chart_style(figB, "Median CTC by Job Level")
+figB = px.bar(
+    med, x="JobLevel", y="MedianCTC", color="JobLevel",
+    color_discrete_sequence=px.colors.qualitative.Vivid,
+    labels={"MedianCTC": "Median CTC (₹)", "JobLevel": "Job Level"},
+    title="Median CTC by Job Level"
+)
+figB = apply_chart_style(figB, "Median CTC by Job Level", dark=True)
 assetB = save_plotly_asset(figB, safe_filename("median_ctc"))
 st.plotly_chart(figB)
-
-sections.append(("Median CTC by Job Level",
-                 "Median and total pay across job levels.",
-                 med[["JobLevel", "Total CTC (Cr.)", "Median CTC (₹ Lakhs)"]],
-                 assetB))
+sections.append(("Median CTC by Job Level", "Median and total pay across job levels.", med[["JobLevel", "Total CTC (Cr.)", "Median CTC (₹ Lakhs)"]], assetB))
 images_for_download.append({"title": "Median CTC by Job Level", "asset": assetB})
 
 # -----------------------
 # Metric C: Quartile Placement
 # -----------------------
 st.subheader("📉 Quartile Placement (Share of Employees)")
-dfC=metric_filters_ui(emp_df, prefix="C")
-rows=[]
-for lvl,g in dfC.groupby("JobLevel"):
-    vc=pd.qcut(g["CTC"],4,labels=["Q1","Q2","Q3","Q4"]).value_counts(normalize=True)*100
-    for q,v in vc.items():
-        rows.append({"JobLevel":lvl,"Quartile":q,"Share%":round(v,2)})
-
-quart_tbl=pd.DataFrame(rows).pivot(index="JobLevel",columns="Quartile",values="Share%").reset_index().fillna("")
+dfC = metric_filters_ui(emp_df, prefix="C")
+rows = []
+for lvl, g in dfC.groupby("JobLevel"):
+    vc = pd.qcut(g["CTC"], 4, labels=["Q1", "Q2", "Q3", "Q4"]).value_counts(normalize=True) * 100
+    for q, v in vc.items():
+        rows.append({"JobLevel": lvl, "Quartile": q, "Share%": round(v, 2)})
+quart_tbl = pd.DataFrame(rows).pivot(index="JobLevel", columns="Quartile", values="Share%").reset_index().fillna("")
 st.dataframe(quart_tbl)
-
-figC=px.pie(pd.DataFrame(rows),names="Quartile",values="Share%",hole=0.4,
-            color="Quartile",color_discrete_sequence=PALETTE, title="Quartile Distribution")
-figC = apply_chart_style(figC, "Quartile Distribution")
-assetC=save_plotly_asset(figC,safe_filename("quartile_donut"))
+figC = px.pie(pd.DataFrame(rows), names="Quartile", values="Share%", hole=0.5, color="Quartile", color_discrete_sequence=px.colors.qualitative.Safe, title="Quartile Distribution")
+figC = apply_chart_style(figC, "Quartile Distribution", dark=True)
+assetC = save_plotly_asset(figC, safe_filename("quartile_donut"))
 st.plotly_chart(figC)
-
-sections.append(("Quartile Distribution","Proportion of employees in quartiles.",quart_tbl,assetC))
-images_for_download.append({"title":"Quartile Distribution","asset":assetC})
+sections.append(("Quartile Distribution", "Proportion of employees across quartiles.", quart_tbl, assetC))
+images_for_download.append({"title": "Quartile Distribution", "asset": assetC})
 
 # -----------------------
-# Metric D: Bonus % by Job Level
+# Metric D: Bonus % of CTC by Job Level
 # -----------------------
 st.subheader("🎁 Bonus % of CTC by Job Level")
 dfD = metric_filters_ui(emp_df, prefix="D")
-dfD = dfD.assign(**{"Bonus %": np.where(dfD["CTC"] > 0, (dfD["Bonus"] / dfD["CTC"]) * 100, np.nan)})
+dfD["Bonus %"] = np.where(dfD["CTC"] > 0, (dfD["Bonus"] / dfD["CTC"]) * 100, np.nan)
 bonus = dfD.groupby("JobLevel")["Bonus %"].mean().reset_index()
 bonus["Bonus %"] = bonus["Bonus %"].round(2)
-
 st.dataframe(bonus)
-
-figD = px.bar(
-    bonus, x="JobLevel", y="Bonus %", color="JobLevel",
-    color_discrete_sequence=PALETTE,
-    title="Average Bonus % of CTC by Job Level",
-    labels={"Bonus %": "Avg Bonus (%)"}
-)
-figD = apply_chart_style(figD, "Average Bonus % of CTC by Job Level")
-figD.update_layout(showlegend=False)
+figD = px.bar(bonus, x="JobLevel", y="Bonus %", color="JobLevel", color_discrete_sequence=px.colors.qualitative.Pastel, labels={"Bonus %": "Avg Bonus (%)", "JobLevel": "Job Level"}, title="Average Bonus % of CTC by Job Level")
+figD = apply_chart_style(figD, "Average Bonus % of CTC by Job Level", dark=True)
 assetD = save_plotly_asset(figD, safe_filename("bonus_pct"))
 st.plotly_chart(figD)
-
 sections.append(("Bonus % of CTC", "Average bonus share of pay by level.", bonus, assetD))
 images_for_download.append({"title": "Bonus % of CTC", "asset": assetD})
 
 # -----------------------
-# Metric E: Company vs Market (Median)
+# Metric E: Company vs Market
 # -----------------------
 if bench_df is not None:
     st.subheader("📉 Company vs Market (Median CTC)")
@@ -352,57 +325,35 @@ if bench_df is not None:
     comp = dfE.groupby("JobLevel")["CTC"].median().reset_index().rename(columns={"CTC": "CompanyMedian"})
     bench = bench_df.groupby("JobLevel")["MarketMedianCTC"].median().reset_index()
     compare = pd.merge(comp, bench, on="JobLevel", how="outer")
-    compare["Gap %"] = np.where(
-        compare["MarketMedianCTC"] > 0,
-        (compare["CompanyMedian"] - compare["MarketMedianCTC"]) / compare["MarketMedianCTC"] * 100,
-        np.nan
-    ).round(2)
+    compare["Gap %"] = np.where(compare["MarketMedianCTC"] > 0, (compare["CompanyMedian"] - compare["MarketMedianCTC"]) / compare["MarketMedianCTC"] * 100, np.nan).round(2)
     compare["Company (₹ Lakhs)"] = compare["CompanyMedian"].apply(readable_lakhs_number)
     compare["Market (₹ Lakhs)"] = compare["MarketMedianCTC"].apply(readable_lakhs_number)
     compare_display = compare[["JobLevel", "Company (₹ Lakhs)", "Market (₹ Lakhs)", "Gap %"]].fillna("")
-    st.dataframe(compare_display, use_container_width=True)
-
+    st.dataframe(compare_display)
     figE = go.Figure()
-    figE.add_trace(go.Bar(x=compare["JobLevel"], y=compare["Company (₹ Lakhs)"],
-                          name="Company", marker_color=PALETTE[:len(compare)]))
-    figE.add_trace(go.Scatter(x=compare["JobLevel"], y=compare["Market (₹ Lakhs)"],
-                              name="Market", mode="lines+markers",
-                              marker=dict(size=8), line=dict(width=2)))
-    figE = apply_chart_style(figE, "Company vs Market — Median CTC (₹ Lakhs)")
+    figE.add_trace(go.Bar(x=compare["JobLevel"], y=compare["Company (₹ Lakhs)"], name="Company", marker_color="#93c5fd"))
+    figE.add_trace(go.Scatter(x=compare["JobLevel"], y=compare["Market (₹ Lakhs)"], name="Market", mode="lines+markers", line=dict(color="#f87171", width=2)))
+    figE = apply_chart_style(figE, "Company vs Market — Median CTC (₹ Lakhs)", dark=True)
     assetE = save_plotly_asset(figE, safe_filename("cmp_vs_market"))
-    st.plotly_chart(figE, use_container_width=True)
-
+    st.plotly_chart(figE)
     sections.append(("Company vs Market", "Company vs Market median comparison (Lakhs).", compare_display, assetE))
     images_for_download.append({"title": "Company vs Market", "asset": assetE})
 
 # -----------------------
-# Metric F: Avg CTC by Gender & Job Level (with Gap %)
+# Metric F: Avg CTC by Gender & Job Level
 # -----------------------
 st.subheader("👫 Average CTC by Gender & Job Level")
 dfF = metric_filters_ui(emp_df, prefix="F")
 g = dfF.groupby(["JobLevel", "Gender"])["CTC"].mean().reset_index()
 g["Lakhs"] = g["CTC"].apply(readable_lakhs_number)
-
-pivot_g = g.pivot(index="JobLevel", columns="Gender", values="Lakhs").reset_index().fillna(np.nan)
-pivot_g.columns.name = None
-if "Female" not in pivot_g.columns: pivot_g["Female"] = np.nan
-if "Male" not in pivot_g.columns: pivot_g["Male"] = np.nan
-pivot_g = pivot_g[["JobLevel", "Female", "Male"]]
+pivot_g = g.pivot(index="JobLevel", columns="Gender", values="Lakhs").reset_index().fillna("")
 pivot_g["Gap %"] = np.where(pivot_g["Female"] > 0, ((pivot_g["Male"] - pivot_g["Female"]) / pivot_g["Female"]) * 100, np.nan).round(2)
-display_gender_tbl = pivot_g.fillna("").copy()
-st.dataframe(display_gender_tbl)
-
-figF = px.bar(
-    g, x="JobLevel", y="CTC", color="Gender", barmode="group",
-    color_discrete_sequence=PALETTE,
-    title="Average CTC by Gender & Job Level",
-    labels={"CTC": "Average CTC (₹)"}
-)
-figF = apply_chart_style(figF, "Average CTC by Gender & Job Level")
+st.dataframe(pivot_g.fillna(""))
+figF = px.bar(g, x="JobLevel", y="Lakhs", color="Gender", barmode="group", color_discrete_sequence=px.colors.qualitative.Set2, labels={"Lakhs": "Avg CTC (₹ Lakhs)", "JobLevel": "Job Level"}, title="Average CTC by Gender & Job Level")
+figF = apply_chart_style(figF, "Average CTC by Gender & Job Level", dark=True)
 assetF = save_plotly_asset(figF, safe_filename("gender_ctc"))
 st.plotly_chart(figF)
-
-sections.append(("Average CTC by Gender & Job Level", "Gender pay splits across levels with gap %.", display_gender_tbl, assetF))
+sections.append(("Average CTC by Gender & Job Level", "Gender pay splits across levels with gap %.", pivot_g, assetF))
 images_for_download.append({"title": "Average CTC by Gender & Job Level", "asset": assetF})
 
 # -----------------------
@@ -410,27 +361,17 @@ images_for_download.append({"title": "Average CTC by Gender & Job Level", "asset
 # -----------------------
 st.subheader("⭐ Average CTC by Rating & Job Level")
 dfG = metric_filters_ui(emp_df, prefix="G")
-
 r = dfG.groupby(["JobLevel", "PerformanceRating"])["CTC"].mean().reset_index()
 r["Lakhs"] = r["CTC"].apply(readable_lakhs_number)
 r["PerformanceRating"] = r["PerformanceRating"].astype(str)
-
 pivot_r = r.pivot(index="JobLevel", columns="PerformanceRating", values="Lakhs").reset_index().fillna("")
-pivot_r.columns = ["JobLevel"] + [f"Rater {c}" for c in pivot_r.columns[1:]]
 st.dataframe(pivot_r)
-
-figG = px.bar(
-    r, x="JobLevel", y="CTC", color="PerformanceRating", barmode="group",
-    color_discrete_sequence=PALETTE,
-    title="Average CTC by Performance Rating & Job Level",
-    labels={"CTC": "Average CTC (₹)", "PerformanceRating": "Rating"}
-)
-figG = apply_chart_style(figG, "Average CTC by Performance Rating & Job Level")
+figG = px.bar(r, x="JobLevel", y="Lakhs", color="PerformanceRating", barmode="group", color_discrete_sequence=px.colors.qualitative.Plotly, labels={"Lakhs": "Avg CTC (₹ Lakhs)", "JobLevel": "Job Level", "PerformanceRating": "Rating"}, title="Average CTC by Performance Rating & Job Level")
+figG = apply_chart_style(figG, "Average CTC by Performance Rating & Job Level", dark=True)
 assetG = save_plotly_asset(figG, safe_filename("rating_ctc"))
 st.plotly_chart(figG)
-
-sections.append(("Average CTC by Rating & Job Level", "Pay differentiation by performance rating.", pivot_r, assetG))
-images_for_download.append({"title": "Average CTC by Rating & Job Level", "asset": assetG})
+sections.append(("Average CTC by Performance Rating & Job Level", "Pay differentiation by performance rating.", pivot_r, assetG))
+images_for_download.append({"title": "Average CTC by Performance Rating & Job Level", "asset": assetG})
 # -----------------------
 # Compiled PDF Report
 # -----------------------
