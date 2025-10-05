@@ -107,6 +107,9 @@ AXIS_TITLE_SIZE = 12
 AXIS_TICK_SIZE = 11
 LEGEND_FONT_SIZE = 12
 
+def sanitize_anchor(title: str) -> str:
+    return "".join(ch if ch.isalnum() else "_" for ch in title).strip("_")
+
 def validate_exact_headers(df_or_cols, required_cols):
     """Return (bool, msg). Exact order & names expected."""
     cols = list(df_or_cols.columns) if hasattr(df_or_cols, "columns") else list(df_or_cols)
@@ -267,8 +270,22 @@ def apply_chart_style(
                 trace.insidetextorientation = "radial"
         except Exception:
             pass
+return fig
+#==============
+# PDF Helpers
+#==============
+def draw_background(canvas, doc):
+    canvas.saveState()
+    canvas.setStrokeColor(colors.black)
+    canvas.rect(5, 5, A4[0]-10, A4[1]-10, stroke=1, fill=0)
+    canvas.restoreState()
 
-    return fig
+def add_page_number(canvas, doc):
+    canvas.saveState()
+    canvas.setFont("Helvetica", 8)
+    canvas.drawString(280, 15, f"Page {doc.page}")
+    canvas.restoreState()
+
 # -----------------------
 # Templates + How-to Guide
 # -----------------------
@@ -449,11 +466,11 @@ def average_ctc_by_rating_joblevel(df, job_col="JobLevel", rating_col="Rating", 
                color_discrete_sequence=px.colors.sequential.Blues,barmode="stack")
     fig=apply_chart_style(fig,title="Average CTC by Performance Rating & Job Level")
     return agg, fig
-# ============================================================
+# ============
 # Render Metrics + Tables (One Clean Pass)
-# ============================================================
-sections=[]
-
+# ============
+sections = []
+images_for_download = []
 metrics=[
     ("🏷️ Average CTC by Job Level",average_ctc_by_joblevel,
      "Average pay by level."),
@@ -579,7 +596,21 @@ if st.button("🧾 Compile Selected Report"):
             "⬇️ Download Compiled PDF", buf.getvalue(),
             file_name="cb_dashboard_compiled.pdf", mime="application/pdf"
         )
-
+# -----------------------
+# Compiled PDF Bookmark Helper
+# -----------------------
+class PDFBookmark(Flowable):
+    def __init__(self, name, title):
+        super().__init__()
+        self.name, self.title = name, title
+    def wrap(self, availWidth, availHeight):
+        return (0, 0)
+    def draw(self):
+        try:
+            self.canv.bookmarkPage(self.name)
+            self.canv.addOutlineEntry(self.title, self.name, level=0, closed=False)
+        except Exception:
+            pass
 # -----------------------
 # Quick Downloads + Wrap
 # -----------------------
