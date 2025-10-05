@@ -86,24 +86,67 @@ def _detect_theme(theme_arg="auto"):
         return base if base in ("dark","light") else "dark"
     except: return "dark"
 
-def apply_chart_style(fig,title="",x_title="JobLevel",y_title="",legend_below=True,showlegend=None):
-    theme=_detect_theme();is_dark=theme=="dark"
-    text_color="#FFF" if is_dark else "#000"
-    paper_bg=FALLBACK_PAPER_BG_DARK if is_dark else FALLBACK_PAPER_BG_LIGHT
-    grid_color="rgba(255,255,255,0.08)" if is_dark else "rgba(0,0,0,0.08)"
+def apply_chart_style(
+    fig,
+    title: str = "",
+    x_title: str = "JobLevel",
+    y_title: str = "",
+    theme: str = "auto",
+    legend_below: bool = True,
+    showlegend: bool | None = None
+):
+    """
+    Minimalist chart styling (No in-chart title for app view)
+    ✅ Cleans UI clutter
+    ✅ Keeps consistent padding + spacing
+    ✅ Safe for all chart types
+    """
+    theme = _detect_theme(theme)
+    is_dark = theme == "dark"
+    text_color = "#FFF" if is_dark else "#000"
+    paper_bg = FALLBACK_PAPER_BG_DARK if is_dark else FALLBACK_PAPER_BG_LIGHT
+    grid_color = "rgba(255,255,255,0.08)" if is_dark else "rgba(0,0,0,0.08)"
+    legend_bg = "rgba(255,255,255,0.03)" if is_dark else "rgba(0,0,0,0.03)"
 
-    if showlegend is None: showlegend=len(fig.data)>1
-    wrapped_title="<br>".join([title[i:i+40] for i in range(0,len(title),40)])
+    if showlegend is None:
+        showlegend = len(fig.data) > 1
 
+    # No title visible — maintain consistent top margin
     fig.update_layout(
-        title=dict(text=wrapped_title,x=0.5,font=dict(size=18,color=text_color)),
-        plot_bgcolor="rgba(0,0,0,0)",paper_bgcolor=paper_bg,showlegend=showlegend,
-        legend=dict(orientation="h",y=-0.25 if legend_below else 0.98,
-                    x=0.5,xanchor="center",font=dict(size=LEGEND_FONT_SIZE,color=text_color)),
-        margin=dict(t=80,l=60,r=40,b=130),height=480
+        title=None,
+        font=dict(family=BODY_FONT, color=text_color, size=12),
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor=paper_bg,
+        showlegend=showlegend,
+        legend=dict(
+            orientation="h",
+            yanchor="top",
+            y=-0.25 if legend_below else 0.98,
+            xanchor="center",
+            x=0.5,
+            font=dict(size=LEGEND_FONT_SIZE, color=text_color),
+            bgcolor=legend_bg,
+            bordercolor="rgba(0,0,0,0)",
+        ),
+        margin=dict(t=30, l=60, r=40, b=100),
+        bargap=0.15,
+        bargroupgap=0.05,
+        height=420,
     )
-    fig.update_xaxes(title_text=x_title,tickangle=-40,tickfont=dict(size=11,color=text_color),showgrid=False)
-    fig.update_yaxes(title_text=y_title,gridcolor=grid_color,tickfont=dict(size=11,color=text_color))
+
+    fig.update_xaxes(
+        title_text=x_title,
+        tickangle=-40,
+        tickfont=dict(size=11, color=text_color),
+        automargin=True,
+        showgrid=False,
+    )
+    fig.update_yaxes(
+        title_text=y_title,
+        gridcolor=grid_color,
+        tickfont=dict(size=11, color=text_color),
+        automargin=True,
+    )
     return fig
 st.header("Step 1 — Templates & Guide")
 c1,c2=st.columns(2)
@@ -312,6 +355,15 @@ for title, func, desc in metrics:
     table, fig = func(emp_df)
     st.dataframe(table, use_container_width=True)
     st.plotly_chart(fig, use_container_width=True)
+
+    # Save chart as PNG to temp dir for quick downloads
+    try:
+        img_path = os.path.join(TMP_DIR, f"{sanitize_anchor(title)}.png")
+        fig.write_image(img_path, width=1200, height=700, scale=2)
+        images_for_download.append({"title": title, "asset": {"png": img_path}})
+    except Exception:
+        pass
+
     sections.append((title, desc, table, {"png": None}))
 
 # --- Company vs Market Median ---
@@ -349,9 +401,27 @@ for title, func, desc in last_metrics:
     st.dataframe(table, use_container_width=True)
     st.plotly_chart(fig, use_container_width=True)
     sections.append((title, desc, table, {"png": None}))
-# ========================
+
+#----------------------
+# PDF Bookmark Helper
+# -----------------------
+class PDFBookmark(Flowable):
+    def __init__(self, name, title):
+        super().__init__()
+        self.name, self.title = name, title
+
+    def wrap(self, availWidth, availHeight):
+        return (0, 0)
+
+    def draw(self):
+        try:
+            self.canv.bookmarkPage(self.name)
+            self.canv.addOutlineEntry(self.title, self.name, level=0, closed=False)
+        except Exception:
+            pass
+#======================
 # Download Reports (PDF)
-# ========================
+#=======================
 st.header("📥 Download Reports")
 st.write("Choose metrics to include in the compiled PDF:")
 
@@ -410,18 +480,6 @@ if st.button("🧾 Compile Selected Report"):
         doc.build(story)
         st.download_button("⬇️ Download Compiled PDF", buf.getvalue(),
                            file_name="cb_dashboard_compiled.pdf", mime="application/pdf")
-# -----------------------
-# PDF Bookmark Helper
-# -----------------------
-class PDFBookmark(Flowable):
-    def __init__(self, name, title):
-        super().__init__(); self.name=name; self.title=title
-    def wrap(self, *args): return (0, 0)
-    def draw(self):
-        try:
-            self.canv.bookmarkPage(self.name)
-            self.canv.addOutlineEntry(self.title, self.name, level=0, closed=False)
-        except Exception: pass
 
 # -----------------------
 # Quick Chart Downloads
