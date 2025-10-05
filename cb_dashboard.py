@@ -270,7 +270,8 @@ def apply_chart_style(
                 trace.insidetextorientation = "radial"
         except Exception:
             pass
-return fig
+
+    return fig
 #==============
 # PDF Helpers
 #==============
