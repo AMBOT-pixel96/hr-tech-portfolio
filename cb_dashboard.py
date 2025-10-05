@@ -96,122 +96,25 @@ CHART_BG_DARK = "#0E1117"
 CHART_TEXT_LIGHT = "#FFFFFF"
 CHART_TEXT_DARK = "#000000"
 # -----------------------
-# Helpers (v6)
+# Helpers (Final v7 Stable)
 # -----------------------
-import os
-from datetime import datetime
-import pandas as pd
-import numpy as np
-import plotly.express as px
-import plotly.graph_objs as go
-import streamlit as st
-
-# Optional for PDF/report helpers (if you're using reportlab)
-try:
-    from reportlab.lib import colors as rl_colors
-    from reportlab.lib.pagesizes import A4
-except Exception:
-    rl_colors = None
-    A4 = (595.27, 841.89)
-
-# Temp dir to save images/html if needed (change if you have a TMP_DIR)
-TMP_DIR = os.environ.get("TMP_DIR", "/tmp")
-
-# -----------------------
-# Visual / PDF constants
-# -----------------------
-# A palette that works well on both light & dark backgrounds (plotly qualitative).
-PALETTE = px.colors.qualitative.Plotly
-
-# Fonts & sizes
+# Shared visual constants (used in helpers)
+FALLBACK_PAPER_BG_DARK = "#0b1220"
+FALLBACK_PAPER_BG_LIGHT = "#FFFFFF"
 HEADER_FONT = "Helvetica-Bold"
 BODY_FONT = "Helvetica"
-TITLE_SIZE = 20
 AXIS_TITLE_SIZE = 12
 AXIS_TICK_SIZE = 11
 LEGEND_FONT_SIZE = 12
 
-# A neutral fallback background that looks good in both themes if needed
-FALLBACK_PAPER_BG_DARK = "#0b1220"   # deep navy / almost black
-FALLBACK_PAPER_BG_LIGHT = "#FFFFFF"
-
-# -----------------------
-# Basic helpers
-# -----------------------
 def validate_exact_headers(df_or_cols, required_cols):
     """Return (bool, msg). Exact order & names expected."""
     cols = list(df_or_cols.columns) if hasattr(df_or_cols, "columns") else list(df_or_cols)
     ok = cols == required_cols
     return (ok, "OK" if ok else f"Header mismatch. Expected {required_cols}, found {cols}")
-
-def sanitize_anchor(title: str) -> str:
-    return "".join(ch if ch.isalnum() else "_" for ch in title).strip("_")
-
-def safe_filename(prefix: str) -> str:
-    return f"{prefix}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-
-def readable_lakhs_number(x):
-    """Return value in Lakhs (float) or None."""
-    if pd.isna(x):
-        return None
-    try:
-        return round(float(x) / 100000.0, 2)
-    except Exception:
-        return None
-
-# -----------------------
-# PDF helpers (optional)
-# -----------------------
-def draw_background(canvas, doc):
-    if rl_colors is None:
-        return
-    canvas.saveState()
-    canvas.setStrokeColor(rl_colors.black)
-    canvas.rect(5, 5, A4[0]-10, A4[1]-10, stroke=1, fill=0)
-    canvas.restoreState()
-
-def add_page_number(canvas, doc):
-    if rl_colors is None:
-        return
-    canvas.saveState()
-    canvas.setFont("Helvetica", 8)
-    canvas.drawString(280, 15, f"Page {doc.page}")
-    canvas.restoreState()
-
-def save_plotly_asset(fig, filename_base, width=1200, height=700, scale=2):
-    """
-    Save plotly figure as PNG; fallback to HTML if PNG generation fails.
-    Returns dict {"png": path or None, "html": path or None}
-    """
-    base = os.path.join(TMP_DIR, filename_base)
-    png_path, html_path = base + ".png", base + ".html"
-    try:
-        # Try to render PNG first — strip trace outline for cleaner images
-        for t in fig.data:
-            try:
-                if getattr(t, "marker", None) is not None:
-                    t.marker.line = dict(width=0)
-            except Exception:
-                pass
-        fig.update_layout(template="plotly_white", title_font=dict(size=TITLE_SIZE, color="black", family=BODY_FONT))
-        img_bytes = fig.to_image(format="png", width=width, height=height, scale=scale)
-        with open(png_path, "wb") as f:
-            f.write(img_bytes)
-        return {"png": png_path, "html": None}
-    except Exception:
-        try:
-            fig.write_html(html_path)
-            return {"png": None, "html": html_path}
-        except Exception:
-            return {"png": None, "html": None}
-
-# -----------------------
-# Theme detection & style applier
-# -----------------------
 def _detect_theme(theme_arg="auto"):
     """
-    Return 'dark' or 'light'.
-    If theme_arg is 'auto', try to use streamlit theme setting (st.get_option).
+    Detect current Streamlit theme or fallback to dark.
     """
     if theme_arg in ("dark", "light"):
         return theme_arg
@@ -221,79 +124,81 @@ def _detect_theme(theme_arg="auto"):
             return base.lower()
     except Exception:
         pass
-    # fallback: prefer dark since your screenshots are night-mode
-    return "dark"
+    return "dark"  # default fallback
+
 
 def _safe_update_trace_for_type(trace, update_kwargs):
-    """Update a single trace but don't raise if properties unsupported."""
+    """Safely update trace attributes without breaking unsupported types."""
     try:
         trace.update(**update_kwargs)
     except Exception:
-        # try individually for marker line because different trace types have different attrs
-        try:
-            if "marker" in update_kwargs and getattr(trace, "marker", None) is not None:
+        if "marker" in update_kwargs and getattr(trace, "marker", None) is not None:
+            try:
                 m = trace.marker.to_plotly_json() if hasattr(trace.marker, "to_plotly_json") else {}
-                new_marker = update_kwargs["marker"]
-                # merge gently
-                m.update(new_marker)
+                m.update(update_kwargs["marker"])
                 trace.marker = m
-        except Exception:
-            pass
+            except Exception:
+                pass
+
 
 def _set_trace_custom_hover_lakhs(trace):
-    """
-    For bar/column-like traces we add customdata with lakhs and set a concise hovertemplate.
-    Works safely across trace types.
-    """
+    """Format hover labels in ₹ Lakhs."""
     try:
         if trace.type in ("bar", "histogram", "box", "violin"):
-            # trace.y might be a tuple/list/np.ndarray
             y_vals = list(trace.y) if hasattr(trace, "y") else []
             custom = [[(v / 100000.0) if v is not None else None] for v in y_vals]
             trace.customdata = custom
-            # show lakhs with 2 decimals
             trace.hovertemplate = "%{x}<br>₹ %{customdata[0]:.2f} L<extra></extra>"
     except Exception:
         pass
 
-def apply_chart_style(fig, title: str = "", x_title: str = "JobLevel", y_title: str = "", theme: str = "auto", legend_below: bool = True, showlegend: bool | None = None):
+
+def apply_chart_style(
+    fig,
+    title: str = "",
+    x_title: str = "JobLevel",
+    y_title: str = "",
+    theme: str = "auto",
+    legend_below: bool = True,
+    showlegend: bool | None = None
+):
     """
-    Apply consistent styling to a Plotly figure (safe to call on any figure).
-    - Centers title (avoids title overflow)
-    - Puts legend below chart (horizontal) and adds bottom margin to avoid overlap
-    - Uses automargin on xaxis/yaxis and sets tick angles for better mobile layout
-    - Formats hover labels & optionally adds lakhs hover for bar traces
-    - Safely updates traces (no global fig.update_traces(...) that would crash on pie/scatter)
+    Apply uniform cross-theme style:
+    ✅ Fixes title overlap with toolbar
+    ✅ Prevents legend collisions with x-axis
+    ✅ Standardizes bar width, hover, fonts, margins
+    ✅ Compatible with both dark & light modes
     """
     theme = _detect_theme(theme)
-    is_dark = (theme == "dark")
+    is_dark = theme == "dark"
 
-    # colours based on theme
     text_color = "#FFFFFF" if is_dark else "#0b1220"
     paper_bg = FALLBACK_PAPER_BG_DARK if is_dark else FALLBACK_PAPER_BG_LIGHT
-    plot_bg = "rgba(0,0,0,0)"  # let the page/card BG show through
-    grid_color = "rgba(255,255,255,0.06)" if is_dark else "rgba(0,0,0,0.08)"
-    legend_bg = "rgba(255,255,255,0.02)" if is_dark else "rgba(0,0,0,0.03)"
-    legend_border = "rgba(255,255,255,0.06)" if is_dark else "rgba(0,0,0,0.06)"
+    grid_color = "rgba(255,255,255,0.08)" if is_dark else "rgba(0,0,0,0.08)"
+    legend_bg = "rgba(255,255,255,0.03)" if is_dark else "rgba(0,0,0,0.03)"
+    legend_border = "rgba(255,255,255,0.05)" if is_dark else "rgba(0,0,0,0.05)"
 
-    # Decide whether to show legend when user didn't pass explicit param:
     if showlegend is None:
-        # If the figure has >1 distinct trace and not all traces are single color identical to x, show legend
         showlegend = len(fig.data) > 1
 
-    # Layout base
-    bottom_margin = 140 if legend_below and showlegend else 80
+    # layout
     fig.update_layout(
-        title=dict(text=title, x=0.5, xanchor="center", y=0.98, yanchor="top", font=dict(size=TITLE_SIZE, color=text_color, family=HEADER_FONT)),
-        title_x=0.5,
+        title=dict(
+            text=title,
+            x=0.5,
+            xanchor="center",
+            y=0.92,
+            yanchor="top",
+            font=dict(size=18, color=text_color, family=HEADER_FONT)
+        ),
         font=dict(family=BODY_FONT, color=text_color, size=12),
-        plot_bgcolor=plot_bg,
+        plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor=paper_bg,
         showlegend=showlegend,
         legend=dict(
             orientation="h",
             yanchor="top",
-            y=-0.28 if legend_below else 0.98,
+            y=-0.22 if legend_below else 0.98,
             xanchor="center",
             x=0.5,
             font=dict(size=LEGEND_FONT_SIZE, color=text_color),
@@ -301,67 +206,46 @@ def apply_chart_style(fig, title: str = "", x_title: str = "JobLevel", y_title: 
             bordercolor=legend_border,
             borderwidth=1,
         ),
-        margin=dict(t=90, l=70, r=40, b=bottom_margin),
-        bargap=0.12,         # thicker bars
-        bargroupgap=0.02,
+        margin=dict(t=65, l=65, r=35, b=120),
+        bargap=0.15,
+        bargroupgap=0.05,
         hoverlabel=dict(font_size=12, font_family=BODY_FONT),
     )
 
-    # Axis settings (automargins and tick orientation)
     fig.update_xaxes(
         title_text=x_title,
-        title_font=dict(size=AXIS_TITLE_SIZE, color=text_color, family=BODY_FONT),
-        tickangle=-45,
+        title_font=dict(size=AXIS_TITLE_SIZE, color=text_color),
+        tickangle=-40,
         tickfont=dict(size=AXIS_TICK_SIZE, color=text_color),
         automargin=True,
         showgrid=False
     )
     fig.update_yaxes(
         title_text=y_title,
-        title_font=dict(size=AXIS_TITLE_SIZE, color=text_color, family=BODY_FONT),
+        title_font=dict(size=AXIS_TITLE_SIZE, color=text_color),
         tickfont=dict(size=AXIS_TICK_SIZE, color=text_color),
         automargin=True,
         gridcolor=grid_color,
     )
 
-    # Remove legend title to avoid extra vertical text that overlaps
-    try:
-        fig.update_layout(legend_title_text="")
-    except Exception:
-        pass
-
-    # Safe per-trace updates: marker lines, hover templates for bars, ensure bar width only applied where valid
+    # normalize trace appearance
     for trace in fig.data:
         try:
-            if trace.type in ("bar", "histogram"):
-                # thicker bars, no outline
-                _safe_update_trace_for_type(trace, {"marker": {"line": {"width": 0}}})
+            if trace.type == "bar":
+                trace.marker.line.width = 0
+                trace.width = 0.55
                 _set_trace_custom_hover_lakhs(trace)
-                # set width *only* if trace supports it
-                try:
-                    _safe_update_trace_for_type(trace, {"width": 0.6})
-                except Exception:
-                    pass
             elif trace.type in ("scatter", "line"):
-                # nice markers for lines in company vs market
-                _safe_update_trace_for_type(trace, {"mode": "lines+markers", "marker": {"size": 8, "line": {"width": 1}}})
+                trace.mode = "lines+markers"
+                trace.marker.size = 7
+                trace.line.width = 2.5
             elif trace.type == "pie":
-                # donut style with inside percent labels
-                try:
-                    _safe_update_trace_for_type(trace, {"hole": 0.45, "textinfo": "percent", "insidetextorientation": "radial"})
-                except Exception:
-                    pass
-            else:
-                # generic try for other trace types
-                try:
-                    _safe_update_trace_for_type(trace, {"marker": {"line": {"width": 0}}})
-                except Exception:
-                    pass
+                trace.hole = 0.45
+                trace.textinfo = "percent"
+                trace.insidetextorientation = "radial"
         except Exception:
-            # swallow to avoid interrupting app
             pass
 
-    # done
     return fig
 # -----------------------
 # Templates + How-to Guide
@@ -438,7 +322,7 @@ def metric_filters_ui(df, prefix=""):
     return out
 
 # -----------------------
-# Metrics block (Final Stable v6)
+# Metrics Block (Final v7 Stable)
 # -----------------------
 import plotly.express as px
 import plotly.graph_objects as go
@@ -455,16 +339,13 @@ DEFAULT_JOBLEVEL_ORDER = [
 ]
 
 def _ensure_joblevel_order(df, col="JobLevel", order=DEFAULT_JOBLEVEL_ORDER):
-    """If JobLevel present, make it categorical with desired order for consistent plotting."""
     if col in df.columns:
         df = df.copy()
         df[col] = pd.Categorical(df[col], categories=order, ordered=True)
     return df
 
 
-# -----------------------
 # 1️⃣ Average CTC by Job Level
-# -----------------------
 def average_ctc_by_joblevel(df, job_col="JobLevel", ctc_col="CTC"):
     df = _ensure_joblevel_order(df, job_col)
     agg = df.groupby(job_col, observed=True)[ctc_col].mean().reset_index()
@@ -483,9 +364,7 @@ def average_ctc_by_joblevel(df, job_col="JobLevel", ctc_col="CTC"):
     return fig
 
 
-# -----------------------
 # 2️⃣ Median CTC by Job Level
-# -----------------------
 def median_ctc_by_joblevel(df, job_col="JobLevel", ctc_col="CTC"):
     df = _ensure_joblevel_order(df, job_col)
     agg = df.groupby(job_col, observed=True)[ctc_col].median().reset_index()
@@ -504,9 +383,7 @@ def median_ctc_by_joblevel(df, job_col="JobLevel", ctc_col="CTC"):
     return fig
 
 
-# -----------------------
-# 3️⃣ Quartile Distribution (Share of Employees)
-# -----------------------
+# 3️⃣ Quartile Distribution
 def quartile_distribution(df, job_col="JobLevel", ctc_col="CTC"):
     if "Quartile" in df.columns:
         qdf = df.groupby("Quartile").size().reset_index(name="count")
@@ -522,9 +399,7 @@ def quartile_distribution(df, job_col="JobLevel", ctc_col="CTC"):
     return fig
 
 
-# -----------------------
-# 4️⃣ Average CTC by Gender & Job Level
-# -----------------------
+# 4️⃣ Average CTC by Gender & Job Level (stacked)
 def average_ctc_by_gender_joblevel(df, job_col="JobLevel", gender_col="Gender", ctc_col="CTC"):
     df = _ensure_joblevel_order(df, job_col)
     agg = df.groupby([job_col, gender_col], observed=True)[ctc_col].mean().reset_index()
@@ -535,17 +410,13 @@ def average_ctc_by_gender_joblevel(df, job_col="JobLevel", gender_col="Gender", 
         x=job_col,
         y="ctc_lakhs",
         color=gender_col,
-        barmode="group",
+        barmode="stack",  # ✅ fixed
         color_discrete_sequence=PALETTE,
         labels={"ctc_lakhs": "Avg CTC (₹ Lakhs)"},
     )
     fig = apply_chart_style(fig, title="Average CTC by Gender & Job Level")
     return fig
-
-
-# -----------------------
 # 5️⃣ Average CTC by Performance Rating & Job Level
-# -----------------------
 def average_ctc_by_rating_joblevel(df, job_col="JobLevel", rating_col="Rating", ctc_col="CTC"):
     df = _ensure_joblevel_order(df, job_col)
     agg = df.groupby([job_col, rating_col], observed=True)[ctc_col].mean().reset_index()
@@ -562,14 +433,10 @@ def average_ctc_by_rating_joblevel(df, job_col="JobLevel", rating_col="Rating", 
     )
     fig = apply_chart_style(fig, title="Average CTC by Performance Rating & Job Level")
     return fig
-# -----------------------
+
+
 # 6️⃣ Company vs Market (Median CTC)
-# -----------------------
 def company_vs_market(df_company, df_market, job_col="JobLevel", company_col="CompanyMedian", market_col="MarketMedian"):
-    """
-    Combined bar (Company) + line (Market) comparison by job level.
-    df_company and df_market should share same JobLevel column.
-    """
     left = _ensure_joblevel_order(df_company[[job_col, company_col]].copy(), job_col)
     right = _ensure_joblevel_order(df_market[[job_col, market_col]].copy(), job_col)
     merged = pd.merge(left, right, on=job_col, how="inner")
@@ -579,7 +446,7 @@ def company_vs_market(df_company, df_market, job_col="JobLevel", company_col="Co
         x=merged[job_col],
         y=merged[company_col],
         name="Company",
-        marker_color="#22D3EE",  # teal accent
+        marker_color="#22D3EE",
         opacity=0.9
     ))
     fig.add_trace(go.Scatter(
@@ -590,23 +457,15 @@ def company_vs_market(df_company, df_market, job_col="JobLevel", company_col="Co
         line=dict(color="#FB7185", width=3),
         marker=dict(size=7)
     ))
-
     fig = apply_chart_style(fig, title="Company vs Market — Median CTC (₹ Lakhs)")
     return fig
 
 
-# -----------------------
 # 7️⃣ Bonus % of CTC by Job Level
-# -----------------------
 def bonus_pct_by_joblevel(df, job_col="JobLevel", bonus_col="Bonus", ctc_col="CTC"):
-    """
-    Bar chart: Average Bonus % of CTC by Job Level.
-    Displays neat pastel bars, white title, and centered legend.
-    """
     df = _ensure_joblevel_order(df, job_col)
     df = df.copy()
     df["Bonus %"] = np.where(df[ctc_col] > 0, (df[bonus_col] / df[ctc_col]) * 100, np.nan)
-
     agg = df.groupby(job_col, observed=True)["Bonus %"].mean().reset_index()
     agg["Bonus %"] = agg["Bonus %"].round(2)
 
@@ -618,15 +477,14 @@ def bonus_pct_by_joblevel(df, job_col="JobLevel", bonus_col="Bonus", ctc_col="CT
         color_discrete_sequence=PALETTE,
         labels={"Bonus %": "Avg Bonus (%)"},
     )
-
     fig = apply_chart_style(fig, title="Average Bonus % of CTC by Job Level")
     fig.update_layout(showlegend=False)
     return fig
 # -----------------------
 # Initialize metric storage
 # -----------------------
-sections = []      # stores metric titles, tables, descriptions, and assets
-images_for_download = []   # stores images for quick chart downloads
+sections = []               # Stores (title, description, dataframe, asset)
+images_for_download = []    # Stores generated chart image assets for quick download
 # -----------------------
 # Compiled PDF Report
 # -----------------------
