@@ -89,7 +89,7 @@ def save_plotly_asset(fig, filename_base, width=1200, height=700, scale=2):
     png_path, html_path = base + ".png", base + ".html"
     try:
         fig.update_traces(marker=dict(line=dict(width=0)))
-        fig.update_layout(template="plotly_white", title_font=dict(size=18, color="black", family="Helvetica"))
+        fig.update_layout(template="plotly_dark", title_font=dict(size=18, color="white", family="Helvetica"))
         img_bytes = fig.to_image(format="png", width=width, height=height, scale=scale)
         with open(png_path, "wb") as f: f.write(img_bytes)
         return {"png": png_path, "html": None}
@@ -100,30 +100,50 @@ def save_plotly_asset(fig, filename_base, width=1200, height=700, scale=2):
         except Exception:
             return {"png": None, "html": None}
 
-def apply_chart_style(fig, title: str):
-    """Apply consistent style to all charts (dark/light safe)."""
+# === Unified Dark/Light Chart Style ===
+def apply_chart_style(fig, title: str, dark=True):
+    """Apply consistent style to all charts (dark mode aesthetic with fallback for light)."""
+    bg_color = "#0f172a" if dark else "white"
+    text_color = "white" if dark else "black"
+    grid_color = "#334155" if dark else "#e5e7eb"
+
     fig.update_layout(
-        template="plotly_white",
+        template="plotly_dark" if dark else "plotly_white",
         title=title,
-        title_font=dict(size=18, color="black", family="Helvetica"),
-        font=dict(color="black", family="Helvetica", size=12),
-        plot_bgcolor="white",
-        paper_bgcolor="white",
+        title_x=0.5,
+        title_font=dict(size=20, color=text_color, family="Helvetica-Bold"),
+        font=dict(color=text_color, family="Helvetica", size=12),
+        plot_bgcolor=bg_color,
+        paper_bgcolor=bg_color,
         xaxis=dict(
-            title_font=dict(size=12, color="black"),
-            tickfont=dict(size=11, color="black")
+            title_font=dict(size=13, color=text_color),
+            tickfont=dict(size=11, color=text_color),
+            gridcolor=grid_color,
+            showline=True,
+            linecolor=grid_color,
+            mirror=True
         ),
         yaxis=dict(
-            title_font=dict(size=12, color="black"),
-            tickfont=dict(size=11, color="black")
+            title_font=dict(size=13, color=text_color),
+            tickfont=dict(size=11, color=text_color),
+            gridcolor=grid_color,
+            showline=True,
+            linecolor=grid_color,
+            mirror=True
         ),
         legend=dict(
             orientation="h",
-            yanchor="top", y=-0.3,
-            xanchor="center", x=0.5,
-            font=dict(size=11, color="black")
+            yanchor="top",
+            y=-0.25,
+            xanchor="center",
+            x=0.5,
+            font=dict(size=11, color=text_color),
+            bgcolor=bg_color,
+            bordercolor=grid_color,
+            borderwidth=0.5
         ),
-        margin=dict(t=70, l=60, r=40, b=100)  # space for titles & legends
+        margin=dict(t=70, l=60, r=40, b=100),
+        autosize=True
     )
     return fig
 # -----------------------
