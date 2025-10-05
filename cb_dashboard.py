@@ -356,15 +356,17 @@ for title, func, desc in metrics:
     st.dataframe(table, use_container_width=True)
     st.plotly_chart(fig, use_container_width=True)
 
-    # Save chart as PNG to temp dir for quick downloads
+    # Save chart as PNG for quick downloads
+    img_path = None
     try:
         img_path = os.path.join(TMP_DIR, f"{sanitize_anchor(title)}.png")
         fig.write_image(img_path, width=1200, height=700, scale=2)
         images_for_download.append({"title": title, "asset": {"png": img_path}})
-    except Exception:
-        pass
+    except Exception as e:
+        st.warning(f"⚠️ Could not save {title} image: {e}")
 
-    sections.append((title, desc, table, {"png": None}))
+    # Append section with PNG path reference
+    sections.append((title, desc, table, {"png": {"path": img_path}}))
 
 # --- Company vs Market Median ---
 if bench_df is not None:
