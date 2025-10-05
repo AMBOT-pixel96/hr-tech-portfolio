@@ -445,7 +445,23 @@ def company_vs_market(df_company, df_market, job_col="JobLevel",
     fig = apply_chart_style(fig, title="Company vs Market — Median CTC (₹ Lakhs)", legend_below=True)
     fig.update_layout(legend=dict(font=dict(size=10)))
     return table, fig
+# --- FIX E ---
+def bonus_pct_by_joblevel(df, job_col="JobLevel", bonus_col="Bonus", ctc_col="CTC"):
+    df = _safe_numeric(df, ctc_col)
+    df = _safe_numeric(df, bonus_col)
+    df = _ensure_joblevel_order(df, job_col)
 
+    df["Bonus %"] = np.where(df[ctc_col] > 0, (df[bonus_col] / df[ctc_col]) * 100, np.nan)
+    agg = df.groupby(job_col, observed=True)["Bonus %"].mean().reset_index().round(2)
+
+    fig = px.bar(
+        agg, x=job_col, y="Bonus %",
+        color=job_col, color_discrete_sequence=PALETTE, text="Bonus %"
+    )
+    fig.update_traces(textposition="inside", textfont=dict(color="black", size=11))
+    fig = apply_chart_style(fig, title="Average Bonus % of CTC by Job Level", showlegend=False)
+
+    return agg, fig
 # --- FIX F ---
 def average_ctc_by_gender_joblevel(df, job_col="JobLevel", gender_col="Gender", ctc_col="CTC"):
     df = _safe_numeric(df, ctc_col)
