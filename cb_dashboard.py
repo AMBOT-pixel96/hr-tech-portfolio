@@ -336,8 +336,9 @@ def average_ctc_by_gender_joblevel(df,job_col="JobLevel",gender_col="Gender",ctc
     return pivot,fig
 
 # ===========
-# Metric 7 (v4.7.3 Final Polish)
+# Metric 7 (v4.7.5 – Bright Stacked Bars Fix)
 # ===========
+
 def average_ctc_by_rating_joblevel(df, job_col="JobLevel", rating_col="Rating", ctc_col="CTC"):
     df = _safe_numeric(df, ctc_col)
     df = _ensure_joblevel_order(df, job_col)
@@ -345,8 +346,8 @@ def average_ctc_by_rating_joblevel(df, job_col="JobLevel", rating_col="Rating", 
     agg["CTC_L"] = (agg[ctc_col] / 1e5).round(2)
     pivot = agg.pivot(index=job_col, columns=rating_col, values="CTC_L").round(2).reset_index()
 
-    # ✅ Use a bright-friendly palette (replaces dark Blues)
-    light_blues = ["#A7C7E7", "#7FB3E4", "#5397D3", "#3C77B9", "#1E5AA8"]
+    # 🌈 Replace dark blues with bright pastel shades for perfect contrast
+    bright_palette = ["#89CFF0", "#6FA8DC", "#9AD0EC", "#AEDFF7", "#D4E9FF"]
 
     fig = px.bar(
         agg,
@@ -354,11 +355,17 @@ def average_ctc_by_rating_joblevel(df, job_col="JobLevel", rating_col="Rating", 
         y="CTC_L",
         color=rating_col,
         barmode="stack",
-        color_discrete_sequence=light_blues
+        color_discrete_sequence=bright_palette
     )
 
-    # ✅ Proper styling — keep titles invisible in app
+    # ✅ Keep titles invisible but show clean legends
     fig = apply_chart_style(fig, title=" ", showlegend=True)
+
+    # ✅ Ensure visible bar outlines (light grey edges)
+    for trace in fig.data:
+        if hasattr(trace, "marker"):
+            trace.marker.line = dict(width=0.5, color="#DDD")
+
     return pivot, fig
 # ===========================
 # Render Metrics + Tables (v4.7 Final Stable Polish)
