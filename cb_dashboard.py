@@ -360,27 +360,40 @@ def average_ctc_by_rating_joblevel(df, job_col="JobLevel", rating_col="Rating", 
     # ✅ Proper styling — keep titles invisible in app
     fig = apply_chart_style(fig, title=" ", showlegend=True)
     return pivot, fig
-# ============================================================
+# ===========================
 # Render Metrics + Tables (v4.7 Final Stable Polish)
-# ============================================================
+# ===========================
 
 sections = []
 images_for_download = []
-# ============================================================
-# Helper: Chart Image Saver (v4.7.2 Stable + Soft Grey Safety Net)
-# ============================================================
+# ==========================
+# Helper: Chart Image Saver (v4.7.4 Stable + Smart Contrast Fix)
+# ========================
 def save_chart_image(title, fig):
     """
     Saves Plotly chart as high-quality PNG inside temp_charts_cb/
     ✅ Handles errors silently
     ✅ Ensures consistent naming & scaling
-    ✅ Soft grey background for elegant PDF visuals
+    ✅ Smart contrast-aware background for PDF exports
     """
     try:
         img_path = os.path.join(TMP_DIR, f"{sanitize_anchor(title)}.png")
 
-        # ⚡ Force soft grey background for boardroom readability
-        fig.update_layout(paper_bgcolor="#F4F4F4", plot_bgcolor="#F4F4F4")
+        # ⚡ Smart contrast fix:
+        # Keep text/axis labels visible regardless of theme
+        fig.update_layout(
+            paper_bgcolor="#F4F4F4",
+            plot_bgcolor="#F4F4F4",
+            font=dict(color="#000"),
+            xaxis=dict(color="#000", title_font=dict(color="#000"), tickfont=dict(color="#000")),
+            yaxis=dict(color="#000", title_font=dict(color="#000"), tickfont=dict(color="#000")),
+            legend=dict(font=dict(color="#000"))
+        )
+
+        # 🧩 Ensure marker visibility in light mode (esp. stacked bars)
+        for trace in fig.data:
+            if hasattr(trace, "marker"):
+                trace.marker.line = dict(width=0.5, color="#DDD")
 
         fig.write_image(img_path, width=1200, height=700, scale=2)
         return img_path
