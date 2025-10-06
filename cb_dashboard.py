@@ -188,8 +188,9 @@ def _ensure_joblevel_order(df,col="JobLevel"):
     if col in df.columns:
         df=df.copy(); df[col]=pd.Categorical(df[col],categories=order,ordered=True)
     return df
+#===========
 # Metric 1
-
+#===========
 def average_ctc_by_joblevel(df, job_col="JobLevel", ctc_col="CTC"):
     df=_safe_numeric(df,ctc_col); df=_ensure_joblevel_order(df,job_col)
     agg=df.groupby(job_col,observed=True)[ctc_col].agg(["mean","sum"]).reset_index()
@@ -199,10 +200,13 @@ def average_ctc_by_joblevel(df, job_col="JobLevel", ctc_col="CTC"):
     fig=px.bar(agg,x=job_col,y="Avg CTC (₹ Lakhs)",color=job_col,
                text="Avg CTC (₹ Lakhs)",color_discrete_sequence=PALETTE)
     fig.update_traces(textposition="outside")
-    fig=apply_chart_style(fig, showlegend=False)
+    fig=apply_chart_style(fig,title=" ", showlegend=False)
     return agg, fig
 
+#===========
 # Metric 2
+#===========
+
 def median_ctc_by_joblevel(df, job_col="JobLevel", ctc_col="CTC"):
     df=_safe_numeric(df,ctc_col); df=_ensure_joblevel_order(df,job_col)
     agg=df.groupby(job_col,observed=True)[ctc_col].agg(["median","sum"]).reset_index()
@@ -212,10 +216,13 @@ def median_ctc_by_joblevel(df, job_col="JobLevel", ctc_col="CTC"):
     fig=px.bar(agg,x=job_col,y="Median CTC (₹ Lakhs)",color=job_col,
                text="Median CTC (₹ Lakhs)",color_discrete_sequence=PALETTE)
     fig.update_traces(textposition="outside")
-    fig=apply_chart_style(fig, showlegend=False)
+    fig=apply_chart_style(fig,title=" ", showlegend=False)
     return agg, fig
+#===========
 # Metric 3
+#===========
 # --- FIX C (v4.6.1 Stable) ---
+#===========
 def quartile_distribution(df, ctc_col="CTC", job_col="JobLevel"):
     """
     Quartile Distribution (Fixed):
@@ -271,13 +278,15 @@ def quartile_distribution(df, ctc_col="CTC", job_col="JobLevel"):
     insidetextorientation="radial",
     marker=dict(colors=PALETTE[:4], line=dict(color="#0E1117", width=2))
 ))
-    fig=apply_chart_style(fig, showlegend=False)
+    fig=apply_chart_style(fig,title=" ", showlegend=False)
 
     # Step 7 — Final Output Table
     quartile_counts = quartile_counts.fillna(0)
     quartile_counts = quartile_counts.astype({c: int for c in ["Q1", "Q2", "Q3", "Q4", "Total Employees"] if c in quartile_counts.columns})
     return quartile_counts, fig
+#===========
 # Metric 4
+#===========
 def company_vs_market(df_company,df_market,job_col="JobLevel",
                       company_col="CompanyMedian",market_col="MarketMedian"):
     left=_ensure_joblevel_order(df_company,job_col)
@@ -292,18 +301,22 @@ def company_vs_market(df_company,df_market,job_col="JobLevel",
         go.Scatter(x=merged[job_col],y=merged["Market (₹ L)"],name="Market",
                    mode="lines+markers",line=dict(color="#FB7185",width=3))
     ])
-    fig=apply_chart_style(fig, showlegend=False)
+    fig=apply_chart_style(fig,title=" ", showlegend=True)
     fig.update_layout(legend=dict(font=dict(size=10)))
     return table,fig
+#===========
 # Metric 5
+#===========
 def bonus_pct_by_joblevel(df,job_col="JobLevel",bonus_col="Bonus",ctc_col="CTC"):
     df=_safe_numeric(df,ctc_col); df=_safe_numeric(df,bonus_col); df=_ensure_joblevel_order(df,job_col)
     df["Bonus %"]=np.where(df[ctc_col]>0,(df[bonus_col]/df[ctc_col])*100,np.nan)
     agg=df.groupby(job_col,observed=True)["Bonus %"].mean().reset_index().round(2)
     fig=px.bar(agg,x=job_col,y="Bonus %",color=job_col,text="Bonus %",color_discrete_sequence=PALETTE)
-    fig = apply_chart_style(fig, showlegend=True)
+    fig=apply_chart_style(fig,title=" ", showlegend=False)
     return agg,fig
+#===========
 # Metric 6
+#===========
 def average_ctc_by_gender_joblevel(df,job_col="JobLevel",gender_col="Gender",ctc_col="CTC"):
     df=_safe_numeric(df,ctc_col); df=df.dropna(subset=[ctc_col]); df=_ensure_joblevel_order(df,job_col)
     agg=df.groupby([job_col,gender_col],observed=True)[ctc_col].mean().reset_index()
@@ -313,9 +326,11 @@ def average_ctc_by_gender_joblevel(df,job_col="JobLevel",gender_col="Gender",ctc
                             ((pivot.get("Male",0)-pivot.get("Female",0))/pivot.get("Female",0)*100).round(1),np.nan)
     pivot=pivot.reset_index().rename(columns={"Male":"Avg CTC (M)","Female":"Avg CTC (F)"})
     fig=px.bar(agg,x=job_col,y="CTC_L",color=gender_col,barmode="group",color_discrete_sequence=PALETTE)
-    fig = apply_chart_style(fig, showlegend=True)
+    fig=apply_chart_style(fig,title=" ", showlegend=True)
     return pivot,fig
+#===========
 # Metric 7
+#===========
 def average_ctc_by_rating_joblevel(df,job_col="JobLevel",rating_col="Rating",ctc_col="CTC"):
     df=_safe_numeric(df,ctc_col); df=_ensure_joblevel_order(df,job_col)
     agg=df.groupby([job_col,rating_col],observed=True)[ctc_col].mean().reset_index()
@@ -323,7 +338,7 @@ def average_ctc_by_rating_joblevel(df,job_col="JobLevel",rating_col="Rating",ctc
     pivot=agg.pivot(index=job_col,columns=rating_col,values="CTC_L").round(2).reset_index()
     fig=px.bar(agg,x=job_col,y="CTC_L",color=rating_col,barmode="stack",
                color_discrete_sequence=px.colors.sequential.Blues)
-    fig=apply_chart_style(fig, showlegend=False)
+    fig=apply_chart_style(fig,title=" ", showlegend=False)
     return pivot,fig
 # ============================================================
 # Render Metrics + Tables (v4.7 Final Stable Polish)
