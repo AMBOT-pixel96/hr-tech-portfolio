@@ -88,7 +88,7 @@ def _detect_theme(theme_arg="auto"):
 
 def apply_chart_style(
     fig,
-    title: str = "",
+    title: str = None,
     x_title: str = "JobLevel",
     y_title: str = "",
     theme: str = "auto",
@@ -96,10 +96,10 @@ def apply_chart_style(
     showlegend: bool | None = None
 ):
     """
-    Minimalist chart styling (No in-chart title for app view)
-    ✅ Cleans UI clutter
-    ✅ Keeps consistent padding + spacing
-    ✅ Safe for all chart types
+    v4.7 — Clean title handling + legend positioning fix
+    ✅ Removes 'undefined'
+    ✅ Centers padding & font harmonization
+    ✅ Legend auto-offsets for overlap fix
     """
     theme = _detect_theme(theme)
     is_dark = theme == "dark"
@@ -111,9 +111,16 @@ def apply_chart_style(
     if showlegend is None:
         showlegend = len(fig.data) > 1
 
-    # No title visible — maintain consistent top margin
+    # Dynamic legend offset
+    legend_y = -0.35 if legend_below else 0.98
+
     fig.update_layout(
-        title=None,
+        title=None if not title else dict(
+            text=title,
+            x=0.02,
+            xanchor="left",
+            font=dict(size=16, color=text_color)
+        ),
         font=dict(family=BODY_FONT, color=text_color, size=12),
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor=paper_bg,
@@ -121,22 +128,20 @@ def apply_chart_style(
         legend=dict(
             orientation="h",
             yanchor="top",
-            y=-0.25 if legend_below else 0.98,
+            y=legend_y,
             xanchor="center",
             x=0.5,
             font=dict(size=LEGEND_FONT_SIZE, color=text_color),
             bgcolor=legend_bg,
-            bordercolor="rgba(0,0,0,0)",
+            bordercolor="rgba(0,0,0,0)"
         ),
-        margin=dict(t=30, l=60, r=40, b=100),
-        bargap=0.15,
-        bargroupgap=0.05,
-        height=420,
+        margin=dict(t=50, l=60, r=40, b=120),
+        height=440,
     )
 
     fig.update_xaxes(
         title_text=x_title,
-        tickangle=-40,
+        tickangle=-35,
         tickfont=dict(size=11, color=text_color),
         automargin=True,
         showgrid=False,
@@ -447,10 +452,17 @@ if st.button("🧾 Compile Selected Report"):
         story.append(PageBreak())
 
         story.append(Paragraph("<b>Table of Contents</b>", styles["Heading2"]))
-        for i, (title, _, _, _) in enumerate(selected, 1):
-            story.append(Paragraph(f"{i}. {title}", body))
-        story.append(PageBreak())
-
+toc_data = [[f"{i}.", title] for i, (title, _, _, _) in enumerate(selected, 1)]
+toc_table = Table(toc_data, colWidths=[20*mm, 150*mm])
+toc_style = TableStyle([
+    ("TEXTCOLOR", (0, 0), (-1, -1), colors.black),
+    ("FONTNAME", (0, 0), (-1, -1), BODY_FONT),
+    ("FONTSIZE", (0, 0), (-1, -1), 10),
+    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+])
+toc_table.setStyle(toc_style)
+story.append(toc_table)
+story.append(PageBreak())
         for title, desc, tbl, asset in selected:
             story.append(PDFBookmark(sanitize_anchor(title), title))
             story.append(Paragraph(f"<b>{title}</b>", styles["Heading2"]))
@@ -473,7 +485,18 @@ if st.button("🧾 Compile Selected Report"):
                 t.setStyle(t_style)
                 story.append(t)
                 story.append(Spacer(1, 8))
+# --- Add chart image if available ---
+    try:
+        img_path = None
+        if isinstance(asset, dict):
+            img_path = asset.get("png", {}).get("path") if isinstance(asset.get("png"), dict) else None
 
+        if img_path and os.path.exists(img_path):
+            story.append(Spacer(1, 6))
+            story.append(RLImage(img_path, width=160*mm, height=90*mm))
+            story.append(Spacer(1, 10))
+    except Exception as e:
+        st.warning(f"⚠️ Could not embed chart for {title}: {e}")
             story.append(Paragraph("<i>Insight:</i> Review trends across levels.", body))
             story.append(PageBreak())
 
@@ -487,27 +510,22 @@ if st.button("🧾 Compile Selected Report"):
 # -----------------------
 # Quick Chart Downloads (Stable v4.7)
 # -----------------------
-st.subheader("📸 Quick Chart Downloads")
-
+st.subheader("📸 Quick Chart Downloads (v4.7)")
 for s in sections:
     title = s[0]
-    a = s[3] if len(s) > 3 else {}
-    png_path = None
-
-    # Safely extract image path
-    if isinstance(a, dict):
-        png_path = a.get("png", {}).get("path") if isinstance(a.get("png"), dict) else None
+    asset = s[3] if len(s) > 3 else {}
+    png_path = asset.get("png", {}).get("path") if isinstance(asset.get("png"), dict) else None
 
     if png_path and os.path.exists(png_path):
         with open(png_path, "rb") as f:
             st.download_button(
-                f"⬇️ {title} (PNG)",
-                f.read(),
+                label=f"⬇️ {title} (PNG)",
+                data=f.read(),
                 file_name=os.path.basename(png_path),
                 mime="image/png",
             )
 
-st.success("✅ Dashboard Loaded — All metrics stable, charts aligned, PDF export ready.")
+st.success("✅ Dashboard Loaded — All metrics now include images & clean legends.")
 #=================
 # Chatbot Section
 #=================
