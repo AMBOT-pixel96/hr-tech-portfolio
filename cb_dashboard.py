@@ -366,24 +366,25 @@ def average_ctc_by_rating_joblevel(df, job_col="JobLevel", rating_col="Rating", 
 
 sections = []
 images_for_download = []
-# # ============================================================
-# Helper: Chart Image Saver (v4.7.1 Stable + Safety Net)
+# ============================================================
+# Helper: Chart Image Saver (v4.7.2 Stable + Soft Grey Safety Net)
 # ============================================================
 def save_chart_image(title, fig):
     """
     Saves Plotly chart as high-quality PNG inside temp_charts_cb/
     ✅ Handles errors silently
     ✅ Ensures consistent naming & scaling
-    ✅ Forces light background for PDFs
+    ✅ Soft grey background for elegant PDF visuals
     """
     try:
         img_path = os.path.join(TMP_DIR, f"{sanitize_anchor(title)}.png")
 
         # ⚡ Force soft grey background for boardroom readability
-fig.update_layout(paper_bgcolor="#F4F4F4", plot_bgcolor="#F4F4F4")
+        fig.update_layout(paper_bgcolor="#F4F4F4", plot_bgcolor="#F4F4F4")
 
         fig.write_image(img_path, width=1200, height=700, scale=2)
         return img_path
+
     except Exception as e:
         st.warning(f"⚠️ Could not save image for {title}: {e}")
         return None
