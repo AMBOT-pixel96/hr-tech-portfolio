@@ -284,9 +284,11 @@ def quartile_distribution(df, ctc_col="CTC", job_col="JobLevel"):
     quartile_counts = quartile_counts.fillna(0)
     quartile_counts = quartile_counts.astype({c: int for c in ["Q1", "Q2", "Q3", "Q4", "Total Employees"] if c in quartile_counts.columns})
     return quartile_counts, fig
+
 #===========
 # Metric 4
 #===========
+
 def company_vs_market(df_company,df_market,job_col="JobLevel",
                       company_col="CompanyMedian",market_col="MarketMedian"):
     left=_ensure_joblevel_order(df_company,job_col)
@@ -304,9 +306,11 @@ def company_vs_market(df_company,df_market,job_col="JobLevel",
     fig=apply_chart_style(fig,title=" ", showlegend=True)
     fig.update_layout(legend=dict(font=dict(size=10)))
     return table,fig
+
 #===========
 # Metric 5
 #===========
+
 def bonus_pct_by_joblevel(df,job_col="JobLevel",bonus_col="Bonus",ctc_col="CTC"):
     df=_safe_numeric(df,ctc_col); df=_safe_numeric(df,bonus_col); df=_ensure_joblevel_order(df,job_col)
     df["Bonus %"]=np.where(df[ctc_col]>0,(df[bonus_col]/df[ctc_col])*100,np.nan)
@@ -314,9 +318,11 @@ def bonus_pct_by_joblevel(df,job_col="JobLevel",bonus_col="Bonus",ctc_col="CTC")
     fig=px.bar(agg,x=job_col,y="Bonus %",color=job_col,text="Bonus %",color_discrete_sequence=PALETTE)
     fig=apply_chart_style(fig,title=" ", showlegend=False)
     return agg,fig
+
 #===========
 # Metric 6
 #===========
+
 def average_ctc_by_gender_joblevel(df,job_col="JobLevel",gender_col="Gender",ctc_col="CTC"):
     df=_safe_numeric(df,ctc_col); df=df.dropna(subset=[ctc_col]); df=_ensure_joblevel_order(df,job_col)
     agg=df.groupby([job_col,gender_col],observed=True)[ctc_col].mean().reset_index()
@@ -328,18 +334,32 @@ def average_ctc_by_gender_joblevel(df,job_col="JobLevel",gender_col="Gender",ctc
     fig=px.bar(agg,x=job_col,y="CTC_L",color=gender_col,barmode="group",color_discrete_sequence=PALETTE)
     fig=apply_chart_style(fig,title=" ", showlegend=True)
     return pivot,fig
-#===========
-# Metric 7
-#===========
-def average_ctc_by_rating_joblevel(df,job_col="JobLevel",rating_col="Rating",ctc_col="CTC"):
-    df=_safe_numeric(df,ctc_col); df=_ensure_joblevel_order(df,job_col)
-    agg=df.groupby([job_col,rating_col],observed=True)[ctc_col].mean().reset_index()
-    agg["CTC_L"]=(agg[ctc_col]/1e5).round(2)
-    pivot=agg.pivot(index=job_col,columns=rating_col,values="CTC_L").round(2).reset_index()
-    fig=px.bar(agg,x=job_col,y="CTC_L",color=rating_col,barmode="stack",
-               color_discrete_sequence=px.colors.sequential.Blues)
-    fig=apply_chart_style(fig,title=" ", showlegend=False)
-    return pivot,fig
+
+# ===========
+# Metric 7 (v4.7.3 Final Polish)
+# ===========
+def average_ctc_by_rating_joblevel(df, job_col="JobLevel", rating_col="Rating", ctc_col="CTC"):
+    df = _safe_numeric(df, ctc_col)
+    df = _ensure_joblevel_order(df, job_col)
+    agg = df.groupby([job_col, rating_col], observed=True)[ctc_col].mean().reset_index()
+    agg["CTC_L"] = (agg[ctc_col] / 1e5).round(2)
+    pivot = agg.pivot(index=job_col, columns=rating_col, values="CTC_L").round(2).reset_index()
+
+    # ✅ Use a bright-friendly palette (replaces dark Blues)
+    light_blues = ["#A7C7E7", "#7FB3E4", "#5397D3", "#3C77B9", "#1E5AA8"]
+
+    fig = px.bar(
+        agg,
+        x=job_col,
+        y="CTC_L",
+        color=rating_col,
+        barmode="stack",
+        color_discrete_sequence=light_blues
+    )
+
+    # ✅ Proper styling — keep titles invisible in app
+    fig = apply_chart_style(fig, title=" ", showlegend=True)
+    return pivot, fig
 # ============================================================
 # Render Metrics + Tables (v4.7 Final Stable Polish)
 # ============================================================
@@ -359,8 +379,8 @@ def save_chart_image(title, fig):
     try:
         img_path = os.path.join(TMP_DIR, f"{sanitize_anchor(title)}.png")
 
-        # ⚡ Force white/light background for PDF readability
-        fig.update_layout(paper_bgcolor="white", plot_bgcolor="white")
+        # ⚡ Force soft grey background for boardroom readability
+fig.update_layout(paper_bgcolor="#F4F4F4", plot_bgcolor="#F4F4F4")
 
         fig.write_image(img_path, width=1200, height=700, scale=2)
         return img_path
