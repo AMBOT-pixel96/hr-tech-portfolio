@@ -325,13 +325,28 @@ def average_ctc_by_rating_joblevel(df,job_col="JobLevel",rating_col="Rating",ctc
                color_discrete_sequence=px.colors.sequential.Blues)
     fig=apply_chart_style(fig, showlegend=False)
     return pivot,fig
-#=======================================
-# Render Metrics + Tables (v4.6 QF-8 Stable Polished Layout)
-# =====================================
+# ============================================================
+# Render Metrics + Tables (v4.7 Final Stable Polish)
+# ============================================================
 
 sections = []
 images_for_download = []
-
+# ============================================================
+# Helper: Chart Image Saver (v4.7 Stable)
+# ============================================================
+def save_chart_image(title, fig):
+    """
+    Saves Plotly chart as high-quality PNG inside temp_charts_cb/
+    ✅ Handles errors silently
+    ✅ Ensures consistent naming & scaling
+    """
+    try:
+        img_path = os.path.join(TMP_DIR, f"{sanitize_anchor(title)}.png")
+        fig.write_image(img_path, width=1200, height=700, scale=2)
+        return img_path
+    except Exception as e:
+        st.warning(f"⚠️ Could not save image for {title}: {e}")
+        return None
 # --- Main Metric Group (A → D) ---
 metrics = [
     ("🏷️ Average CTC by Job Level", average_ctc_by_joblevel,
@@ -350,19 +365,11 @@ for title, func, desc in metrics:
     st.dataframe(table, use_container_width=True)
     st.plotly_chart(fig, use_container_width=True)
 
-    # Save chart as PNG for quick downloads
-    img_path = None
-    try:
-        img_path = os.path.join(TMP_DIR, f"{sanitize_anchor(title)}.png")
-        fig.write_image(img_path, width=1200, height=700, scale=2)
-        images_for_download.append({"title": title, "asset": {"png": img_path}})
-    except Exception as e:
-        st.warning(f"⚠️ Could not save {title} image: {e}")
-
-    # Append section with PNG path reference
+    # Save chart image (A–D)
+    img_path = save_chart_image(title, fig)
     sections.append((title, desc, table, {"png": {"path": img_path}}))
 
-# --- Company vs Market Median ---
+# --- Company vs Market Median (E) ---
 if bench_df is not None:
     st.subheader("📉 Company vs Market Median")
     df_company = (
@@ -374,13 +381,26 @@ if bench_df is not None:
         .median().reset_index().rename(columns={"MarketMedianCTC": "MarketMedian"})
     )
     tableE, figE = company_vs_market(df_company, df_market)
+    figE = apply_chart_style(figE, title=" ", showlegend=True)
+    figE.update_layout(
+        legend=dict(
+            orientation="v",
+            xanchor="right",
+            x=1,
+            yanchor="top",
+            y=1,
+            font=dict(size=9)
+        )
+    )
     st.dataframe(tableE, use_container_width=True)
     st.plotly_chart(figE, use_container_width=True)
-    sections.append(("Company vs Market Median", "Internal vs market comparison.", tableE, {"png": None}))
+    img_path = save_chart_image("Company vs Market Median", figE)
+    sections.append(("Company vs Market Median", "Internal vs market comparison.", tableE, {"png": {"path": img_path}}))
 else:
     st.info("ℹ️ Upload benchmark data to view market comparison.")
+
 # ------------------------------------------------------------
-# Gender & Rating Differentiation
+# Gender & Rating Differentiation (F & G)
 # ------------------------------------------------------------
 emp_df = emp_df.rename(columns={"PerformanceRating": "Rating"})
 
@@ -394,10 +414,13 @@ last_metrics = [
 for title, func, desc in last_metrics:
     st.subheader(title)
     table, fig = func(emp_df)
+    fig = apply_chart_style(fig, title=" ", showlegend=True)
     st.dataframe(table, use_container_width=True)
     st.plotly_chart(fig, use_container_width=True)
-    sections.append((title, desc, table, {"png": None}))
 
+    # Save chart image (F–G)
+    img_path = save_chart_image(title, fig)
+    sections.append((title, desc, table, {"png": {"path": img_path}}))
 #----------------------
 # PDF Bookmark Helper
 # -----------------------
