@@ -339,17 +339,16 @@ def save_chart_image(title, fig):
     Saves Plotly chart as high-quality PNG inside temp_charts_cb/
     ✅ Handles errors silently
     ✅ Ensures consistent naming & scaling
-    ✅ Auto-recreates temp folder if Streamlit session resets
+    ✅ Forces light background for PDFs
     """
     try:
-        # Safety net: recreate TMP_DIR if Streamlit clears session
-        if not os.path.exists(TMP_DIR):
-            os.makedirs(TMP_DIR, exist_ok=True)
-
         img_path = os.path.join(TMP_DIR, f"{sanitize_anchor(title)}.png")
+
+        # ⚡ Force white/light background for PDF readability
+        fig.update_layout(paper_bgcolor="white", plot_bgcolor="white")
+
         fig.write_image(img_path, width=1200, height=700, scale=2)
         return img_path
-
     except Exception as e:
         st.warning(f"⚠️ Could not save image for {title}: {e}")
         return None
