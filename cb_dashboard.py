@@ -334,20 +334,22 @@ def average_ctc_by_gender_joblevel(df,job_col="JobLevel",gender_col="Gender",ctc
     fig=px.bar(agg,x=job_col,y="CTC_L",color=gender_col,barmode="group",color_discrete_sequence=PALETTE)
     fig=apply_chart_style(fig,title=" ", showlegend=True)
     return pivot,fig
-
 # ===========
-# Metric 7 (v4.7.5 – Bright Stacked Bars Fix)
+# Metric 7 (v4.7.6 – Black Coffin Purge)
 # ===========
-
 def average_ctc_by_rating_joblevel(df, job_col="JobLevel", rating_col="Rating", ctc_col="CTC"):
     df = _safe_numeric(df, ctc_col)
     df = _ensure_joblevel_order(df, job_col)
+
+    # 🧠 Force rating to categorical to stop Plotly's dark sequential override
+    df[rating_col] = df[rating_col].astype(str)
+
     agg = df.groupby([job_col, rating_col], observed=True)[ctc_col].mean().reset_index()
     agg["CTC_L"] = (agg[ctc_col] / 1e5).round(2)
     pivot = agg.pivot(index=job_col, columns=rating_col, values="CTC_L").round(2).reset_index()
 
-    # 🌈 Replace dark blues with bright pastel shades for perfect contrast
-    bright_palette = ["#89CFF0", "#6FA8DC", "#9AD0EC", "#AEDFF7", "#D4E9FF"]
+    # 🌈 Final bright pastel palette (5 shades – perfect for categorical)
+    bright_palette = ["#90CAF9", "#64B5F6", "#42A5F5", "#2196F3", "#1976D2"]
 
     fig = px.bar(
         agg,
@@ -358,13 +360,15 @@ def average_ctc_by_rating_joblevel(df, job_col="JobLevel", rating_col="Rating", 
         color_discrete_sequence=bright_palette
     )
 
-    # ✅ Keep titles invisible but show clean legends
+    # ✅ Chart style + legend cleanup
     fig = apply_chart_style(fig, title=" ", showlegend=True)
 
-    # ✅ Ensure visible bar outlines (light grey edges)
+    # ✅ Add light grey gridlines & clear outlines for readability
+    fig.update_xaxes(showgrid=False)
+    fig.update_yaxes(showgrid=True, gridcolor="#E0E0E0")
     for trace in fig.data:
         if hasattr(trace, "marker"):
-            trace.marker.line = dict(width=0.5, color="#DDD")
+            trace.marker.line = dict(width=0.8, color="#DDD")
 
     return pivot, fig
 # ===========================
