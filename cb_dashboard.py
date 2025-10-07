@@ -809,16 +809,7 @@ if st.button("🧾 Compile Selected Report"):
         ]))
         story.append(summary_table)
         story.append(PageBreak())
-        summary_table.setStyle(TableStyle([
-            ("GRID", (0, 0), (-1, -1), 0.25, colors.black),
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E5E7EB")),
-            ("FONTNAME", (0, 0), (-1, -1), BODY_FONT),
-            ("FONTSIZE", (0, 0), (-1, -1), 9),
-            ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ]))
-        story.append(summary_table)
-        story.append(PageBreak())
-
+        
         # === Build PDF ===
         doc.build(story)
 
