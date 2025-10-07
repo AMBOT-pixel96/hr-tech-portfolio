@@ -838,17 +838,17 @@ summary_table.setStyle(TableStyle([
 ]))
 story.append(summary_table)
 story.append(PageBreak())
-        
-        # === Build PDF ===
-        doc.build(story)
 
-        # === Download ===
-        st.download_button(
-            "⬇️ Download Compiled PDF (With Insights Summary)",
-            buf.getvalue(),
-            file_name="cb_dashboard_compiled.pdf",
-            mime="application/pdf",
-        )
+# === Build PDF ===
+doc.build(story)
+
+# === Download ===
+st.download_button(
+    "⬇️ Download Compiled PDF (With Insights Summary)",
+    buf.getvalue(),
+    file_name="cb_dashboard_compiled.pdf",
+    mime="application/pdf",
+)
 # -----------------------
 # Quick Chart Downloads (Stable v4.7)
 # -----------------------
