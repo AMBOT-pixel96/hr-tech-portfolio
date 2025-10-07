@@ -996,15 +996,18 @@ def generate_insight(title, df, metric_type):
             return "Market comparison data unavailable."
 
         # --- 5️⃣ Quartile Distribution ---
-elif "quartile" in metric_type or all(q in df.columns for q in ["Q1","Q2","Q3","Q4"]):
-    # 🧹 Exclude Grand Total row from insight analysis
-    filtered = df[~df["JobLevel"].astype(str).str.lower().eq("grand total")].copy()
-    if not filtered.empty:
-        high_q4 = filtered.loc[filtered["Q4"].idxmax(), "JobLevel"]
-        insight = f"Highest concentration of top earners (Q4) seen at {high_q4} level."
-    else:
-        insight = "Quartile distribution data insufficient for meaningful insight."
+        elif "quartile" in metric_type or all(q in df.columns for q in ["Q1","Q2","Q3","Q4"]):
+            # 🧹 Exclude Grand Total row from insight analysis
+            filtered = df[~df["JobLevel"].astype(str).str.lower().eq("grand total")].copy()
+            if not filtered.empty:
+                high_q4 = filtered.loc[filtered["Q4"].idxmax(), "JobLevel"]
+                insight = f"Highest concentration of top earners (Q4) seen at {high_q4} level."
+            else:
+                insight = "Quartile distribution data insufficient for meaningful insight."
 
+        # --- 6️⃣ Rating ---
+        elif "rating" in metric_type or "rating" in df.columns:
+            insight = "Higher performance ratings correspond to significantly higher CTC levels."
         # --- Rating ---
         if "rating" in metric_type or "rating" in (c.lower() for c in df_orig.columns):
             return "Higher performance ratings correspond to higher average CTC."
