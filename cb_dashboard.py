@@ -817,10 +817,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================
-# DF2 — Chatbot Expansion (v4.9.4 Stable Final)
+# DF2 — Chatbot Expansion (v4.9.6 Final Stable Release)
 # ==========================
 def run_chatbot_ui():
-    st.subheader("💬 C&B Data Chatbot — Smart HR Assistant (v4.9.4)")
+    st.subheader("💬 C&B Data Chatbot — Smart HR Assistant (v4.9.6)")
     if "messages" not in st.session_state:
         st.session_state["messages"] = []
 
@@ -844,7 +844,7 @@ def run_chatbot_ui():
             df = df.rename(columns={"PerformanceRating": "Rating"})
 
         # ----------------------------------------------------
-        # Metric intent detection (supports multi-intent)
+        # Metric intent detection (multi-intent)
         # ----------------------------------------------------
         metrics = []
         if "gender" in q and ("rating" in q or "rater" in q or "performance" in q):
@@ -867,65 +867,75 @@ def run_chatbot_ui():
             metrics = ["Average CTC"]
 
         # ----------------------------------------------------
-# Dynamic filter extraction (v4.9.5 — multi-value support)
-# ----------------------------------------------------
-filters = {}
-rating_col = "Rating"
+        # Dynamic filter extraction (multi-value support)
+        # ----------------------------------------------------
+        filters = {}
+        rating_col = "Rating"
 
-# 🔍 Build multi-value dictionary for filters
-for col_name, col_values in {
-    "JobLevel": df["JobLevel"].unique(),
-    "Department": df["Department"].unique(),
-    "Gender": df["Gender"].unique(),
-    rating_col: df[rating_col].unique(),
-}.items():
-    matches = [val for val in col_values if str(val).lower() in q]
-    if matches:
-        filters[col_name] = matches  # store list instead of single value
+        for col_name, col_values in {
+            "JobLevel": df["JobLevel"].unique(),
+            "Department": df["Department"].unique(),
+            "Gender": df["Gender"].unique(),
+            rating_col: df[rating_col].unique(),
+        }.items():
+            matches = [val for val in col_values if str(val).lower() in q]
+            if matches:
+                filters[col_name] = matches
 
-# 🧠 Apply filters with multi-value OR logic
-if filters:
-    for k, vals in filters.items():
-        df = df[df[k].isin(vals)]
+        # 🧠 Apply filters with multi-value OR logic
+        if filters:
+            for k, vals in filters.items():
+                df = df[df[k].isin(vals)]
 
-        # -----------------------
+        # ----------------------------------------------------
         # Metric logic blocks
-        # -----------------------
+        # ----------------------------------------------------
+        metric_icons = {
+            "Average CTC": "📊",
+            "Median CTC": "📏",
+            "Bonus %": "🎁",
+            "Gender Gap": "👫",
+            "Gender Gap by Rating": "👫⭐",
+            "Market": "📉",
+            "Rating": "⭐"
+        }
+
         for metric in metrics:
             chart = None
+            icon = metric_icons.get(metric, "🤖")
 
             # === AVERAGE CTC ===
             if metric == "Average CTC":
                 avg = df.groupby("JobLevel")["CTC"].mean().reset_index()
                 avg["CTC (₹ Lakhs)"] = (avg["CTC"] / 1e5).round(2)
-                res = f"📊 **Average CTC by Job Level:**\n\n{avg[['JobLevel','CTC (₹ Lakhs)']].to_markdown(index=False)}"
+                res = f"{icon} **Average CTC by Job Level:**\n\n{avg[['JobLevel','CTC (₹ Lakhs)']].to_markdown(index=False)}"
                 chart = px.bar(avg, x="JobLevel", y="CTC (₹ Lakhs)", color="JobLevel", text="CTC (₹ Lakhs)")
 
             # === MEDIAN CTC ===
             elif metric == "Median CTC":
                 med = df.groupby("JobLevel")["CTC"].median().reset_index()
                 med["CTC (₹ Lakhs)"] = (med["CTC"] / 1e5).round(2)
-                res = f"📏 **Median CTC by Job Level:**\n\n{med[['JobLevel','CTC (₹ Lakhs)']].to_markdown(index=False)}"
+                res = f"{icon} **Median CTC by Job Level:**\n\n{med[['JobLevel','CTC (₹ Lakhs)']].to_markdown(index=False)}"
                 chart = px.bar(med, x="JobLevel", y="CTC (₹ Lakhs)", color="JobLevel", text="CTC (₹ Lakhs)")
 
             # === BONUS % ===
             elif metric == "Bonus %":
                 bonus = df.groupby("JobLevel")["Bonus %"].mean().reset_index().round(2)
-                res = f"🎁 **Bonus % by Level:**\n\n{bonus.to_markdown(index=False)}"
+                res = f"{icon} **Bonus % by Level:**\n\n{bonus.to_markdown(index=False)}"
                 chart = px.bar(bonus, x="JobLevel", y="Bonus %", color="JobLevel", text="Bonus %")
 
             # === GENDER GAP ===
             elif metric == "Gender Gap":
                 g = df.groupby(["JobLevel", "Gender"])["CTC"].mean().reset_index()
                 g["CTC (₹ Lakhs)"] = (g["CTC"] / 1e5).round(2)
-                res = f"👫 **Gender Pay Gap:**\n\n{g.pivot(index='JobLevel', columns='Gender', values='CTC (₹ Lakhs)').to_markdown()}"
+                res = f"{icon} **Gender Pay Gap:**\n\n{g.pivot(index='JobLevel', columns='Gender', values='CTC (₹ Lakhs)').to_markdown()}"
                 chart = px.bar(g, x="JobLevel", y="CTC (₹ Lakhs)", color="Gender", barmode="group")
 
-            # === GENDER × RATING GAP (NEW!) ===
+            # === GENDER × RATING GAP ===
             elif metric == "Gender Gap by Rating":
                 g = df.groupby(["JobLevel", "Gender", "Rating"])["CTC"].mean().reset_index()
                 g["CTC (₹ Lakhs)"] = (g["CTC"] / 1e5).round(2)
-                res = f"👫⭐ **Gender Pay Gap by Rating:**\n\n{g.pivot_table(index=['JobLevel','Rating'], columns='Gender', values='CTC (₹ Lakhs)').to_markdown()}"
+                res = f"{icon} **Gender Pay Gap by Rating:**\n\n{g.pivot_table(index=['JobLevel','Rating'], columns='Gender', values='CTC (₹ Lakhs)').to_markdown()}"
                 chart = px.bar(
                     g, x="JobLevel", y="CTC (₹ Lakhs)",
                     color="Gender", barmode="group", facet_col="Rating"
@@ -936,10 +946,9 @@ if filters:
                 comp = emp_df.copy()
                 bench = bench_df.copy()
 
-                # Apply level filters before merge
                 if "JobLevel" in filters:
-                    comp = comp[comp["JobLevel"] == filters["JobLevel"]]
-                    bench = bench[bench["JobLevel"] == filters["JobLevel"]]
+                    comp = comp[comp["JobLevel"].isin(filters["JobLevel"])]
+                    bench = bench[bench["JobLevel"].isin(filters["JobLevel"])]
 
                 comp = comp.groupby("JobLevel")["CTC"].median().reset_index()
                 bench = bench.groupby("JobLevel")["MarketMedianCTC"].median().reset_index()
@@ -948,14 +957,14 @@ if filters:
                 cmp["Company (₹ L)"] = (cmp["CTC"] / 1e5).round(2)
                 cmp["Market (₹ L)"] = (cmp["MarketMedianCTC"] / 1e5).round(2)
 
-                res = f"📉 **Company vs Market Median:**\n\n{cmp[['JobLevel','Company (₹ L)','Market (₹ L)']].to_markdown(index=False)}"
+                res = f"{icon} **Company vs Market Median:**\n\n{cmp[['JobLevel','Company (₹ L)','Market (₹ L)']].to_markdown(index=False)}"
                 chart = px.line(cmp, x="JobLevel", y=["Company (₹ L)", "Market (₹ L)"], markers=True)
 
             # === RATING-WISE CTC ===
             elif metric == "Rating":
                 r = df.groupby(["JobLevel", "Rating"])["CTC"].mean().reset_index()
                 r["CTC (₹ Lakhs)"] = (r["CTC"] / 1e5).round(2)
-                res = f"⭐ **Average CTC by Rating:**\n\n{r.pivot(index='JobLevel', columns='Rating', values='CTC (₹ Lakhs)').to_markdown()}"
+                res = f"{icon} **Average CTC by Rating:**\n\n{r.pivot(index='JobLevel', columns='Rating', values='CTC (₹ Lakhs)').to_markdown()}"
                 chart = px.bar(r, x="JobLevel", y="CTC (₹ Lakhs)", color="Rating", barmode="group")
 
             # --- Render results ---
