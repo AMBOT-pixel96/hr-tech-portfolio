@@ -817,10 +817,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================
-# DF2 — Chatbot Expansion (v4.9)
+# Chatbot Expansion (v4.9.1 Stable)
 # ==========================
 def run_chatbot_ui():
-    st.subheader("💬 C&B Data Chatbot — Smart HR Assistant (v4.9)")
+    st.subheader("💬 C&B Data Chatbot — Smart HR Assistant (v4.9.1)")
     if "messages" not in st.session_state:
         st.session_state["messages"] = []
 
@@ -838,8 +838,11 @@ def run_chatbot_ui():
         res = "🤔 I'm not sure I understood that. Try asking about **CTC**, **Bonus %**, **Gender Gap**, **Market**, or **Rating**."
 
         df = emp_df.copy()
-if "PerformanceRating" in df.columns:
-    df = df.rename(columns={"PerformanceRating": "Rating"})
+
+        # 🩹 Ensure consistent column naming
+        if "PerformanceRating" in df.columns:
+            df = df.rename(columns={"PerformanceRating": "Rating"})
+
         metric, chart = None, None
 
         # --- Metric intent detection ---
@@ -866,11 +869,12 @@ if "PerformanceRating" in df.columns:
         for gender in df["Gender"].unique():
             if str(gender).lower() in q:
                 filters["Gender"] = gender
+
         # --- Handle rating column safely (PerformanceRating / Rating) ---
-rating_col = "PerformanceRating" if "PerformanceRating" in df.columns else "Rating"
-for rating in df[rating_col].unique():
-    if str(rating).lower() in q:
-        filters[rating_col] = rating
+        rating_col = "PerformanceRating" if "PerformanceRating" in df.columns else "Rating"
+        for rating in df[rating_col].unique():
+            if str(rating).lower() in q:
+                filters[rating_col] = rating
 
         # --- Apply filters if found ---
         if filters:
@@ -883,15 +887,18 @@ for rating in df[rating_col].unique():
             avg["CTC (₹ Lakhs)"] = (avg["CTC"] / 1e5).round(2)
             res = f"📊 **Average CTC** by Job Level:\n\n{avg[['JobLevel', 'CTC (₹ Lakhs)']].to_markdown(index=False)}"
             chart = px.bar(avg, x="JobLevel", y="CTC (₹ Lakhs)", color="JobLevel", text="CTC (₹ Lakhs)")
+
         elif metric == "Bonus %":
             bonus = df.groupby("JobLevel")["Bonus %"].mean().reset_index().round(2)
             res = f"🎁 **Bonus % by Level:**\n\n{bonus.to_markdown(index=False)}"
             chart = px.bar(bonus, x="JobLevel", y="Bonus %", color="JobLevel", text="Bonus %")
+
         elif metric == "Gender Gap":
             g = df.groupby(["JobLevel", "Gender"])["CTC"].mean().reset_index()
             g["CTC (₹ Lakhs)"] = (g["CTC"] / 1e5).round(2)
             res = f"👫 **Gender Pay Gap:**\n\n{g.pivot(index='JobLevel', columns='Gender', values='CTC (₹ Lakhs)').to_markdown()}"
             chart = px.bar(g, x="JobLevel", y="CTC (₹ Lakhs)", color="Gender", barmode="group")
+
         elif metric == "Market" and bench_df is not None:
             comp = emp_df.groupby("JobLevel")["CTC"].median().reset_index()
             bench = bench_df.groupby("JobLevel")["MarketMedianCTC"].median().reset_index()
@@ -900,11 +907,12 @@ for rating in df[rating_col].unique():
             cmp["Market (₹ L)"] = (cmp["MarketMedianCTC"] / 1e5).round(2)
             res = f"📉 **Company vs Market Median:**\n\n{cmp[['JobLevel','Company (₹ L)','Market (₹ L)']].to_markdown(index=False)}"
             chart = px.line(cmp, x="JobLevel", y=["Company (₹ L)", "Market (₹ L)"], markers=True)
+
         elif metric == "Rating":
-            r = df.groupby(["JobLevel", "PerformanceRating"])["CTC"].mean().reset_index()
+            r = df.groupby(["JobLevel", "Rating"])["CTC"].mean().reset_index()
             r["CTC (₹ Lakhs)"] = (r["CTC"] / 1e5).round(2)
-            res = f"⭐ **Average CTC by Rating:**\n\n{r.pivot(index='JobLevel', columns='PerformanceRating', values='CTC (₹ Lakhs)').to_markdown()}"
-            chart = px.bar(r, x="JobLevel", y="CTC (₹ Lakhs)", color="PerformanceRating", barmode="group")
+            res = f"⭐ **Average CTC by Rating:**\n\n{r.pivot(index='JobLevel', columns='Rating', values='CTC (₹ Lakhs)').to_markdown()}"
+            chart = px.bar(r, x="JobLevel", y="CTC (₹ Lakhs)", color="Rating", barmode="group")
 
         # --- Return results ---
         st.session_state["messages"].append({"role": "assistant", "content": res})
