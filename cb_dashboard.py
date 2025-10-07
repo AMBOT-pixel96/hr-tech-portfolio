@@ -611,71 +611,101 @@ class PDFBookmark(Flowable):
         except Exception:
             pass
 # ==========================
-# DF3.7 — Adaptive Insight Engine (Context + Keywords)
+# DF3.7 — Adaptive Insight Engine (Context + Keywords) (robust)
 # ==========================
 def generate_insight(title, df, metric_type):
-    """Adaptive Insight Engine — auto-detects metric type by keywords and column patterns."""
+    """Adaptive Insight Engine — auto-detects metric type by keywords and column patterns.
+    This version coerces numeric columns safely and uses them for computations while preserving
+    original labels (so stringified tables won't break numeric logic).
+    """
     try:
-        # Normalize title and metric_type
-        metric_type = str(metric_type).lower().replace("🏷️","").replace("📏","") \
-            .replace("📊","").replace("🎁","").replace("👫","").replace("⭐","").strip()
-        title_lower = title.lower()
+        metric_type = str(metric_type).lower()
+        title_lower = str(title).lower()
 
-        insight = ""
+        # Defensive: if df is None or empty -> quick fallback
+        if df is None or (hasattr(df, "empty") and df.empty):
+            return "Review level-wise variations for actionable pay trends."
 
-        # --- 1️⃣ Average / Median CTC ---
-        if "ctc" in metric_type or any("ctc" in c.lower() for c in df.columns):
-            avg_val = df.select_dtypes(include=[np.number]).iloc[:, -1].mean()
-            top_row = df.iloc[df.iloc[:, -1].idxmax()]
-            insight = (
-                f"{top_row[0]} leads with ₹{top_row[-1]:,.2f}L — "
-                f"~{(top_row[-1]/avg_val - 1)*100:.1f}% above overall mean."
-            )
+        # Preserve original (labels) and create numeric coercion copy for calculations
+        df_orig = df.copy()
+        num_df = df_orig.copy()
+        for c in num_df.columns:
+            # coerce each column to numeric where possible
+            num_df[c] = pd.to_numeric(num_df[c], errors="coerce")
 
-        # --- 2️⃣ Bonus % ---
-        elif "bonus" in metric_type or "bonus %" in df.columns:
-            top = df.iloc[df["Bonus %"].idxmax()]
-            low = df.iloc[df["Bonus %"].idxmin()]
-            insight = (
-                f"Bonus % peaks at {top[0]} ({top['Bonus %']}%) "
-                f"and is lowest at {low[0]} ({low['Bonus %']}%)."
-            )
+        numeric_cols = num_df.select_dtypes(include=[np.number]).columns.tolist()
 
-        # --- 3️⃣ Gender Pay Gap ---
-        elif "gender" in metric_type or "gender" in df.columns:
-            if "Gap %" in df.columns:
-                lvl = df.loc[df["Gap %"].idxmax(), "JobLevel"]
-                val = df["Gap %"].max()
-                insight = f"Gender gap widest at {lvl} — {val:.1f}%."
-            else:
-                insight = "Minor gender pay differences observed across levels."
+        # --- Average / Median CTC (heuristic based on 'ctc' presence or numeric col names) ---
+        if "ctc" in metric_type or any("ctc" in c.lower() for c in df_orig.columns):
+            if not numeric_cols:
+                return "Review level-wise variations for actionable pay trends."
+            last = numeric_cols[-1]
+            avg_val = num_df[last].mean()
+            if pd.isna(avg_val) or avg_val == 0:
+                return "Review level-wise variations for actionable pay trends."
+            idx = num_df[last].idxmax()
+            top_label = df_orig.loc[idx, df_orig.columns[0]] if df_orig.shape[1] else str(idx)
+            top_val = num_df.loc[idx, last]
+            return f"{top_label} leads with ₹{top_val:,.2f}L — ~{(top_val / avg_val - 1) * 100:.1f}% above overall mean."
 
-        # --- 4️⃣ Market vs Company ---
-        elif "market" in metric_type or "Gap %" in df.columns:
-            below = df.loc[df["Gap %"] < 0, "JobLevel"].tolist() if "Gap %" in df.columns else []
-            avg_gap = abs(df["Gap %"].mean()) if "Gap %" in df.columns else 0
-            if below:
-                insight = f"Company pay lags market for {', '.join(below)} (~{avg_gap:.1f}% gap)."
-            else:
-                insight = f"Company pay exceeds market by ~{avg_gap:.1f}% overall."
+        # --- Bonus % ---
+        if "bonus" in metric_type or "bonus %" in (c.lower() for c in df_orig.columns):
+            if "Bonus %" in df_orig.columns:
+                s = pd.to_numeric(df_orig["Bonus %"], errors="coerce")
+                if s.dropna().empty:
+                    return "Bonus % data present but non-numeric."
+                top_idx = s.idxmax(); low_idx = s.idxmin()
+                top_label = df_orig.loc[top_idx, df_orig.columns[0]] if df_orig.shape[1] else str(top_idx)
+                low_label = df_orig.loc[low_idx, df_orig.columns[0]] if df_orig.shape[1] else str(low_idx)
+                return f"Bonus % peaks at {top_label} ({s.loc[top_idx]:.1f}%) and is lowest at {low_label} ({s.loc[low_idx]:.1f}%)."
+            return "Bonus % distribution available; review level-wise variance."
 
-        # --- 5️⃣ Quartile Distribution ---
-        elif "quartile" in metric_type or all(q in df.columns for q in ["Q1","Q2","Q3","Q4"]):
-            high_q4 = df.loc[df["Q4"].idxmax(), "JobLevel"]
-            insight = f"Highest concentration of top earners (Q4) seen at {high_q4} level."
+        # --- Gender gap ---
+        if "gender" in metric_type or "gender" in (c.lower() for c in df_orig.columns):
+            if "Gap %" in df_orig.columns:
+                gap = pd.to_numeric(df_orig["Gap %"], errors="coerce")
+                if gap.dropna().empty:
+                    return "Gender gap data present but non-numeric."
+                idx = gap.idxmax()
+                lvl = df_orig.loc[idx, "JobLevel"] if "JobLevel" in df_orig.columns else str(idx)
+                return f"Gender gap widest at {lvl} — {gap.loc[idx]:.1f}%."
+            return "Minor gender pay differences observed across levels."
 
-        # --- 6️⃣ Rating ---
-        elif "rating" in metric_type or "rating" in df.columns:
-            insight = "Higher performance ratings correspond to significantly higher CTC levels."
+        # --- Market vs Company ---
+        if "market" in metric_type or "gap %" in (c.lower() for c in df_orig.columns):
+            if "Gap %" in df_orig.columns:
+                gap = pd.to_numeric(df_orig["Gap %"], errors="coerce")
+                if gap.dropna().empty:
+                    return "Market comparison exists but insufficient numeric data."
+                below = df_orig.loc[gap < 0, "JobLevel"].tolist() if "JobLevel" in df_orig.columns else []
+                avg_gap = abs(gap.mean())
+                if below:
+                    return f"Company pay lags market for {', '.join(below)} (~{avg_gap:.1f}% gap)."
+                return f"Company pay exceeds market by ~{avg_gap:.1f}% overall."
+            return "Market comparison data unavailable."
 
-        # --- Default fallback ---
-        else:
-            insight = "Review level-wise variations for actionable pay trends."
+        # --- Quartile distribution ---
+        if "quartile" in metric_type or all(q in df_orig.columns for q in ["Q1", "Q2", "Q3", "Q4"]):
+            # coerce Q4 to numeric safely
+            if "Q4" in df_orig.columns:
+                q4 = pd.to_numeric(df_orig["Q4"], errors="coerce")
+                if q4.dropna().empty:
+                    return "Quartile distribution present but non-numeric."
+                idx = q4.idxmax()
+                lvl = df_orig.loc[idx, "JobLevel"] if "JobLevel" in df_orig.columns else str(idx)
+                return f"Highest concentration of top earners (Q4) seen at {lvl} level."
+            return "Quartile data not structured as expected."
 
-        return insight
+        # --- Rating ---
+        if "rating" in metric_type or "rating" in (c.lower() for c in df_orig.columns):
+            return "Higher performance ratings correspond to higher average CTC."
+
+        # Default
+        return "Review level-wise variations for actionable pay trends."
 
     except Exception as e:
-        return f"Unable to auto-generate insight: {e}"
+        # Return a clear, short fallback message (not a stack trace)
+        return f"Unable to auto-generate insight: {str(e)}"
 # ==========================
 # PDF Export — v5.1 (With Summary Page)
 # ==========================
@@ -730,66 +760,64 @@ if st.button("🧾 Compile Selected Report"):
         story.append(PageBreak())
 
         # === Section Pages ===
-        insight_summary = []  # store insights here
-        for title, desc, tbl, asset in selected:
-            safe_title = "".join(ch for ch in title if ord(ch) < 128)
-            story.append(PDFBookmark(sanitize_anchor(safe_title), safe_title))
-            story.append(Spacer(1, 10))
-            story.append(Paragraph(f"<b>{safe_title}</b>", styles["Heading2"]))
+insight_summary = []  # store insights here
+for title, desc, tbl, asset in selected:
+    safe_title = "".join(ch for ch in title if ord(ch) < 128)
+    story.append(PDFBookmark(sanitize_anchor(safe_title), safe_title))
+    story.append(Spacer(1, 10))
+    story.append(Paragraph(f"<b>{safe_title}</b>", styles["Heading2"]))
+    story.append(Spacer(1, 6))
+    if desc:
+        story.append(Paragraph(desc, body))
+        story.append(Spacer(1, 6))
+
+    # --- Compute insight BEFORE mutating tbl (important) ---
+    try:
+        # pass the original table as-is (not stringified) so generate_insight can coerce numerics
+        insight_text = generate_insight(safe_title, tbl.copy() if tbl is not None else pd.DataFrame(), safe_title.lower())
+        if not insight_text or "Unable" in insight_text:
+            raise ValueError("fallback")
+    except Exception:
+        insight_text = "Review trends across levels."
+
+    # --- Table rendering (stringified for PDF display) ---
+    if tbl is not None and not tbl.empty:
+        tbl_for_pdf = tbl.astype(str).fillna("")
+        data = [list(tbl_for_pdf.columns)] + tbl_for_pdf.values.tolist()
+        col_width = (A4[0] - 40) / len(tbl_for_pdf.columns)
+        t = Table(data, colWidths=[col_width] * len(tbl_for_pdf.columns), repeatRows=1)
+        t_style = TableStyle([
+            ("GRID", (0, 0), (-1, -1), 0.25, colors.black),
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#F3F4F6")),
+            ("FONTNAME", (0, 0), (-1, -1), BODY_FONT),
+            ("FONTSIZE", (0, 0), (-1, -1), 9),
+        ])
+        for r in range(1, len(data)):
+            if r % 2 == 0:
+                t_style.add("BACKGROUND", (0, r), (-1, r), colors.HexColor("#F9FAFB"))
+        t.setStyle(t_style)
+        story.append(t)
+        story.append(Spacer(1, 8))
+
+    # --- Image if available ---
+    try:
+        img_path = None
+        if isinstance(asset, dict):
+            img_path = asset.get("png", {}).get("path") if isinstance(asset.get("png"), dict) else None
+        if img_path and os.path.exists(img_path):
             story.append(Spacer(1, 6))
-            if desc:
-                story.append(Paragraph(desc, body))
-                story.append(Spacer(1, 6))
+            story.append(RLImage(img_path, width=160 * mm, height=90 * mm))
+            story.append(Spacer(1, 10))
+    except Exception as e:
+        st.warning(f"⚠️ Could not embed chart for {title}: {e}")
 
-            # --- Table ---
-            if tbl is not None and not tbl.empty:
-                tbl = tbl.astype(str).fillna("")
-                data = [list(tbl.columns)] + tbl.values.tolist()
-                col_width = (A4[0] - 40) / len(tbl.columns)
-                t = Table(data, colWidths=[col_width] * len(tbl.columns), repeatRows=1)
-                t_style = TableStyle([
-                    ("GRID", (0, 0), (-1, -1), 0.25, colors.black),
-                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#F3F4F6")),
-                    ("FONTNAME", (0, 0), (-1, -1), BODY_FONT),
-                    ("FONTSIZE", (0, 0), (-1, -1), 9),
-                ])
-                for r in range(1, len(data)):
-                    if r % 2 == 0:
-                        t_style.add("BACKGROUND", (0, r), (-1, r), colors.HexColor("#F9FAFB"))
-                t.setStyle(t_style)
-                story.append(t)
-                story.append(Spacer(1, 8))
+    # --- Render Insight (already computed) ---
+    story.append(Paragraph(f"<font color='#2563EB'><i>Insight:</i></font> {insight_text}", body))
 
-            # --- Image ---
-            try:
-                img_path = None
-                if isinstance(asset, dict):
-                    img_path = (
-                        asset.get("png", {}).get("path")
-                        if isinstance(asset.get("png"), dict)
-                        else None
-                    )
-                if img_path and os.path.exists(img_path):
-                    story.append(Spacer(1, 6))
-                    story.append(RLImage(img_path, width=160 * mm, height=90 * mm))
-                    story.append(Spacer(1, 10))
-            except Exception as e:
-                st.warning(f"⚠️ Could not embed chart for {title}: {e}")
+    # store for summary (wrap title & insight later)
+    insight_summary.append((safe_title, insight_text))
 
-            # --- Auto Insight ---
-            clean_title = "".join(ch for ch in title if ord(ch) < 128)
-            try:
-                insight_text = generate_insight(title, tbl, title)
-                if not insight_text or "Unable" in insight_text:
-                    raise ValueError("Fallback")
-                story.append(Paragraph(f"<font color='#2563EB'><i>Insight:</i></font> {insight_text}", body))
-            except Exception:
-                insight_text = "Review trends across levels."
-                story.append(Paragraph(f"<i>Insight:</i> {insight_text}", body))
-
-            # store for summary
-            insight_summary.append((clean_title, insight_text))
-            story.append(PageBreak())
+    story.append(PageBreak())
 # === Summary Page ===
         story.append(Paragraph("<b>📘 Executive Summary</b>", styles["Heading2"]))
         story.append(Spacer(1, 8))
