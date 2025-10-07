@@ -33,6 +33,32 @@ st.set_page_config(page_title="Compensation & Benefits Dashboard", layout="wide"
 TMP_DIR = "temp_charts_cb"
 os.makedirs(TMP_DIR, exist_ok=True)
 
+# Ensure persistent directory exists for session memory
+SESSION_DIR = os.path.join(os.getcwd(), "session_data")
+os.makedirs(SESSION_DIR, exist_ok=True)
+SESSION_FILE = os.path.join(SESSION_DIR, "cb_session_state.json")
+
+# ==========================
+# EN3.3 — Preload Persistence (Streamlit Cloud Compatible)
+# ==========================
+def preload_session_state(filename=SESSION_FILE):
+    """Load session state if saved earlier."""
+    import json
+    try:
+        if os.path.exists(filename):
+            with open(filename, "r") as f:
+                data = json.load(f)
+            for k, v in data.items():
+                if k not in st.session_state:
+                    st.session_state[k] = v
+            st.caption("🧠 Memory restored from previous session.")
+        else:
+            st.caption("🚀 Fresh session started.")
+    except Exception as e:
+        st.warning(f"⚠️ Could not restore session: {e}")
+
+# Run preload early (before Streamlit UI builds)
+preload_session_state()
 # -----------------------
 # Custom CSS & Animation (v4.8 UI Polish)
 # -----------------------
