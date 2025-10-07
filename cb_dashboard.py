@@ -687,7 +687,7 @@ else:
 # EN3.2 — Auto-Load on Startup (Persistent Resume Mode)
 # ==========================
 
-def auto_load_session_state(filename="cb_session_state.json"):
+def auto_load_session_state(filename=SESSION_FILE):
     """Silently restores previous session data if available."""
     try:
         if os.path.exists(filename):
