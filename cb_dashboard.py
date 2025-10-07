@@ -502,20 +502,47 @@ if not up: st.stop()
 read=lambda f: pd.read_csv(f) if f.name.endswith(".csv") else pd.read_excel(f,engine="openpyxl")
 emp_df=read(up); ok,msg=validate_exact_headers(emp_df,EMP_REQUIRED)
 if not ok: st.error(msg); st.stop()
-bench_df=None
-if bm:
-    bench_df=read(bm); ok,msg=validate_exact_headers(bench_df,BENCH_REQUIRED)
-    if not ok: st.error(msg); st.stop()
-def _safe_numeric(df,col,fill_zero=False):
-    df=df.copy(); df[col]=pd.to_numeric(df[col],errors="coerce")
-    if fill_zero: df[col]=df[col].fillna(0)
-    return df
 
-def _ensure_joblevel_order(df,col="JobLevel"):
-    order=["Analyst","Assistant Manager","Manager","Senior Manager",
-           "Associate Partner","Director","Executive","Senior Executive"]
+bench_df = None
+if bm:
+    bench_df = read(bm)
+    ok, msg = validate_exact_headers(bench_df, BENCH_REQUIRED)
+    if not ok:
+        st.error(msg)
+        st.stop()
+
+# ==========================
+# EN2 — Job Level Sequencing Input
+# ==========================
+st.subheader("⚙️ Step 2.5 — Define Job Level Hierarchy")
+
+# Extract unique job levels
+job_levels = sorted(emp_df["JobLevel"].dropna().unique().tolist())
+
+st.write("Reorder or modify the sequence of job levels as they appear in your reports:")
+default_order = job_levels  # fallback
+
+# --- Interactive reorder UI ---
+edited_levels = st.data_editor(
+    pd.DataFrame({"Job Level Order": job_levels}),
+    hide_index=True,
+    num_rows="fixed",
+    use_container_width=True
+)
+
+# --- Extract reordered list ---
+custom_order = edited_levels["Job Level Order"].tolist()
+
+# Confirmation & store
+st.info(f"✅ Custom hierarchy set for all analyses: {', '.join(custom_order)}")
+
+# --- Override _ensure_joblevel_order globally ---
+def _ensure_joblevel_order(df, col="JobLevel"):
+    """Applies custom or default job level order globally."""
+    order = custom_order if custom_order else default_order
     if col in df.columns:
-        df=df.copy(); df[col]=pd.Categorical(df[col],categories=order,ordered=True)
+        df = df.copy()
+        df[col] = pd.Categorical(df[col], categories=order, ordered=True)
     return df
 #===========
 # Metric 1
