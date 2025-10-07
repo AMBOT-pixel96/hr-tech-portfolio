@@ -763,13 +763,14 @@ if st.button("🧾 Compile Selected Report"):
         # === Section Pages ===
         for title, desc, tbl, asset in selected:
             # Section Header
-            story.append(PDFBookmark(sanitize_anchor(title), title))
-            story.append(Spacer(1, 10))
-            story.append(Paragraph(f"<b>{title}</b>", styles["Heading2"]))
-            story.append(Spacer(1, 6))
-            if desc:
-                story.append(Paragraph(desc, body))
-                story.append(Spacer(1, 6))
+            safe_title = "".join(ch for ch in title if ord(ch) < 128)  # remove emojis for PDF titles
+story.append(PDFBookmark(sanitize_anchor(safe_title), safe_title))
+story.append(Spacer(1, 10))
+story.append(Paragraph(f"<b>{safe_title}</b>", styles["Heading2"]))
+story.append(Spacer(1, 6))
+if desc:
+    story.append(Paragraph(desc, body))
+    story.append(Spacer(1, 6))
 
             # --- Table rendering ---
             if tbl is not None and not tbl.empty:
@@ -792,35 +793,31 @@ if st.button("🧾 Compile Selected Report"):
                 t.setStyle(t_style)
                 story.append(t)
                 story.append(Spacer(1, 8))
+# --- Add chart image if available ---
+try:
+    img_path = None
+    if isinstance(asset, dict):
+        img_path = (
+            asset.get("png", {}).get("path")
+            if isinstance(asset.get("png"), dict)
+            else None
+        )
+    if img_path and os.path.exists(img_path):
+        story.append(Spacer(1, 6))
+        story.append(RLImage(img_path, width=160 * mm, height=90 * mm))
+        story.append(Spacer(1, 10))
+except Exception as e:
+    st.warning(f"⚠️ Could not embed chart for {title}: {e}")
 
-            # --- Add chart image if available ---
-            try:
-                img_path = None
-                if isinstance(asset, dict):
-                    img_path = (
-                        asset.get("png", {}).get("path")
-                        if isinstance(asset.get("png"), dict)
-                        else None
-                    )
-
-                if img_path and os.path.exists(img_path):
-                    story.append(Spacer(1, 6))
-                    story.append(RLImage(img_path, width=160 * mm, height=90 * mm))
-                    story.append(Spacer(1, 10))
-            except Exception as e:
-                st.warning(f"⚠️ Could not embed chart for {title}: {e}")
-
-            # --- Auto Insight (DF3 Engine) ---
-            try:
-                insight_text = generate_insight(title, tbl, title)
-                story.append(
-                    Paragraph(f"<font color='#2563EB'><i>Insight:</i></font> {insight_text}", body)
-                )
-            except Exception:
-                story.append(
-                    Paragraph("<i>Insight:</i> Review trends across levels.", body)
-                )
-            story.append(PageBreak())
+# --- Auto Insight (DF3 Engine) ---
+try:
+    insight_text = generate_insight(title, tbl, title)
+    if not insight_text or "Unable" in insight_text:
+        raise ValueError("Fallback")
+    story.append(Paragraph(f"<font color='#2563EB'><i>Insight:</i></font> {insight_text}", body))
+except Exception:
+    story.append(Paragraph("<i>Insight:</i> Review trends across levels.", body))
+story.append(PageBreak())
 
         # === Build PDF ===
         doc.build(story)
