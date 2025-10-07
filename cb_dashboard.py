@@ -100,37 +100,56 @@ background:linear-gradient(180deg,#0E1117 0%,#1E293B 100%);color:white;">
 """, unsafe_allow_html=True)
 
 # -----------------------
-# Tech Stack + Links (v4.8.2 Symmetric Edition)
+# Symmetric Badges (v4.8.3 Grid Perfected)
 # -----------------------
+
 st.markdown("""
-<div class="fade-in" style="text-align:center; margin-top:20px; line-height:1.8;">
+<style>
+.tech-row {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+  animation: fadeIn 1.2s ease-in-out;
+}
+.tech-row img {
+  height: 22px;
+  transition: transform 0.2s ease-in-out;
+}
+.tech-row img:hover {
+  transform: scale(1.05);
+}
+</style>
 
-  <!-- Tech Stack Row -->
-  <div>
-    <img src="https://img.shields.io/badge/Python-3.10-blue?style=for-the-badge&logo=python&logoColor=white" height="22">
-    <img src="https://img.shields.io/badge/Streamlit-App-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white" height="22">
-    <img src="https://img.shields.io/badge/Plotly-Visuals-239120?style=for-the-badge&logo=plotly&logoColor=white" height="22">
+<div class="fade-in" style="text-align:center; margin-top:14px;">
+
+  <!-- Row 1 -->
+  <div class="tech-row">
+    <img src="https://img.shields.io/badge/Python-3.10-blue?style=for-the-badge&logo=python&logoColor=white">
+    <img src="https://img.shields.io/badge/Streamlit-App-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white">
+    <img src="https://img.shields.io/badge/Plotly-Visuals-239120?style=for-the-badge&logo=plotly&logoColor=white">
   </div>
 
-  <!-- Data Tools Row -->
-  <div>
-    <img src="https://img.shields.io/badge/Pandas-DataFrame-150458?style=for-the-badge&logo=pandas&logoColor=white" height="22">
-    <img src="https://img.shields.io/badge/NumPy-Analysis-013243?style=for-the-badge&logo=numpy&logoColor=white" height="22">
+  <!-- Row 2 -->
+  <div class="tech-row">
+    <img src="https://img.shields.io/badge/Pandas-DataFrame-150458?style=for-the-badge&logo=pandas&logoColor=white">
+    <img src="https://img.shields.io/badge/NumPy-Analysis-013243?style=for-the-badge&logo=numpy&logoColor=white">
   </div>
 
-  <!-- Domain Row -->
-  <div>
-    <img src="https://img.shields.io/badge/HR%20Analytics-Compensation%20Insights-CA8A04?style=for-the-badge" height="22">
-    <img src="https://img.shields.io/badge/PDF%20Reports-WeasyPrint-4B5563?style=for-the-badge&logo=adobeacrobatreader&logoColor=white" height="22">
+  <!-- Row 3 -->
+  <div class="tech-row">
+    <img src="https://img.shields.io/badge/HR%20Analytics-Compensation%20Insights-CA8A04?style=for-the-badge">
+    <img src="https://img.shields.io/badge/PDF%20Reports-WeasyPrint-4B5563?style=for-the-badge&logo=adobeacrobatreader&logoColor=white">
   </div>
 
-  <!-- Links Row -->
-  <div style="margin-top:6px;">
+  <!-- Row 4 (Links) -->
+  <div class="tech-row" style="margin-top:2px;">
     <a href="https://github.com/AMBOT-pixel96/hr-tech-portfolio" target="_blank">
-      <img src="https://img.shields.io/badge/GitHub-Portfolio-000000?style=for-the-badge&logo=github&logoColor=white" height="22">
+      <img src="https://img.shields.io/badge/GitHub-Portfolio-000000?style=for-the-badge&logo=github&logoColor=white">
     </a>
     <a href="https://www.linkedin.com/in/amlanm96/" target="_blank">
-      <img src="https://img.shields.io/badge/LinkedIn-Profile-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" height="22">
+      <img src="https://img.shields.io/badge/LinkedIn-Profile-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white">
     </a>
   </div>
 
