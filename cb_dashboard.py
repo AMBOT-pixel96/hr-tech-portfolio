@@ -148,7 +148,7 @@ st.markdown("""
     <a href="https://github.com/AMBOT-pixel96/hr-tech-portfolio" target="_blank">
       <img src="https://img.shields.io/badge/GitHub-Portfolio-000000?style=for-the-badge&logo=github&logoColor=white">
     </a>
-    <a href="https://www.linkedin.com/in/amlanm96/" target="_blank">
+    <a href="https://www.linkedin.com/in/amlan-mishra-7aa70894" target="_blank">
       <img src="https://img.shields.io/badge/LinkedIn-Profile-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white">
     </a>
   </div>
