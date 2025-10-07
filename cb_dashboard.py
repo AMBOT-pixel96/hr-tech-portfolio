@@ -777,21 +777,21 @@ if st.button("🧾 Compile Selected Report"):
                 t.setStyle(t_style)
                 story.append(t)
                 story.append(Spacer(1, 8))
+# --- Add chart image if available ---
+    try:
+        img_path = None
+        if isinstance(asset, dict):
+            img_path = (
+                asset.get("png", {}).get("path")
+                if isinstance(asset.get("png"), dict)
+                else None
+            )
 
-            # --- Add chart image if available ---
-            try:
-                img_path = None
-                if isinstance(asset, dict):
-                    img_path = (
-                        asset.get("png", {}).get("path")
-                        if isinstance(asset.get("png"), dict)
-                        else None
-                    )
-try:
         if img_path and os.path.exists(img_path):
             story.append(Spacer(1, 6))
             story.append(RLImage(img_path, width=160 * mm, height=90 * mm))
             story.append(Spacer(1, 10))
+
     except Exception as e:
         st.warning(f"⚠️ Could not embed chart for {title}: {e}")
 
@@ -799,16 +799,17 @@ try:
     insight_text = generate_insight(title, tbl, title)
     story.append(Paragraph(f"<i>Insight:</i> {insight_text}", body))
     story.append(PageBreak())
-        # === Build PDF ===
-        doc.build(story)
 
-        # === Download Button ===
-        st.download_button(
-            "⬇️ Download Compiled PDF",
-            buf.getvalue(),
-            file_name="cb_dashboard_compiled.pdf",
-            mime="application/pdf",
-        )
+# === Build PDF ===
+doc.build(story)
+
+# === Download Button ===
+st.download_button(
+    "⬇️ Download Compiled PDF",
+    buf.getvalue(),
+    file_name="cb_dashboard_compiled.pdf",
+    mime="application/pdf",
+)
 # -----------------------
 # Quick Chart Downloads (Stable v4.7)
 # -----------------------
