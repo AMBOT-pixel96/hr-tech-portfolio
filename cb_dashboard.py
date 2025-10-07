@@ -13,6 +13,7 @@ from plotly.subplots import make_subplots
 import math
 from io import BytesIO
 from datetime import datetime
+import json
 import os
 
 # ReportLab
@@ -569,13 +570,14 @@ def _ensure_joblevel_order(df, col="JobLevel"):
         df = df.copy()
         df[col] = pd.Categorical(df[col], categories=order, ordered=True)
     return df
+
 # ==========================
 # EN3 — Session Persistence
 # ==========================
+
 st.subheader("💾 Step 3 — Session Persistence (Smart Save & Restore)")
 
 # --- Helper: Serialize & Restore session ---
-import json
 
 def save_session_state(filename="cb_session_state.json"):
     """Save key session variables to local JSON file."""
@@ -620,6 +622,40 @@ if "job_order" in st.session_state:
 if "messages" in st.session_state and st.session_state["messages"]:
     st.caption(f"💬 Chatbot remembers {len(st.session_state['messages'])} past interactions.")
 
+# ==========================
+# EN3.1 — Auto Memory Mode (Live Sync)
+# ==========================
+
+AUTO_SAVE_FILE = "cb_session_state.json"
+
+def auto_save_session_state():
+    """Automatically saves key session variables whenever they change."""
+    try:
+        data = {
+            "job_order": st.session_state.get("job_order", []),
+            "job_order_restored": st.session_state.get("job_order_restored", []),
+            "messages": st.session_state.get("messages", []),
+            "last_saved": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        }
+        with open(AUTO_SAVE_FILE, "w") as f:
+            json.dump(data, f, indent=2)
+    except Exception as e:
+        st.warning(f"⚠️ Auto-save skipped: {e}")
+
+# --- Trigger auto-save when relevant data changes ---
+auto_save_triggered = False
+tracked_keys = ["job_order", "job_order_restored", "messages"]
+
+for key in tracked_keys:
+    if key in st.session_state:
+        auto_save_session_state()
+        auto_save_triggered = True
+        break
+
+if auto_save_triggered:
+    st.caption("💾 Auto Memory Mode active — session saved silently.")
+else:
+    st.caption("🧠 Waiting for first user action before auto-save.")
 # ==========================
 # Helper: Safe Numeric Conversion
 # ==========================
