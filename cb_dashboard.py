@@ -471,14 +471,12 @@ and completeness of input data. Always validate results before using for compens
 All visuals are confidential and not for redistribution outside authorized use.
 """, body))
     story.append(hr_line())
-
-    # === Footer ===
-    story.append(Spacer(1, 8))
+# === Footer ===
+    story.append(Spacer(1, 2))  # ↓ reduced from 8 to 2
     story.append(Paragraph(
-        "<para align=center><font size=9 color='#1E3A8A'><b>Prepared by Amlan Mishra | © 2025 HR Tech Portfolio</b></font></para>",
+        "<para align=center><font size=8 color='#1E3A8A'><b>Prepared by Amlan Mishra | © 2025 HR Tech Portfolio</b></font></para>",
         body
     ))
-
     # === Build PDF ===
     doc.build(story, onFirstPage=on_page_bg, onLaterPages=on_page_bg)
     return buf.getvalue()
