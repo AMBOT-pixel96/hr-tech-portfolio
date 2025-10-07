@@ -611,26 +611,29 @@ class PDFBookmark(Flowable):
         except Exception:
             pass
 # ==========================
-# DF3.6 — Fixed Insight Engine (Smart Metric Detection)
+# DF3.7 — Adaptive Insight Engine (Context + Keywords)
 # ==========================
 def generate_insight(title, df, metric_type):
-    """Smart Insight Generator — returns concise, data-driven insights."""
+    """Adaptive Insight Engine — auto-detects metric type by keywords and column patterns."""
     try:
-        insight = ""
-        metric_type = metric_type.lower().replace("🏷️","").replace("📏","").replace("📊","") \
-                                        .replace("🎁","").replace("👫","").replace("⭐","").strip()
+        # Normalize title and metric_type
+        metric_type = str(metric_type).lower().replace("🏷️","").replace("📏","") \
+            .replace("📊","").replace("🎁","").replace("👫","").replace("⭐","").strip()
+        title_lower = title.lower()
 
-        # --- Average / Median CTC ---
-        if "ctc" in metric_type:
+        insight = ""
+
+        # --- 1️⃣ Average / Median CTC ---
+        if "ctc" in metric_type or any("ctc" in c.lower() for c in df.columns):
             avg_val = df.select_dtypes(include=[np.number]).iloc[:, -1].mean()
             top_row = df.iloc[df.iloc[:, -1].idxmax()]
             insight = (
-                f"{top_row[0]} leads with ₹{top_row[-1]:,.2f}L, "
-                f"~{(top_row[-1] / avg_val - 1) * 100:.1f}% above the overall mean."
+                f"{top_row[0]} leads with ₹{top_row[-1]:,.2f}L — "
+                f"~{(top_row[-1]/avg_val - 1)*100:.1f}% above overall mean."
             )
 
-        # --- Bonus % ---
-        elif "bonus" in metric_type:
+        # --- 2️⃣ Bonus % ---
+        elif "bonus" in metric_type or "bonus %" in df.columns:
             top = df.iloc[df["Bonus %"].idxmax()]
             low = df.iloc[df["Bonus %"].idxmin()]
             insight = (
@@ -638,43 +641,41 @@ def generate_insight(title, df, metric_type):
                 f"and is lowest at {low[0]} ({low['Bonus %']}%)."
             )
 
-        # --- Gender Gap ---
-        elif "gender" in metric_type:
+        # --- 3️⃣ Gender Pay Gap ---
+        elif "gender" in metric_type or "gender" in df.columns:
             if "Gap %" in df.columns:
                 lvl = df.loc[df["Gap %"].idxmax(), "JobLevel"]
                 val = df["Gap %"].max()
-                insight = f"Gender pay gap widest at {lvl} — {val:.1f}%."
+                insight = f"Gender gap widest at {lvl} — {val:.1f}%."
             else:
-                insight = "Minor gender differences across levels."
+                insight = "Minor gender pay differences observed across levels."
 
-        # --- Market vs Company ---
-        elif "market" in metric_type:
-            if "Gap %" in df.columns:
-                below = df.loc[df["Gap %"] < 0, "JobLevel"].tolist()
-                avg_gap = abs(df["Gap %"].mean())
-                if below:
-                    insight = f"Company pay lags market for {', '.join(below)} (~{avg_gap:.1f}% gap)."
-                else:
-                    insight = f"Company pay exceeds market by ~{avg_gap:.1f}% overall."
+        # --- 4️⃣ Market vs Company ---
+        elif "market" in metric_type or "Gap %" in df.columns:
+            below = df.loc[df["Gap %"] < 0, "JobLevel"].tolist() if "Gap %" in df.columns else []
+            avg_gap = abs(df["Gap %"].mean()) if "Gap %" in df.columns else 0
+            if below:
+                insight = f"Company pay lags market for {', '.join(below)} (~{avg_gap:.1f}% gap)."
             else:
-                insight = "Market comparison data unavailable."
+                insight = f"Company pay exceeds market by ~{avg_gap:.1f}% overall."
 
-        # --- Quartile Distribution ---
-        elif "quartile" in metric_type:
+        # --- 5️⃣ Quartile Distribution ---
+        elif "quartile" in metric_type or all(q in df.columns for q in ["Q1","Q2","Q3","Q4"]):
             high_q4 = df.loc[df["Q4"].idxmax(), "JobLevel"]
             insight = f"Highest concentration of top earners (Q4) seen at {high_q4} level."
 
-        # --- Rating ---
-        elif "rating" in metric_type:
+        # --- 6️⃣ Rating ---
+        elif "rating" in metric_type or "rating" in df.columns:
             insight = "Higher performance ratings correspond to significantly higher CTC levels."
 
+        # --- Default fallback ---
         else:
-            insight = "Review key level-wise variations for actionable trends."
+            insight = "Review level-wise variations for actionable pay trends."
 
         return insight
 
     except Exception as e:
-        return f"Unable to auto-generate insight for this section ({e})."
+        return f"Unable to auto-generate insight: {e}"
 # ==========================
 # PDF Export — v5.1 (With Summary Page)
 # ==========================
