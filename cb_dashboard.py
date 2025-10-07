@@ -594,100 +594,77 @@ for title, func, desc in last_metrics:
     img_path = save_chart_image(title, fig)
     sections.append((title, desc, table, {"png": {"path": img_path}}))
 # ==========================
-# DF3 — Insight Engine (v5.0 Stable)
+# DF3.5 — Insight Engine + Executive Summary Page (v5.1 Final)
 # ==========================
 def generate_insight(title, df, metric_type):
-    """
-    Generates concise, data-driven insights for each metric type.
-    Returns a clean one-line summary.
-    """
+    """Smart Insight Generator — returns concise, data-driven insights."""
     try:
         insight = ""
         title_lower = title.lower()
 
-        # --- Average CTC / Median CTC ---
-        if "ctc" in metric_type.lower():
+        # --- Average / Median CTC ---
+        if "ctc" in metric_type:
             avg_val = df.select_dtypes(include=[np.number]).iloc[:, -1].mean()
             top_row = df.iloc[df.iloc[:, -1].idxmax()]
             insight = (
-                f"{top_row[0]} leads with ₹{top_row[-1]:,.2f}L, "
-                f"~{(top_row[-1] / avg_val - 1) * 100:.1f}% above overall mean."
+                f"{top_row[0]} leads with ₹{top_row[-1]:,.2f}L "
+                f"— ~{(top_row[-1]/avg_val - 1)*100:.1f}% above the mean."
             )
 
         # --- Bonus % ---
-        elif "bonus" in metric_type.lower():
+        elif "bonus" in metric_type:
             top = df.iloc[df["Bonus %"].idxmax()]
             low = df.iloc[df["Bonus %"].idxmin()]
             insight = (
                 f"Bonus % peaks at {top[0]} ({top['Bonus %']}%) "
-                f"and dips lowest at {low[0]} ({low['Bonus %']}%)."
+                f"and is lowest at {low[0]} ({low['Bonus %']}%)."
             )
 
-        # --- Gender Pay Gap ---
-        elif "gender" in metric_type.lower():
+        # --- Gender Gap ---
+        elif "gender" in metric_type:
             if "Gap %" in df.columns:
-                max_gap = df["Gap %"].max()
                 lvl = df.loc[df["Gap %"].idxmax(), "JobLevel"]
-                insight = f"Gender gap is widest at {lvl}, at {max_gap:.1f}%."
+                val = df["Gap %"].max()
+                insight = f"Gender gap is widest at {lvl} — {val:.1f}%."
             else:
                 insight = "Minor gender differences observed across levels."
 
         # --- Market vs Company ---
-        elif "market" in metric_type.lower():
-            gap_mean = df["Gap %"].mean() if "Gap %" in df.columns else 0
-            below = df.loc[df["Gap %"] < 0, "JobLevel"].tolist()
-            if below:
-                insight = (
-                    f"Company pay lags market for {', '.join(below)}, "
-                    f"avg gap {abs(gap_mean):.1f}%."
-                )
+        elif "market" in metric_type:
+            if "Gap %" in df.columns:
+                below = df.loc[df["Gap %"] < 0, "JobLevel"].tolist()
+                avg_gap = abs(df["Gap %"].mean())
+                if below:
+                    insight = f"Company pay lags market for {', '.join(below)} (~{avg_gap:.1f}% gap)."
+                else:
+                    insight = f"Company pay exceeds market by ~{avg_gap:.1f}% overall."
             else:
-                insight = f"Company pay exceeds market by ~{gap_mean:.1f}% overall."
+                insight = "Market comparison data unavailable."
 
-        # --- Quartile Distribution ---
-        elif "quartile" in metric_type.lower():
+        # --- Quartile ---
+        elif "quartile" in metric_type:
             high_q4 = df.loc[df["Q4"].idxmax(), "JobLevel"]
-            insight = f"Majority of high earners (Q4) at {high_q4} level."
+            insight = f"Majority of high earners (Q4) are at the {high_q4} level."
 
         # --- Rating ---
-        elif "rating" in metric_type.lower():
-            insight = "CTC rises steadily with higher performance ratings."
+        elif "rating" in metric_type:
+            insight = "Higher performance ratings correspond to higher average CTC."
 
         else:
-            insight = "Review key level-wise variations for actionable trends."
+            insight = "Level-wise variations observed with actionable insights possible."
 
         return insight
-
     except Exception:
         return "Unable to auto-generate insight for this section."
-#----------------------
-# PDF Bookmark Helper
-# -----------------------
-class PDFBookmark(Flowable):
-    def __init__(self, name, title):
-        super().__init__()
-        self.name, self.title = name, title
 
-    def wrap(self, availWidth, availHeight):
-        return (0, 0)
 
-    def draw(self):
-        try:
-            self.canv.bookmarkPage(self.name)
-            self.canv.addOutlineEntry(self.title, self.name, level=0, closed=False)
-        except Exception:
-            pass
-#======================
-# Download Reports (PDF)
-#======================
+# ==========================
+# PDF Export — v5.1 (With Summary Page)
+# ==========================
 st.header("📥 Download Reports")
 st.write("Choose metrics to include in the compiled PDF:")
 
-# Checkbox selection for all available metrics
-kpi_check = {
-    title: st.checkbox(title, key=f"chk_{i}")
-    for i, (title, _, _, _) in enumerate(sections)
-}
+kpi_check = {title: st.checkbox(title, key=f"chk_{i}") for i, (title, _, _, _) in enumerate(sections)}
 
 if st.button("🧾 Compile Selected Report"):
     selected = [s for s in sections if kpi_check.get(s[0])]
@@ -696,76 +673,47 @@ if st.button("🧾 Compile Selected Report"):
     else:
         buf = BytesIO()
         doc = SimpleDocTemplate(
-            buf,
-            pagesize=A4,
-            rightMargin=18*mm,
-            leftMargin=18*mm,
-            topMargin=20*mm,
-            bottomMargin=20*mm,
+            buf, pagesize=A4, rightMargin=18*mm, leftMargin=18*mm, topMargin=20*mm, bottomMargin=20*mm
         )
 
         styles = getSampleStyleSheet()
-        body = ParagraphStyle(
-            "body",
-            parent=styles["Normal"],
-            fontName=BODY_FONT,
-            fontSize=10,
-            leading=13,
-        )
+        body = ParagraphStyle("body", parent=styles["Normal"], fontName=BODY_FONT, fontSize=10, leading=13)
 
         story = []
 
         # === Cover Page ===
         story.append(Spacer(1, 80))
         story.append(
-            Paragraph(
-                "<para align=center><font size=24 color='#1E3A8A'><b>Compensation & Benefits Report</b></font></para>",
-                body,
-            )
+            Paragraph("<para align=center><font size=24 color='#1E3A8A'><b>Compensation & Benefits Report</b></font></para>", body)
         )
         story.append(Spacer(1, 24))
         story.append(
-            Paragraph(
-                "<para align=center><font size=12 color='#6B7280'>Boardroom-ready insights on pay, performance, and equity</font></para>",
-                body,
-            )
+            Paragraph("<para align=center><font size=12 color='#6B7280'>Boardroom-ready insights on pay, performance, and equity</font></para>", body)
         )
         story.append(Spacer(1, 40))
         story.append(
-            Paragraph(
-                f"<para align=center><font size=11>Generated on: {datetime.now().strftime('%d-%b-%Y %H:%M')}</font></para>",
-                body,
-            )
+            Paragraph(f"<para align=center><font size=11>Generated on: {datetime.now().strftime('%d-%b-%Y %H:%M')}</font></para>", body)
         )
         story.append(PageBreak())
 
         # === Table of Contents ===
         story.append(Paragraph("<b>Table of Contents</b>", styles["Heading2"]))
         story.append(Spacer(1, 6))
-        toc_data = [
-            [f"{i}.", "".join(ch for ch in title if ord(ch) < 128)]
-            for i, (title, _, _, _) in enumerate(selected, 1)
-        ]
+        toc_data = [[f"{i}.", "".join(ch for ch in title if ord(ch) < 128)] for i, (title, _, _, _) in enumerate(selected, 1)]
         toc_table = Table(toc_data, colWidths=[20 * mm, 150 * mm])
-        toc_table.setStyle(
-            TableStyle(
-                [
-                    ("BOX", (0, 0), (-1, -1), 0.5, colors.black),
-                    ("GRID", (0, 0), (-1, -1), 0.25, colors.black),
-                    ("FONTNAME", (0, 0), (-1, -1), BODY_FONT),
-                    ("FONTSIZE", (0, 0), (-1, -1), 10),
-                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E5E7EB")),
-                    ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-                ]
-            )
-        )
+        toc_table.setStyle(TableStyle([
+            ("BOX", (0, 0), (-1, -1), 0.5, colors.black),
+            ("GRID", (0, 0), (-1, -1), 0.25, colors.black),
+            ("FONTNAME", (0, 0), (-1, -1), BODY_FONT),
+            ("FONTSIZE", (0, 0), (-1, -1), 10),
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E5E7EB")),
+        ]))
         story.append(toc_table)
         story.append(PageBreak())
 
         # === Section Pages ===
+        insight_summary = []  # store insights here
         for title, desc, tbl, asset in selected:
-            # Section Header
             safe_title = "".join(ch for ch in title if ord(ch) < 128)
             story.append(PDFBookmark(sanitize_anchor(safe_title), safe_title))
             story.append(Spacer(1, 10))
@@ -775,7 +723,7 @@ if st.button("🧾 Compile Selected Report"):
                 story.append(Paragraph(desc, body))
                 story.append(Spacer(1, 6))
 
-            # --- Table rendering ---
+            # --- Table ---
             if tbl is not None and not tbl.empty:
                 tbl = tbl.astype(str).fillna("")
                 data = [list(tbl.columns)] + tbl.values.tolist()
@@ -786,7 +734,6 @@ if st.button("🧾 Compile Selected Report"):
                     ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#F3F4F6")),
                     ("FONTNAME", (0, 0), (-1, -1), BODY_FONT),
                     ("FONTSIZE", (0, 0), (-1, -1), 9),
-                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
                 ])
                 for r in range(1, len(data)):
                     if r % 2 == 0:
@@ -795,7 +742,7 @@ if st.button("🧾 Compile Selected Report"):
                 story.append(t)
                 story.append(Spacer(1, 8))
 
-            # --- Add chart image if available ---
+            # --- Image ---
             try:
                 img_path = None
                 if isinstance(asset, dict):
@@ -811,32 +758,44 @@ if st.button("🧾 Compile Selected Report"):
             except Exception as e:
                 st.warning(f"⚠️ Could not embed chart for {title}: {e}")
 
-            # --- Auto Insight (DF3 Engine) ---
+            # --- Auto Insight ---
+            clean_title = "".join(ch for ch in title if ord(ch) < 128)
             try:
-                clean_title = "".join(ch for ch in title if ord(ch) < 128)
                 insight_text = generate_insight(clean_title, tbl, clean_title.lower())
                 if not insight_text or "Unable" in insight_text:
                     raise ValueError("Fallback")
-
-                story.append(
-                    Paragraph(
-                        f"<font color='#2563EB'><i>Insight:</i></font> {insight_text}",
-                        body
-                    )
-                )
+                story.append(Paragraph(f"<font color='#2563EB'><i>Insight:</i></font> {insight_text}", body))
             except Exception:
-                story.append(
-                    Paragraph("<i>Insight:</i> Review trends across levels.", body)
-                )
+                insight_text = "Review trends across levels."
+                story.append(Paragraph(f"<i>Insight:</i> {insight_text}", body))
 
+            # store for summary
+            insight_summary.append((clean_title, insight_text))
             story.append(PageBreak())
+
+        # === Summary Page ===
+        story.append(Paragraph("<b>📘 Executive Summary</b>", styles["Heading2"]))
+        story.append(Spacer(1, 8))
+        summary_data = [["Metric Name", "Key Insight"]] + [
+            [name, insight] for name, insight in insight_summary
+        ]
+        summary_table = Table(summary_data, colWidths=[70 * mm, 100 * mm])
+        summary_table.setStyle(TableStyle([
+            ("GRID", (0, 0), (-1, -1), 0.25, colors.black),
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E5E7EB")),
+            ("FONTNAME", (0, 0), (-1, -1), BODY_FONT),
+            ("FONTSIZE", (0, 0), (-1, -1), 9),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ]))
+        story.append(summary_table)
+        story.append(PageBreak())
 
         # === Build PDF ===
         doc.build(story)
 
-        # === Download Button ===
+        # === Download ===
         st.download_button(
-            "⬇️ Download Compiled PDF",
+            "⬇️ Download Compiled PDF (With Insights Summary)",
             buf.getvalue(),
             file_name="cb_dashboard_compiled.pdf",
             mime="application/pdf",
