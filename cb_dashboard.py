@@ -610,6 +610,56 @@ def median_ctc_by_joblevel(df, job_col="JobLevel", ctc_col="CTC"):
     fig.update_traces(textposition="outside")
     fig=apply_chart_style(fig,title=" ", showlegend=False)
     return agg, fig
+# ==========================
+# EN3 — Session Persistence
+# ==========================
+st.subheader("💾 Step 3 — Session Persistence (Smart Save & Restore)")
+
+# --- Helper: Serialize & Restore session ---
+import json
+
+def save_session_state(filename="cb_session_state.json"):
+    """Save key session variables to local JSON file."""
+    try:
+        data = {
+            "job_order": st.session_state.get("job_order", []),
+            "job_order_restored": st.session_state.get("job_order_restored", []),
+            "messages": st.session_state.get("messages", []),
+        }
+        with open(filename, "w") as f:
+            json.dump(data, f, indent=2)
+        st.success(f"💾 Session saved successfully to {filename}")
+    except Exception as e:
+        st.error(f"⚠️ Error saving session: {e}")
+
+def load_session_state(filename="cb_session_state.json"):
+    """Load previously saved session data."""
+    try:
+        with open(filename, "r") as f:
+            data = json.load(f)
+        for k, v in data.items():
+            st.session_state[k] = v
+        st.success(f"🔁 Session restored successfully from {filename}")
+    except FileNotFoundError:
+        st.warning("No saved session found yet.")
+    except Exception as e:
+        st.error(f"⚠️ Error restoring session: {e}")
+
+# --- UI Buttons ---
+col1, col2 = st.columns(2)
+with col1:
+    if st.button("💾 Save Current Session"):
+        save_session_state()
+
+with col2:
+    if st.button("🔁 Restore Previous Session"):
+        load_session_state()
+
+# --- Display what’s currently active ---
+if "job_order" in st.session_state:
+    st.caption(f"🧠 Current job order: {', '.join(st.session_state['job_order'])}")
+if "messages" in st.session_state and st.session_state["messages"]:
+    st.caption(f"💬 Chatbot remembers {len(st.session_state['messages'])} past interactions.")
 #===========
 # Metric 3
 #===========
