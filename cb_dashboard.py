@@ -789,28 +789,25 @@ if st.button("🧾 Compile Selected Report"):
             # store for summary
             insight_summary.append((clean_title, insight_text))
             story.append(PageBreak())
-
-        # === Summary Page ===
+# === Summary Page ===
         story.append(Paragraph("<b>📘 Executive Summary</b>", styles["Heading2"]))
         story.append(Spacer(1, 8))
-       story.append(Paragraph("<b>📘 Executive Summary</b>", styles["Heading2"]))
-story.append(Spacer(1, 8))
 
-# Wrap text in Paragraph objects
-summary_data = [["Metric Name", "Key Insight"]] + [
-    [Paragraph(name, body), Paragraph(insight, body)] for name, insight in insight_summary
-]
+        # Wrap text in Paragraph objects for proper word wrapping
+        summary_data = [["Metric Name", "Key Insight"]] + [
+            [Paragraph(name, body), Paragraph(insight, body)] for name, insight in insight_summary
+        ]
 
-summary_table = Table(summary_data, colWidths=[70 * mm, 100 * mm])
-summary_table.setStyle(TableStyle([
-    ("GRID", (0, 0), (-1, -1), 0.25, colors.black),
-    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E5E7EB")),
-    ("FONTNAME", (0, 0), (-1, -1), BODY_FONT),
-    ("FONTSIZE", (0, 0), (-1, -1), 9),
-    ("VALIGN", (0, 0), (-1, -1), "TOP"),
-]))
-story.append(summary_table)
-story.append(PageBreak())
+        summary_table = Table(summary_data, colWidths=[70 * mm, 100 * mm])
+        summary_table.setStyle(TableStyle([
+            ("GRID", (0, 0), (-1, -1), 0.25, colors.black),
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E5E7EB")),
+            ("FONTNAME", (0, 0), (-1, -1), BODY_FONT),
+            ("FONTSIZE", (0, 0), (-1, -1), 9),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ]))
+        story.append(summary_table)
+        story.append(PageBreak())
         summary_table.setStyle(TableStyle([
             ("GRID", (0, 0), (-1, -1), 0.25, colors.black),
             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E5E7EB")),
