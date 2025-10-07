@@ -656,6 +656,36 @@ if auto_save_triggered:
     st.caption("💾 Auto Memory Mode active — session saved silently.")
 else:
     st.caption("🧠 Waiting for first user action before auto-save.")
+
+# ==========================
+# EN3.2 — Auto-Load on Startup (Persistent Resume Mode)
+# ==========================
+
+def auto_load_session_state(filename="cb_session_state.json"):
+    """Silently restores previous session data if available."""
+    try:
+        if os.path.exists(filename):
+            with open(filename, "r") as f:
+                data = json.load(f)
+
+            # Merge with current session state without overwriting active runtime keys
+            for k, v in data.items():
+                if k not in st.session_state:
+                    st.session_state[k] = v
+
+            st.info(
+                f"🔁 Previous session auto-restored from {filename} "
+                f"(last saved: {data.get('last_saved', 'unknown')})",
+                icon="🧠",
+            )
+        else:
+            st.caption("🧩 No previous session found — starting fresh.")
+    except Exception as e:
+        st.warning(f"⚠️ Auto-load skipped: {e}")
+
+# --- Trigger at app startup ---
+auto_load_session_state()
+
 # ==========================
 # Helper: Safe Numeric Conversion
 # ==========================
