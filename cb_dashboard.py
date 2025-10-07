@@ -762,79 +762,76 @@ if st.button("🧾 Compile Selected Report"):
         )
         story.append(toc_table)
         story.append(PageBreak())
+# === Section Pages ===
+for title, desc, tbl, asset in selected:
+    # Section Header
+    safe_title = "".join(ch for ch in title if ord(ch) < 128)
+    story.append(PDFBookmark(sanitize_anchor(safe_title), safe_title))
+    story.append(Spacer(1, 10))
+    story.append(Paragraph(f"<b>{safe_title}</b>", styles["Heading2"]))
+    story.append(Spacer(1, 6))
+    if desc:
+        story.append(Paragraph(desc, body))
+        story.append(Spacer(1, 6))
 
-        # === Section Pages ===
-        for title, desc, tbl, asset in selected:
-            safe_title = "".join(ch for ch in title if ord(ch) < 128)
-            story.append(PDFBookmark(sanitize_anchor(safe_title), safe_title))
-            story.append(Spacer(1, 10))
-            story.append(Paragraph(f"<b>{safe_title}</b>", styles["Heading2"]))
+    # --- Table rendering ---
+    if tbl is not None and not tbl.empty:
+        tbl = tbl.astype(str).fillna("")
+        data = [list(tbl.columns)] + tbl.values.tolist()
+        col_width = (A4[0] - 40) / len(tbl.columns)
+        t = Table(data, colWidths=[col_width] * len(tbl.columns), repeatRows=1)
+        t_style = TableStyle([
+            ("GRID", (0, 0), (-1, -1), 0.25, colors.black),
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#F3F4F6")),
+            ("FONTNAME", (0, 0), (-1, -1), BODY_FONT),
+            ("FONTSIZE", (0, 0), (-1, -1), 9),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ])
+        for r in range(1, len(data)):
+            if r % 2 == 0:
+                t_style.add("BACKGROUND", (0, r), (-1, r), colors.HexColor("#F9FAFB"))
+        t.setStyle(t_style)
+        story.append(t)
+        story.append(Spacer(1, 8))
+
+    # --- Add chart image if available ---
+    try:
+        img_path = None
+        if isinstance(asset, dict):
+            img_path = (
+                asset.get("png", {}).get("path")
+                if isinstance(asset.get("png"), dict)
+                else None
+            )
+        if img_path and os.path.exists(img_path):
             story.append(Spacer(1, 6))
-            if desc:
-                story.append(Paragraph(desc, body))
-                story.append(Spacer(1, 6))
+            story.append(RLImage(img_path, width=160 * mm, height=90 * mm))
+            story.append(Spacer(1, 10))
+    except Exception as e:
+        st.warning(f"⚠️ Could not embed chart for {title}: {e}")
 
-            # --- Table rendering ---
-            if tbl is not None and not tbl.empty:
-                tbl = tbl.astype(str).fillna("")
-                data = [list(tbl.columns)] + tbl.values.tolist()
-                col_width = (A4[0] - 40) / len(tbl.columns)
-                t = Table(data, colWidths=[col_width] * len(tbl.columns), repeatRows=1)
-                t_style = TableStyle(
-                    [
-                        ("GRID", (0, 0), (-1, -1), 0.25, colors.black),
-                        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#F3F4F6")),
-                        ("FONTNAME", (0, 0), (-1, -1), BODY_FONT),
-                        ("FONTSIZE", (0, 0), (-1, -1), 9),
-                        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                    ]
-                )
-                for r in range(1, len(data)):
-                    if r % 2 == 0:
-                        t_style.add(
-                            "BACKGROUND", (0, r), (-1, r), colors.HexColor("#F9FAFB")
-                        )
-                t.setStyle(t_style)
-                story.append(t)
-                story.append(Spacer(1, 8))
+    # --- Auto Insight (DF3 Engine) ---
+    try:
+        clean_title = "".join(ch for ch in title if ord(ch) < 128)  # remove emojis
+        insight_text = generate_insight(clean_title, tbl, clean_title.lower())
 
-            # --- Add chart image if available ---
-            try:
-                img_path = None
-                if isinstance(asset, dict):
-                    img_path = (
-                        asset.get("png", {}).get("path")
-                        if isinstance(asset.get("png"), dict)
-                        else None
-                    )
-                if img_path and os.path.exists(img_path):
-                    story.append(Spacer(1, 6))
-                    story.append(RLImage(img_path, width=160 * mm, height=90 * mm))
-                    story.append(Spacer(1, 10))
-            except Exception as e:
-                st.warning(f"⚠️ Could not embed chart for {title}: {e}")
-# --- Auto Insight (DF3 Engine) ---
-try:
-    clean_title = "".join(ch for ch in title if ord(ch) < 128)  # remove emojis
-    insight_text = generate_insight(clean_title, tbl, clean_title.lower())
+        if not insight_text or "Unable" in insight_text:
+            raise ValueError("Fallback")
 
-    if not insight_text or "Unable" in insight_text:
-        raise ValueError("Fallback")
-
-    story.append(
-        Paragraph(
-            f"<font color='#2563EB'><i>Insight:</i></font> {insight_text}", body
+        story.append(
+            Paragraph(
+                f"<font color='#2563EB'><i>Insight:</i></font> {insight_text}",
+                body
+            )
         )
-    )
 
-except Exception:
-    story.append(
-        Paragraph("<i>Insight:</i> Review trends across levels.", body)
-    )
+    except Exception:
+        story.append(
+            Paragraph("<i>Insight:</i> Review trends across levels.", body)
+        )
 
-story.append(PageBreak())
+    story.append(PageBreak())
 
-# ✅ Unindent this section (outside the 'for' loop)
 # === Build PDF ===
 doc.build(story)
 
