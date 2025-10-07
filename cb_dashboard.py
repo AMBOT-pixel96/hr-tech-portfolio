@@ -678,27 +678,53 @@ def quartile_distribution(df, ctc_col="CTC", job_col="JobLevel"):
     return quartile_counts, fig
 
 #===========
-# Metric 4
+# Metric 4 — FIXED (v4.9.2)
 #===========
+def company_vs_market(df_company, df_market, job_col="JobLevel",
+                      company_col="CompanyMedian", market_col="MarketMedian"):
+    left = _ensure_joblevel_order(df_company, job_col)
+    right = _ensure_joblevel_order(df_market, job_col)
+    merged = pd.merge(left, right, on=job_col, how="inner").dropna()
 
-def company_vs_market(df_company,df_market,job_col="JobLevel",
-                      company_col="CompanyMedian",market_col="MarketMedian"):
-    left=_ensure_joblevel_order(df_company,job_col)
-    right=_ensure_joblevel_order(df_market,job_col)
-    merged=pd.merge(left,right,on=job_col,how="inner").dropna()
-    merged["Company (₹ L)"]=(merged[company_col]/1e5).round(2)
-    merged["Market (₹ L)"]=(merged[market_col]/1e5).round(2)
-    merged["Gap %"]=((merged[company_col]-merged[market_col])/merged[market_col]*100).round(1)
-    table=merged[[job_col,"Company (₹ L)","Market (₹ L)","Gap %"]]
-    fig=go.Figure([
-        go.Bar(x=merged[job_col],y=merged["Company (₹ L)"],name="Company",marker_color="#22D3EE"),
-        go.Scatter(x=merged[job_col],y=merged["Market (₹ L)"],name="Market",
-                   mode="lines+markers",line=dict(color="#FB7185",width=3))
+    merged["Company (₹ L)"] = (merged[company_col] / 1e5).round(2)
+    merged["Market (₹ L)"] = (merged[market_col] / 1e5).round(2)
+    merged["Gap %"] = ((merged[company_col] - merged[market_col]) / merged[market_col] * 100).round(1)
+
+    # 🧠 FIX: reapply joblevel order after merge
+    merged = _ensure_joblevel_order(merged, job_col)
+    merged = merged.sort_values(job_col)
+
+    table = merged[[job_col, "Company (₹ L)", "Market (₹ L)", "Gap %"]]
+
+    fig = go.Figure([
+        go.Bar(
+            x=merged[job_col],
+            y=merged["Company (₹ L)"],
+            name="Company",
+            marker_color="#22D3EE"
+        ),
+        go.Scatter(
+            x=merged[job_col],
+            y=merged["Market (₹ L)"],
+            name="Market",
+            mode="lines+markers",
+            line=dict(color="#FB7185", width=3)
+        )
     ])
-    fig=apply_chart_style(fig,title=" ", showlegend=True)
-    fig.update_layout(legend=dict(font=dict(size=10)))
-    return table,fig
 
+    fig = apply_chart_style(fig, title=" ", showlegend=True)
+    fig.update_layout(
+        legend=dict(
+            orientation="v",
+            xanchor="right",
+            x=1,
+            yanchor="top",
+            y=1,
+            font=dict(size=9)
+        )
+    )
+
+    return table, fig
 #===========
 # Metric 5
 #===========
