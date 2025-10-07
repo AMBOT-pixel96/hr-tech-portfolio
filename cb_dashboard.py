@@ -353,10 +353,10 @@ def generate_user_guide_pdf():
     doc = SimpleDocTemplate(
         buf,
         pagesize=A4,
-        rightMargin=18*mm,
-        leftMargin=18*mm,
-        topMargin=18*mm,
-        bottomMargin=18*mm,
+        rightMargin=12*mm,
+        leftMargin=12*mm,
+        topMargin=12*mm,
+        bottomMargin=12*mm,
     )
 
     # Matte background setup
@@ -386,16 +386,16 @@ def generate_user_guide_pdf():
     story = []
 
     # === Header ===
-    story.append(Spacer(1, 35))
+    story.append(Spacer(1,18))
     story.append(Paragraph(
         "<para align=center><font size=20><b>Compensation & Benefits Dashboard</b></font></para>", heading
     ))
     story.append(Paragraph(
         "<para align=center><font size=12>User Guide & Reference Manual (v1.3)</font></para>", body
     ))
-    story.append(Spacer(1, 20))
+    story.append(Spacer(1, 15))
     story.append(hr_line())
-    story.append(Spacer(1, 10))
+    story.append(Spacer(1, 8))
 
     # === 1. Introduction ===
     story.append(Paragraph("1. Introduction", heading))
