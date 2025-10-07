@@ -276,85 +276,175 @@ def get_benchmark_template_csv():
 
 c1.download_button("📥 Internal Template", get_employee_template_csv(), "Internal_Template.csv")
 c2.download_button("📥 Benchmark Template", get_benchmark_template_csv(), "Benchmark_Template.csv")
-
-# --- 📘 EN1: User Guide PDF ---
-def generate_user_guide_pdf():
-    buf = BytesIO()
-    doc = SimpleDocTemplate(buf, pagesize=A4, rightMargin=18*mm, leftMargin=18*mm, topMargin=20*mm, bottomMargin=20*mm)
-    styles = getSampleStyleSheet()
-    header = ParagraphStyle("Header", fontName="Helvetica-Bold", fontSize=16, textColor=colors.black, spaceAfter=12)
-    subheader = ParagraphStyle("Subheader", fontName="Helvetica-Bold", fontSize=13, textColor=colors.black, spaceAfter=6)
-    body = ParagraphStyle("Body", fontName="Helvetica", fontSize=10, textColor=colors.black, leading=14)
-
-    story = []
-    # Page 1 — Introduction
-    story.append(Paragraph("📘 Compensation & Benefits Dashboard — User Guide", header))
-    story.append(Paragraph("This dashboard helps HR professionals visualize, analyze, and benchmark pay and bonus data across job levels, departments, and performance ratings.", body))
-    story.append(Spacer(1, 12))
-    story.append(Paragraph("Use this guide to prepare your data, understand each metric, and make the most of the insights provided.", body))
-    story.append(PageBreak())
-
-    # Page 2 — Data Formatting Rules
-    story.append(Paragraph("📂 Data Formatting Rules", subheader))
-    story.append(Paragraph("<b>Internal Template Required Columns:</b> EmployeeID, Gender, Department, JobRole, JobLevel, CTC, Bonus, PerformanceRating", body))
-    story.append(Spacer(1, 6))
-    story.append(Paragraph("<b>Benchmark Template Required Columns:</b> JobRole, JobLevel, MarketMedianCTC", body))
-    story.append(Spacer(1, 6))
-    story.append(Paragraph("<font color='black' bgcolor='yellow'><b>⚠️ Do not rename or reorder columns.</b></font>", body))
-    story.append(Paragraph("Ensure numeric columns are in rupees, not lakhs or thousands.", body))
-    story.append(PageBreak())
-
-    # Page 3 — Metric Explanations
-    story.append(Paragraph("📊 Metric Explanations", subheader))
-    metrics = [
-        ["Average / Median CTC", "Shows pay trends across levels."],
-        ["Quartile Distribution", "Displays employee spread across four pay quartiles."],
-        ["Bonus %", "Average variable pay as % of total CTC."],
-        ["Market Comparison", "Compares internal medians vs external benchmarks."],
-        ["Gender Pay Gap", "Shows pay differences by gender across levels."],
-        ["CTC by Rating", "Highlights pay differentiation based on performance."]
-    ]
-    t = Table([["Metric", "Description"]] + metrics, colWidths=[60*mm, 110*mm])
-    t.setStyle(TableStyle([
-        ("GRID", (0,0), (-1,-1), 0.25, colors.black),
-        ("BACKGROUND", (0,0), (-1,0), colors.HexColor("#ECEBE8")),
-        ("FONTNAME", (0,0), (-1,-1), "Helvetica"),
-        ("FONTSIZE", (0,0), (-1,-1), 10)
+from reportlab.platypus import Table, TableStyle
+from reportlab.lib import colors
+#-------
+# Line Divider
+#-------
+def hr_line(width=170*mm, thickness=0.6, color=colors.HexColor("#1E3A8A")):
+    """Horizontal divider line — clean alternative to PageBreak."""
+    line = Table(
+        [[""]],
+        colWidths=[width],
+        rowHeights=[thickness]
+    )
+    line.setStyle(TableStyle([
+        ("LINEABOVE", (0, 0), (-1, -1), thickness, color),
+        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+        ("TOPPADDING", (0, 0), (-1, -1), 2),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
     ]))
-    story.append(t)
-    story.append(PageBreak())
+    return line
+# ====================================
+# EN1 — User Guide PDF (Executive Edition | Matte Layout)
+# ====================================
 
-    # Page 4 — Chatbot Usage
-    story.append(Paragraph("🤖 Chatbot Usage Guide", subheader))
-    story.append(Paragraph("The Smart HR Assistant can answer data-specific questions like:", body))
-    story.append(Paragraph("• “Average CTC for Managers”", body))
-    story.append(Paragraph("• “Bonus % for Directors in Finance department”", body))
-    story.append(Paragraph("• “Gender pay gap for rating 4 employees”", body))
-    story.append(Spacer(1, 8))
-    story.append(Paragraph("💡 The chatbot uses contextual filters (Department, Level, Rating) and provides tables and charts in response.", body))
-    story.append(PageBreak())
+from reportlab.platypus import Table, TableStyle, Paragraph, Spacer
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import mm
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from io import BytesIO
 
-    # Page 5 — Disclaimer
-    story.append(Paragraph("⚖️ Limitations & Disclaimer", subheader))
-    story.append(Paragraph("• Session resets after 5 minutes of inactivity.", body))
-    story.append(Paragraph("• All numbers are rounded to two decimals.", body))
-    story.append(Paragraph("• Benchmark accuracy depends on uploaded dataset quality.", body))
-    story.append(Spacer(1, 12))
-    story.append(Paragraph("<para align=center>Prepared with ❤️ by <b>Amlan Mishra</b> | HR Tech Portfolio</para>", body))
+# Horizontal divider line
+def hr_line(width=170*mm, thickness=0.6, color=colors.HexColor("#1E3A8A")):
+    """Elegant horizontal divider for section separation."""
+    line = Table([[""]], colWidths=[width], rowHeights=[thickness])
+    line.setStyle(TableStyle([
+        ("LINEABOVE", (0, 0), (-1, -1), thickness, color),
+        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+        ("TOPPADDING", (0, 0), (-1, -1), 2),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+    ]))
+    return line
 
-    doc.build(story)
-    return buf
 
-# --- 📥 Download User Guide Button ---
-if st.button("📘 Download User Guide (PDF)"):
-    pdf_buf = generate_user_guide_pdf()
-    st.download_button(
-        "⬇️ Download User Guide",
-        pdf_buf.getvalue(),
-        file_name="User_Guide_CB_Dashboard.pdf",
-        mime="application/pdf"
+# === Generate User Guide ===
+def generate_user_guide_pdf():
+    """Creates a professional single-page user guide with matte background."""
+    buf = BytesIO()
+    doc = SimpleDocTemplate(
+        buf,
+        pagesize=A4,
+        rightMargin=18 * mm,
+        leftMargin=18 * mm,
+        topMargin=18 * mm,
+        bottomMargin=18 * mm,
     )
 
+    styles = getSampleStyleSheet()
+    body = ParagraphStyle(
+        "body",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=10,
+        leading=15,
+        spaceAfter=6,
+        textColor=colors.black,
+    )
+    heading = ParagraphStyle(
+        "heading",
+        parent=styles["Heading2"],
+        fontName="Helvetica-Bold",
+        textColor=colors.HexColor("#1E3A8A"),
+        spaceAfter=8,
+    )
+
+    story = []
+
+    # --- Matte Background ---
+    from reportlab.pdfgen import canvas
+    def on_page_bg(c, doc):
+        c.setFillColor(colors.HexColor("#F5F5F5"))
+        c.rect(0, 0, A4[0], A4[1], stroke=0, fill=1)
+
+    # === HEADER ===
+    story.append(Spacer(1, 40))
+    story.append(Paragraph("<para align=center><font size=20><b>Compensation & Benefits Dashboard</b></font></para>", heading))
+    story.append(Paragraph("<para align=center><font size=12>User Guide & Reference Manual (v1.0)</font></para>", body))
+    story.append(Spacer(1, 20))
+    story.append(hr_line())
+    story.append(Spacer(1, 10))
+
+    # === 1. Introduction ===
+    story.append(Paragraph("1. Introduction", heading))
+    story.append(Paragraph("""
+This dashboard delivers board-ready insights on pay, performance, and equity across job levels, departments, and demographics.
+It enables HR and leadership teams to visualize and analyze compensation data in real time while exporting professional-grade reports.
+""", body))
+
+    story.append(hr_line())
+
+    # === 2. Data Formatting Rules ===
+    story.append(Paragraph("2. Data Formatting Rules", heading))
+    story.append(Paragraph("""
+Follow these formatting requirements to ensure accurate analytics:
+- Use the provided CSV templates for internal and benchmark data.
+- Column names must match the required headers exactly.
+- Numeric values (CTC, Bonus) should be in absolute ₹ amounts (not lakhs).
+- Blank or invalid values will be ignored automatically.
+""", body))
+
+    story.append(hr_line())
+
+    # === 3. Metric Explanations ===
+    story.append(Paragraph("3. Metric Explanations", heading))
+    story.append(Paragraph("""
+Each metric reflects a distinct compensation lens:
+- Average / Median CTC — measures typical pay levels across job hierarchy.
+- Quartile Distribution — identifies pay spread and concentration.
+- Bonus % of CTC — shows incentive dispersion by role and level.
+- Gender & Rating Analysis — evaluates pay equity and performance correlation.
+- Market Comparison — benchmarks internal vs. external compensation medians.
+""", body))
+
+    story.append(hr_line())
+
+    # === 4. Chatbot Usage ===
+    story.append(Paragraph("4. Chatbot Usage", heading))
+    story.append(Paragraph("""
+The Chatbot allows conversational insights using natural queries.
+Examples:
+- "Average CTC for Senior Managers"
+- "Bonus % for Directors in Finance"
+- "Show gender pay gap by department"
+Multiple filters such as Job Level, Department, and Rating are supported.
+""", body))
+
+    story.append(hr_line())
+
+    # === 5. Limitations & Disclaimer ===
+    story.append(Paragraph("5. Limitations & Disclaimer", heading))
+    story.append(Paragraph("""
+This dashboard is for analytical and presentation purposes only.
+Insights depend on the accuracy and completeness of input data.
+Always validate results before using for compensation decisions.
+All visuals are confidential and not for redistribution outside authorized use.
+""", body))
+
+    story.append(hr_line())
+
+    # === Footer ===
+    story.append(Spacer(1, 20))
+    story.append(Paragraph("<para align=center><font size=9 color='#1E3A8A'><b>Prepared by Amlan Mishra | © 2025 HR Tech Portfolio</b></font></para>", body))
+
+    # --- Build PDF ---
+    doc.build(story, onFirstPage=on_page_bg, onLaterPages=on_page_bg)
+    return buf.getvalue()
+
+
+# === Streamlit Button ===
+if st.button("📘 Download User Guide (PDF)"):
+    pdf_bytes = generate_user_guide_pdf()
+    st.download_button(
+        label="⬇️ Click to Download User Guide",
+        data=pdf_bytes,
+        file_name="CB_User_Guide.pdf",
+        mime="application/pdf",
+    )
 # --- Continue workflow ---
 if not st.checkbox("✅ Templates downloaded"):
     st.stop()
