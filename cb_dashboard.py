@@ -593,6 +593,23 @@ for title, func, desc in last_metrics:
     # Save chart image (F–G)
     img_path = save_chart_image(title, fig)
     sections.append((title, desc, table, {"png": {"path": img_path}}))
+# ----------------------
+# PDF Bookmark Helper (re-added above DF3.5)
+# ----------------------
+class PDFBookmark(Flowable):
+    def __init__(self, name, title):
+        super().__init__()
+        self.name, self.title = name, title
+
+    def wrap(self, availWidth, availHeight):
+        return (0, 0)
+
+    def draw(self):
+        try:
+            self.canv.bookmarkPage(self.name)
+            self.canv.addOutlineEntry(self.title, self.name, level=0, closed=False)
+        except Exception:
+            pass
 # ==========================
 # DF3.5 — Insight Engine + Executive Summary Page (v5.1 Final)
 # ==========================
