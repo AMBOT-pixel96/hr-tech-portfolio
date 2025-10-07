@@ -533,13 +533,40 @@ edited_levels = st.data_editor(
 # --- Extract reordered list ---
 custom_order = edited_levels["Job Level Order"].tolist()
 
-# Confirmation & store
-st.info(f"✅ Custom hierarchy set for all analyses: {', '.join(custom_order)}")
+# 🔒 Save to session for persistence & later reuse (EN3-ready)
+st.session_state["job_order"] = custom_order
 
+# Confirmation & store
+st.info(
+    f"✅ Custom hierarchy set for all analyses:\n\n"
+    f"**{', '.join(custom_order)}**"
+)
+st.caption(
+    "💡 Tip: Drag rows in the table to reorder levels as per your internal hierarchy "
+    "(e.g., Analyst → Sr Manager → Director)."
+)
+# --- Restore Default Order ---
+default_order = [
+    "Analyst",
+    "Assistant Manager",
+    "Manager",
+    "Senior Manager",
+    "Associate Partner",
+    "Director",
+    "Executive",
+    "Senior Executive"
+]
+
+if st.button("↩️ Restore Default Order"):
+    st.session_state["job_order_restored"] = default_order
+    st.success(f"Default hierarchy restored: {', '.join(default_order)}")
 # --- Override _ensure_joblevel_order globally ---
 def _ensure_joblevel_order(df, col="JobLevel"):
     """Applies custom or default job level order globally."""
-    order = custom_order if custom_order else default_order
+    order = (
+        st.session_state.get("job_order_restored", custom_order)
+        if custom_order else default_order
+    )
     if col in df.columns:
         df = df.copy()
         df[col] = pd.Categorical(df[col], categories=order, ordered=True)
