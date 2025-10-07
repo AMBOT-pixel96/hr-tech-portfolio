@@ -570,47 +570,6 @@ def _ensure_joblevel_order(df, col="JobLevel"):
         df[col] = pd.Categorical(df[col], categories=order, ordered=True)
     return df
 # ==========================
-# Helper: Safe Numeric Conversion
-# ==========================
-def _safe_numeric(df, col, fill_zero=False):
-    """Ensures column is numeric for calculations and plots."""
-    df = df.copy()
-    df[col] = pd.to_numeric(df[col], errors="coerce")
-    if fill_zero:
-        df[col] = df[col].fillna(0)
-    return df
-st.markdown("---")
-#===========
-# Metric 1
-#===========
-def average_ctc_by_joblevel(df, job_col="JobLevel", ctc_col="CTC"):
-    df=_safe_numeric(df,ctc_col); df=_ensure_joblevel_order(df,job_col)
-    agg=df.groupby(job_col,observed=True)[ctc_col].agg(["mean","sum"]).reset_index()
-    agg["Total CTC (₹ Cr.)"]=(agg["sum"]/1e7).round(2)
-    agg["Avg CTC (₹ Lakhs)"]=(agg["mean"]/1e5).round(2)
-    agg=agg[[job_col,"Total CTC (₹ Cr.)","Avg CTC (₹ Lakhs)"]]
-    fig=px.bar(agg,x=job_col,y="Avg CTC (₹ Lakhs)",color=job_col,
-               text="Avg CTC (₹ Lakhs)",color_discrete_sequence=PALETTE)
-    fig.update_traces(textposition="outside")
-    fig=apply_chart_style(fig,title=" ", showlegend=False)
-    return agg, fig
-
-#===========
-# Metric 2
-#===========
-
-def median_ctc_by_joblevel(df, job_col="JobLevel", ctc_col="CTC"):
-    df=_safe_numeric(df,ctc_col); df=_ensure_joblevel_order(df,job_col)
-    agg=df.groupby(job_col,observed=True)[ctc_col].agg(["median","sum"]).reset_index()
-    agg["Total CTC (₹ Cr.)"]=(agg["sum"]/1e7).round(2)
-    agg["Median CTC (₹ Lakhs)"]=(agg["median"]/1e5).round(2)
-    agg=agg[[job_col,"Total CTC (₹ Cr.)","Median CTC (₹ Lakhs)"]]
-    fig=px.bar(agg,x=job_col,y="Median CTC (₹ Lakhs)",color=job_col,
-               text="Median CTC (₹ Lakhs)",color_discrete_sequence=PALETTE)
-    fig.update_traces(textposition="outside")
-    fig=apply_chart_style(fig,title=" ", showlegend=False)
-    return agg, fig
-# ==========================
 # EN3 — Session Persistence
 # ==========================
 st.subheader("💾 Step 3 — Session Persistence (Smart Save & Restore)")
@@ -660,6 +619,49 @@ if "job_order" in st.session_state:
     st.caption(f"🧠 Current job order: {', '.join(st.session_state['job_order'])}")
 if "messages" in st.session_state and st.session_state["messages"]:
     st.caption(f"💬 Chatbot remembers {len(st.session_state['messages'])} past interactions.")
+
+# ==========================
+# Helper: Safe Numeric Conversion
+# ==========================
+def _safe_numeric(df, col, fill_zero=False):
+    """Ensures column is numeric for calculations and plots."""
+    df = df.copy()
+    df[col] = pd.to_numeric(df[col], errors="coerce")
+    if fill_zero:
+        df[col] = df[col].fillna(0)
+    return df
+st.markdown("---")
+#===========
+# Metric 1
+#===========
+def average_ctc_by_joblevel(df, job_col="JobLevel", ctc_col="CTC"):
+    df=_safe_numeric(df,ctc_col); df=_ensure_joblevel_order(df,job_col)
+    agg=df.groupby(job_col,observed=True)[ctc_col].agg(["mean","sum"]).reset_index()
+    agg["Total CTC (₹ Cr.)"]=(agg["sum"]/1e7).round(2)
+    agg["Avg CTC (₹ Lakhs)"]=(agg["mean"]/1e5).round(2)
+    agg=agg[[job_col,"Total CTC (₹ Cr.)","Avg CTC (₹ Lakhs)"]]
+    fig=px.bar(agg,x=job_col,y="Avg CTC (₹ Lakhs)",color=job_col,
+               text="Avg CTC (₹ Lakhs)",color_discrete_sequence=PALETTE)
+    fig.update_traces(textposition="outside")
+    fig=apply_chart_style(fig,title=" ", showlegend=False)
+    return agg, fig
+
+#===========
+# Metric 2
+#===========
+
+def median_ctc_by_joblevel(df, job_col="JobLevel", ctc_col="CTC"):
+    df=_safe_numeric(df,ctc_col); df=_ensure_joblevel_order(df,job_col)
+    agg=df.groupby(job_col,observed=True)[ctc_col].agg(["median","sum"]).reset_index()
+    agg["Total CTC (₹ Cr.)"]=(agg["sum"]/1e7).round(2)
+    agg["Median CTC (₹ Lakhs)"]=(agg["median"]/1e5).round(2)
+    agg=agg[[job_col,"Total CTC (₹ Cr.)","Median CTC (₹ Lakhs)"]]
+    fig=px.bar(agg,x=job_col,y="Median CTC (₹ Lakhs)",color=job_col,
+               text="Median CTC (₹ Lakhs)",color_discrete_sequence=PALETTE)
+    fig.update_traces(textposition="outside")
+    fig=apply_chart_style(fig,title=" ", showlegend=False)
+    return agg, fig
+
 #===========
 # Metric 3
 #===========
