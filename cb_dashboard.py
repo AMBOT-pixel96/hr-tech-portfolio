@@ -323,17 +323,46 @@ def hr_line(width=170*mm, thickness=0.6, color=colors.HexColor("#1E3A8A")):
 
 
 # === Generate User Guide ===
+from io import BytesIO
+from reportlab.platypus import (
+    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
+    ListFlowable, ListItem
+)
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
+from reportlab.lib.units import mm
+
+
+def hr_line(width=170*mm, thickness=0.6, color=colors.HexColor("#1E3A8A")):
+    """Blue divider line."""
+    line = Table([[""]], colWidths=[width], rowHeights=[thickness])
+    line.setStyle(TableStyle([
+        ("LINEABOVE", (0, 0), (-1, -1), thickness, color),
+        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+        ("TOPPADDING", (0, 0), (-1, -1), 2),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+    ]))
+    return line
+
+
 def generate_user_guide_pdf():
-    """Creates a professional single-page user guide with matte background."""
+    """Creates professional single-page User Guide (matte layout, true bullets)."""
     buf = BytesIO()
     doc = SimpleDocTemplate(
         buf,
         pagesize=A4,
-        rightMargin=18 * mm,
-        leftMargin=18 * mm,
-        topMargin=18 * mm,
-        bottomMargin=18 * mm,
+        rightMargin=18*mm,
+        leftMargin=18*mm,
+        topMargin=18*mm,
+        bottomMargin=18*mm,
     )
+
+    # Matte background setup
+    def on_page_bg(c, doc):
+        c.setFillColor(colors.HexColor("#F5F5F5"))
+        c.rect(0, 0, A4[0], A4[1], stroke=0, fill=1)
 
     styles = getSampleStyleSheet()
     body = ParagraphStyle(
@@ -342,8 +371,9 @@ def generate_user_guide_pdf():
         fontName="Helvetica",
         fontSize=10,
         leading=15,
-        spaceAfter=6,
         textColor=colors.black,
+        leftIndent=15,
+        spaceAfter=6,
     )
     heading = ParagraphStyle(
         "heading",
@@ -355,16 +385,14 @@ def generate_user_guide_pdf():
 
     story = []
 
-    # --- Matte Background ---
-    from reportlab.pdfgen import canvas
-    def on_page_bg(c, doc):
-        c.setFillColor(colors.HexColor("#F5F5F5"))
-        c.rect(0, 0, A4[0], A4[1], stroke=0, fill=1)
-
-    # === HEADER ===
-    story.append(Spacer(1, 40))
-    story.append(Paragraph("<para align=center><font size=20><b>Compensation & Benefits Dashboard</b></font></para>", heading))
-    story.append(Paragraph("<para align=center><font size=12>User Guide & Reference Manual</font></para>", body))
+    # === Header ===
+    story.append(Spacer(1, 35))
+    story.append(Paragraph(
+        "<para align=center><font size=20><b>Compensation & Benefits Dashboard</b></font></para>", heading
+    ))
+    story.append(Paragraph(
+        "<para align=center><font size=12>User Guide & Reference Manual (v1.3)</font></para>", body
+    ))
     story.append(Spacer(1, 20))
     story.append(hr_line())
     story.append(Spacer(1, 10))
@@ -372,15 +400,13 @@ def generate_user_guide_pdf():
     # === 1. Introduction ===
     story.append(Paragraph("1. Introduction", heading))
     story.append(Paragraph("""
-This dashboard delivers board-ready insights on pay, performance, and equity across job levels, departments, and demographics.
-It enables HR and leadership teams to visualize and analyze compensation data in real time while exporting professional-grade reports.
+This dashboard delivers board-ready insights on pay, performance, and equity across job levels,
+departments, and demographics. It enables HR and leadership teams to visualize and analyze
+compensation data in real time while exporting professional-grade reports.
 """, body))
-
     story.append(hr_line())
 
-    from reportlab.platypus import ListFlowable, ListItem
-
-# === 2. Data Formatting Rules ===
+    # === 2. Data Formatting Rules ===
     story.append(Paragraph("2. Data Formatting Rules", heading))
     rules = [
         "Use the provided CSV templates for internal and benchmark data.",
@@ -390,8 +416,10 @@ It enables HR and leadership teams to visualize and analyze compensation data in
     ]
     story.append(ListFlowable(
         [ListItem(Paragraph(r, body), bulletText="•") for r in rules],
-        bulletType='bullet',
-        start='bullet'
+        bulletFontName="Helvetica-Bold",
+        bulletFontSize=10,
+        leftIndent=25,
+        bulletType="bullet"
     ))
     story.append(hr_line())
 
@@ -406,46 +434,54 @@ It enables HR and leadership teams to visualize and analyze compensation data in
     ]
     story.append(ListFlowable(
         [ListItem(Paragraph(m, body), bulletText="•") for m in metrics],
-        bulletType='bullet',
-        start='bullet'
+        bulletFontName="Helvetica-Bold",
+        bulletFontSize=10,
+        leftIndent=25,
+        bulletType="bullet"
     ))
     story.append(hr_line())
 
     # === 4. Chatbot Usage ===
     story.append(Paragraph("4. Chatbot Usage", heading))
+    story.append(Paragraph(
+        "The chatbot allows conversational insights using natural queries. Examples include:", body
+    ))
     chat_examples = [
-        '"Average CTC for Senior Managers"',
-        '"Bonus % for Directors in Finance"',
-        '"Show gender pay gap by department"'
+        "Average CTC for Senior Managers",
+        "Bonus % for Directors in Finance",
+        "Show gender pay gap by department"
     ]
-    story.append(Paragraph("The Chatbot allows conversational insights using natural queries. Examples include:", body))
     story.append(ListFlowable(
         [ListItem(Paragraph(e, body), bulletText="•") for e in chat_examples],
-        bulletType='bullet',
-        start='bullet'
+        bulletFontName="Helvetica-Bold",
+        bulletFontSize=10,
+        leftIndent=25,
+        bulletType="bullet"
     ))
-    story.append(Paragraph("Multiple filters such as Job Level, Department, and Rating are supported.", body))
+    story.append(Paragraph(
+        "Multiple filters such as Job Level, Department, and Rating are supported.", body
+    ))
     story.append(hr_line())
+
     # === 5. Limitations & Disclaimer ===
     story.append(Paragraph("5. Limitations & Disclaimer", heading))
     story.append(Paragraph("""
-This dashboard is for analytical and presentation purposes only.
-Insights depend on the accuracy and completeness of input data.
-Always validate results before using for compensation decisions.
+This dashboard is for analytical and presentation purposes only. Insights depend on the accuracy
+and completeness of input data. Always validate results before using for compensation decisions.
 All visuals are confidential and not for redistribution outside authorized use.
 """, body))
-
     story.append(hr_line())
 
     # === Footer ===
-    story.append(Spacer(1, 20))
-    story.append(Paragraph("<para align=center><font size=9 color='#1E3A8A'><b>Prepared by Amlan Mishra | © 2025 HR Tech Portfolio</b></font></para>", body))
+    story.append(Spacer(1, 15))
+    story.append(Paragraph(
+        "<para align=center><font size=9 color='#1E3A8A'><b>Prepared by Amlan Mishra | © 2025 HR Tech Portfolio</b></font></para>",
+        body
+    ))
 
-    # --- Build PDF ---
+    # === Build PDF ===
     doc.build(story, onFirstPage=on_page_bg, onLaterPages=on_page_bg)
     return buf.getvalue()
-
-
 # === Streamlit Button ===
 if st.button("📘 Download User Guide (PDF)"):
     pdf_bytes = generate_user_guide_pdf()
