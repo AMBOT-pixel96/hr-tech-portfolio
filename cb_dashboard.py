@@ -514,58 +514,51 @@ if bm:
         st.stop()
 
 # ==========================
-# EN2 — Job Level Sequencing Input (v2.1 Sleek Touch Mode)
+# EN2 — Job Level Sequencing Input (v3.0 Shadow Reorder System)
 # ==========================
 st.subheader("⚙️ Step 2.5 — Define Job Level Hierarchy")
 
+# Load from current state or dataset
 job_levels = sorted(emp_df["JobLevel"].dropna().unique().tolist())
 
 if "job_order" not in st.session_state:
     st.session_state.job_order = job_levels
 
-job_order = st.session_state.job_order.copy()
+temp_order = st.session_state.job_order.copy()
 
-st.markdown("Reorder your job levels using the **Move Up / Move Down** buttons (touch-friendly).")
+st.markdown(
+    "Reorder job levels below using the Move Up / Move Down buttons. "
+    "Changes are stored locally until you hit **Apply Order**."
+)
 
-# --- Compact, clean layout ---
-for i, level in enumerate(job_order):
+for i, level in enumerate(temp_order):
     cols = st.columns([8, 2, 2])
-    with cols[0]:
-        st.markdown(f"<div style='font-size:15px; padding-top:6px;'>**{i+1}. {level}**</div>", unsafe_allow_html=True)
+    cols[0].markdown(f"<div style='font-size:15px;padding-top:6px;'>{i+1}. {level}</div>", unsafe_allow_html=True)
     with cols[1]:
         if st.button("▲", key=f"up_{i}", use_container_width=True):
             if i > 0:
-                job_order[i-1], job_order[i] = job_order[i], job_order[i-1]
-                st.session_state.job_order = job_order
-                st.rerun()
+                temp_order[i-1], temp_order[i] = temp_order[i], temp_order[i-1]
     with cols[2]:
         if st.button("▼", key=f"down_{i}", use_container_width=True):
-            if i < len(job_order)-1:
-                job_order[i+1], job_order[i] = job_order[i], job_order[i+1]
-                st.session_state.job_order = job_order
-                st.rerun()
+            if i < len(temp_order)-1:
+                temp_order[i+1], temp_order[i] = temp_order[i], temp_order[i+1]
 
-# --- Save back to session ---
-st.session_state.job_order = job_order
+# --- Apply order (commit once) ---
+if st.button("✅ Apply Order", use_container_width=True):
+    st.session_state.job_order = temp_order
+    st.success(f"Updated hierarchy applied: {', '.join(temp_order)}")
 
-# --- Display summary ---
-st.info(f"✅ Custom hierarchy set:\n\n**{', '.join(job_order)}**")
-
-st.caption(
-    "💡 Tip: Tap ▲ or ▼ beside each level to reorder as per your internal hierarchy "
-    "(e.g., Analyst → Sr Manager → Director)."
-)
-
-# --- Restore Default Order ---
+# --- Restore Default ---
 default_order = [
     "Analyst", "Assistant Manager", "Manager", "Senior Manager",
     "Associate Partner", "Director", "Executive", "Senior Executive"
 ]
-
 if st.button("↩️ Restore Default Order", use_container_width=True):
     st.session_state.job_order = default_order
-    st.success(f"Default hierarchy restored:\n\n**{', '.join(default_order)}**")
-    st.rerun()
+    st.success(f"Default hierarchy restored: {', '.join(default_order)}")
+
+# --- Display current state ---
+st.info(f"Current hierarchy (active for analysis):\n\n{', '.join(st.session_state.job_order)}")
 
 # --- Global override ---
 def _ensure_joblevel_order(df, col="JobLevel"):
