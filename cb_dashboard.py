@@ -536,6 +536,9 @@ custom_order = edited_levels["Job Level Order"].tolist()
 # 🔒 Save to session for persistence & later reuse (EN3-ready)
 st.session_state["job_order"] = custom_order
 
+# Fallback in case of reload before EN3 persistence
+if "job_order_restored" not in st.session_state:
+    st.session_state["job_order_restored"] = custom_order
 # Confirmation & store
 st.info(
     f"✅ Custom hierarchy set for all analyses:\n\n"
@@ -571,6 +574,7 @@ def _ensure_joblevel_order(df, col="JobLevel"):
         df = df.copy()
         df[col] = pd.Categorical(df[col], categories=order, ordered=True)
     return df
+st.markdown("---")
 #===========
 # Metric 1
 #===========
