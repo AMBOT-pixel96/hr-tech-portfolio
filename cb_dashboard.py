@@ -721,134 +721,175 @@ if st.button("🧾 Compile Selected Report"):
     else:
         buf = BytesIO()
         doc = SimpleDocTemplate(
-            buf, pagesize=A4, rightMargin=18*mm, leftMargin=18*mm, topMargin=20*mm, bottomMargin=20*mm
+            buf,
+            pagesize=A4,
+            rightMargin=18 * mm,
+            leftMargin=18 * mm,
+            topMargin=20 * mm,
+            bottomMargin=20 * mm,
         )
 
         styles = getSampleStyleSheet()
-        body = ParagraphStyle("body", parent=styles["Normal"], fontName=BODY_FONT, fontSize=10, leading=13)
+        body = ParagraphStyle(
+            "body",
+            parent=styles["Normal"],
+            fontName=BODY_FONT,
+            fontSize=10,
+            leading=13,
+        )
 
         story = []
 
         # === Cover Page ===
         story.append(Spacer(1, 80))
         story.append(
-            Paragraph("<para align=center><font size=24 color='#1E3A8A'><b>Compensation & Benefits Report</b></font></para>", body)
+            Paragraph(
+                "<para align=center><font size=24 color='#1E3A8A'><b>Compensation & Benefits Report</b></font></para>",
+                body,
+            )
         )
         story.append(Spacer(1, 24))
         story.append(
-            Paragraph("<para align=center><font size=12 color='#6B7280'>Boardroom-ready insights on pay, performance, and equity</font></para>", body)
+            Paragraph(
+                "<para align=center><font size=12 color='#6B7280'>Boardroom-ready insights on pay, performance, and equity</font></para>",
+                body,
+            )
         )
         story.append(Spacer(1, 40))
         story.append(
-            Paragraph(f"<para align=center><font size=11>Generated on: {datetime.now().strftime('%d-%b-%Y %H:%M')}</font></para>", body)
+            Paragraph(
+                f"<para align=center><font size=11>Generated on: {datetime.now().strftime('%d-%b-%Y %H:%M')}</font></para>",
+                body,
+            )
         )
         story.append(PageBreak())
 
         # === Table of Contents ===
         story.append(Paragraph("<b>Table of Contents</b>", styles["Heading2"]))
         story.append(Spacer(1, 6))
-        toc_data = [[f"{i}.", "".join(ch for ch in title if ord(ch) < 128)] for i, (title, _, _, _) in enumerate(selected, 1)]
+        toc_data = [
+            [f"{i}.", "".join(ch for ch in title if ord(ch) < 128)]
+            for i, (title, _, _, _) in enumerate(selected, 1)
+        ]
         toc_table = Table(toc_data, colWidths=[20 * mm, 150 * mm])
-        toc_table.setStyle(TableStyle([
-            ("BOX", (0, 0), (-1, -1), 0.5, colors.black),
-            ("GRID", (0, 0), (-1, -1), 0.25, colors.black),
-            ("FONTNAME", (0, 0), (-1, -1), BODY_FONT),
-            ("FONTSIZE", (0, 0), (-1, -1), 10),
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E5E7EB")),
-        ]))
+        toc_table.setStyle(
+            TableStyle(
+                [
+                    ("BOX", (0, 0), (-1, -1), 0.5, colors.black),
+                    ("GRID", (0, 0), (-1, -1), 0.25, colors.black),
+                    ("FONTNAME", (0, 0), (-1, -1), BODY_FONT),
+                    ("FONTSIZE", (0, 0), (-1, -1), 10),
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E5E7EB")),
+                ]
+            )
+        )
         story.append(toc_table)
         story.append(PageBreak())
 
         # === Section Pages ===
-insight_summary = []  # store insights here
-for title, desc, tbl, asset in selected:
-    safe_title = "".join(ch for ch in title if ord(ch) < 128)
-    story.append(PDFBookmark(sanitize_anchor(safe_title), safe_title))
-    story.append(Spacer(1, 10))
-    story.append(Paragraph(f"<b>{safe_title}</b>", styles["Heading2"]))
-    story.append(Spacer(1, 6))
-    if desc:
-        story.append(Paragraph(desc, body))
-        story.append(Spacer(1, 6))
-
-    # --- Compute insight BEFORE mutating tbl (important) ---
-    try:
-        # pass the original table as-is (not stringified) so generate_insight can coerce numerics
-        insight_text = generate_insight(safe_title, tbl.copy() if tbl is not None else pd.DataFrame(), safe_title.lower())
-        if not insight_text or "Unable" in insight_text:
-            raise ValueError("fallback")
-    except Exception:
-        insight_text = "Review trends across levels."
-
-    # --- Table rendering (stringified for PDF display) ---
-    if tbl is not None and not tbl.empty:
-        tbl_for_pdf = tbl.astype(str).fillna("")
-        data = [list(tbl_for_pdf.columns)] + tbl_for_pdf.values.tolist()
-        col_width = (A4[0] - 40) / len(tbl_for_pdf.columns)
-        t = Table(data, colWidths=[col_width] * len(tbl_for_pdf.columns), repeatRows=1)
-        t_style = TableStyle([
-            ("GRID", (0, 0), (-1, -1), 0.25, colors.black),
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#F3F4F6")),
-            ("FONTNAME", (0, 0), (-1, -1), BODY_FONT),
-            ("FONTSIZE", (0, 0), (-1, -1), 9),
-        ])
-        for r in range(1, len(data)):
-            if r % 2 == 0:
-                t_style.add("BACKGROUND", (0, r), (-1, r), colors.HexColor("#F9FAFB"))
-        t.setStyle(t_style)
-        story.append(t)
-        story.append(Spacer(1, 8))
-
-    # --- Image if available ---
-    try:
-        img_path = None
-        if isinstance(asset, dict):
-            img_path = asset.get("png", {}).get("path") if isinstance(asset.get("png"), dict) else None
-        if img_path and os.path.exists(img_path):
-            story.append(Spacer(1, 6))
-            story.append(RLImage(img_path, width=160 * mm, height=90 * mm))
+        insight_summary = []
+        for title, desc, tbl, asset in selected:
+            safe_title = "".join(ch for ch in title if ord(ch) < 128)
+            story.append(PDFBookmark(sanitize_anchor(safe_title), safe_title))
             story.append(Spacer(1, 10))
-    except Exception as e:
-        st.warning(f"⚠️ Could not embed chart for {title}: {e}")
+            story.append(Paragraph(f"<b>{safe_title}</b>", styles["Heading2"]))
+            story.append(Spacer(1, 6))
+            if desc:
+                story.append(Paragraph(desc, body))
+                story.append(Spacer(1, 6))
 
-    # --- Render Insight (already computed) ---
-    story.append(Paragraph(f"<font color='#2563EB'><i>Insight:</i></font> {insight_text}", body))
+            # Compute insight BEFORE converting to strings
+            try:
+                insight_text = generate_insight(
+                    safe_title,
+                    tbl.copy() if tbl is not None else pd.DataFrame(),
+                    safe_title.lower(),
+                )
+                if not insight_text or "Unable" in insight_text:
+                    raise ValueError("Fallback")
+            except Exception:
+                insight_text = "Review trends across levels."
 
-    # store for summary (wrap title & insight later)
-    insight_summary.append((safe_title, insight_text))
+            # Render table for PDF
+            if tbl is not None and not tbl.empty:
+                tbl_for_pdf = tbl.astype(str).fillna("")
+                data = [list(tbl_for_pdf.columns)] + tbl_for_pdf.values.tolist()
+                col_width = (A4[0] - 40) / len(tbl_for_pdf.columns)
+                t = Table(data, colWidths=[col_width] * len(tbl_for_pdf.columns), repeatRows=1)
+                t_style = TableStyle(
+                    [
+                        ("GRID", (0, 0), (-1, -1), 0.25, colors.black),
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#F3F4F6")),
+                        ("FONTNAME", (0, 0), (-1, -1), BODY_FONT),
+                        ("FONTSIZE", (0, 0), (-1, -1), 9),
+                    ]
+                )
+                for r in range(1, len(data)):
+                    if r % 2 == 0:
+                        t_style.add(
+                            "BACKGROUND", (0, r), (-1, r), colors.HexColor("#F9FAFB")
+                        )
+                t.setStyle(t_style)
+                story.append(t)
+                story.append(Spacer(1, 8))
 
-    story.append(PageBreak())
-# === Summary Page ===
-story.append(Paragraph("<b>📘 Executive Summary</b>", styles["Heading2"]))
-story.append(Spacer(1, 8))
+            # Add chart image
+            try:
+                img_path = None
+                if isinstance(asset, dict):
+                    img_path = (
+                        asset.get("png", {}).get("path")
+                        if isinstance(asset.get("png"), dict)
+                        else None
+                    )
+                if img_path and os.path.exists(img_path):
+                    story.append(Spacer(1, 6))
+                    story.append(RLImage(img_path, width=160 * mm, height=90 * mm))
+                    story.append(Spacer(1, 10))
+            except Exception as e:
+                st.warning(f"⚠️ Could not embed chart for {title}: {e}")
 
-summary_data = [["Metric Name", "Key Insight"]] + [
-    [Paragraph(name, body), Paragraph(insight, body)] for name, insight in insight_summary
-]
+            # Render insight and collect summary
+            story.append(
+                Paragraph(f"<font color='#2563EB'><i>Insight:</i></font> {insight_text}", body)
+            )
+            insight_summary.append((safe_title, insight_text))
+            story.append(PageBreak())
 
-summary_table = Table(summary_data, colWidths=[70 * mm, 100 * mm])
-summary_table.setStyle(TableStyle([
-    ("GRID", (0, 0), (-1, -1), 0.25, colors.black),
-    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E5E7EB")),
-    ("FONTNAME", (0, 0), (-1, -1), BODY_FONT),
-    ("FONTSIZE", (0, 0), (-1, -1), 9),
-    ("VALIGN", (0, 0), (-1, -1), "TOP"),
-    ("LEFTPADDING", (0, 0), (-1, -1), 6),
-    ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-]))
-story.append(summary_table)
-story.append(PageBreak())
+        # === Summary Page ===
+        story.append(Paragraph("<b>📘 Executive Summary</b>", styles["Heading2"]))
+        story.append(Spacer(1, 8))
+        summary_data = [["Metric Name", "Key Insight"]] + [
+            [Paragraph(name, body), Paragraph(insight, body)]
+            for name, insight in insight_summary
+        ]
+        summary_table = Table(summary_data, colWidths=[70 * mm, 100 * mm])
+        summary_table.setStyle(
+            TableStyle(
+                [
+                    ("GRID", (0, 0), (-1, -1), 0.25, colors.black),
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E5E7EB")),
+                    ("FONTNAME", (0, 0), (-1, -1), BODY_FONT),
+                    ("FONTSIZE", (0, 0), (-1, -1), 9),
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 6),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+                ]
+            )
+        )
+        story.append(summary_table)
+        story.append(PageBreak())
 
-# === Build PDF ===
-doc.build(story)
+        # === Build PDF ===
+        doc.build(story)
 
-# === Download ===
-st.download_button(
-    "⬇️ Download Compiled PDF (With Insights Summary)",
-    buf.getvalue(),
-    file_name="cb_dashboard_compiled.pdf",
-    mime="application/pdf",
-)
+        # === Download ===
+        st.download_button(
+            "⬇️ Download Compiled PDF (With Insights Summary)",
+            buf.getvalue(),
+            file_name="cb_dashboard_compiled.pdf",
+            mime="application/pdf",
+        )
 # -----------------------
 # Quick Chart Downloads (Stable v4.7)
 # -----------------------
