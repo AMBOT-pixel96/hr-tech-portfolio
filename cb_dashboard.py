@@ -813,24 +813,26 @@ if st.button("🧾 Compile Selected Report"):
                     story.append(Spacer(1, 10))
             except Exception as e:
                 st.warning(f"⚠️ Could not embed chart for {title}: {e}")
+# --- Auto Insight (DF3 Engine) ---
+try:
+    clean_title = "".join(ch for ch in title if ord(ch) < 128)  # remove emojis
+    insight_text = generate_insight(clean_title, tbl, clean_title.lower())
 
-            # --- Auto Insight (DF3 Engine) ---
-            try:
-                insight_text = generate_insight(title, tbl, title)
-                if not insight_text or "Unable" in insight_text:
-                    raise ValueError("Fallback")
-                story.append(
-                    Paragraph(
-                        f"<font color='#2563EB'><i>Insight:</i></font> {insight_text}", body
-                    )
-                )
-            except Exception:
-                story.append(
-                    Paragraph("<i>Insight:</i> Review trends across levels.", body)
-                )
+    if not insight_text or "Unable" in insight_text:
+        raise ValueError("Fallback")
 
-            story.append(PageBreak())
+    story.append(
+        Paragraph(
+            f"<font color='#2563EB'><i>Insight:</i></font> {insight_text}", body
+        )
+    )
 
+except Exception:
+    story.append(
+        Paragraph("<i>Insight:</i> Review trends across levels.", body)
+    )
+
+story.append(PageBreak())
         # === Build PDF ===
         doc.build(story)
 
