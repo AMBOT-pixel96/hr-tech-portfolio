@@ -31,11 +31,62 @@ from reportlab.lib.units import mm
 st.set_page_config(page_title="Compensation & Benefits Dashboard", layout="wide")
 TMP_DIR = "temp_charts_cb"
 os.makedirs(TMP_DIR, exist_ok=True)
+
 # -----------------------
-# App Header
+# Custom CSS & Animation (v4.8 UI Polish)
 # -----------------------
 st.markdown("""
-<div style="padding:20px;border-radius:12px;border:1px solid #ccc;text-align:center;
+<style>
+/* Fade-in animation */
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.fade-in {
+  animation: fadeIn 1.2s ease-in-out;
+}
+
+/* Badge styling */
+.badge {
+  display: inline-block;
+  padding: 5px 10px;
+  margin: 3px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+}
+.badge-gray { background-color: #4B5563; }
+.badge-blue { background-color: #2563EB; }
+.badge-red { background-color: #DC2626; }
+.badge-green { background-color: #65A30D; }
+.badge-yellow { background-color: #CA8A04; }
+
+/* Footer block */
+.footer {
+  text-align: center;
+  margin-top: 40px;
+  padding: 20px;
+  border-top: 1px solid #444;
+  color: #E5E7EB;
+  font-size: 13px;
+}
+.footer a {
+  color: #60A5FA;
+  text-decoration: none;
+  font-weight: 600;
+}
+.footer a:hover {
+  text-decoration: underline;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# -----------------------
+# App Header (fade-in + gradient)
+# -----------------------
+st.markdown("""
+<div class="fade-in" style="padding:20px;border-radius:12px;border:1px solid #ccc;text-align:center;
 background:linear-gradient(180deg,#0E1117 0%,#1E293B 100%);color:white;">
   <h1 style="margin:0;padding:0;font-size:32px;color:#F9FAFB;">📊 Compensation & Benefits Dashboard</h1>
   <p style="font-size:15px;margin-top:6px;color:#D1D5DB;">
@@ -45,6 +96,27 @@ background:linear-gradient(180deg,#0E1117 0%,#1E293B 100%);color:white;">
   color:#856404;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:600;
   border:1px solid #FFECB5;">⚠️ Session resets if idle >5 mins or reloaded. Download PDFs to save results.
   </div>
+</div>
+""", unsafe_allow_html=True)
+
+# -----------------------
+# Tech Stack Badges (C&B Dashboard v4.8)
+# -----------------------
+st.markdown("""
+<div class="fade-in" style="text-align:center; margin-top:15px;">
+
+  <div style="margin-bottom:6px;">
+    <span class="badge badge-gray">Python 3.10</span>
+    <span class="badge badge-red">Streamlit Dashboard</span>
+    <span class="badge badge-blue">Plotly Visuals</span>
+  </div>
+
+  <div>
+    <span class="badge badge-green">Pandas + NumPy</span>
+    <span class="badge badge-yellow">HR Compensation Analytics</span>
+    <span class="badge badge-gray">PDF Report Engine</span>
+  </div>
+
 </div>
 """, unsafe_allow_html=True)
 
