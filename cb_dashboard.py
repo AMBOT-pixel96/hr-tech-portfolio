@@ -605,7 +605,7 @@ st.subheader("💾 Step 3 — Session Persistence (Smart Save & Restore)")
 
 # --- Helper: Serialize & Restore session ---
 
-def save_session_state(filename="cb_session_state.json"):
+def save_session_state(filename=SESSION_FILE):
     """Save key session variables to local JSON file."""
     try:
         data = {
@@ -619,7 +619,7 @@ def save_session_state(filename="cb_session_state.json"):
     except Exception as e:
         st.error(f"⚠️ Error saving session: {e}")
 
-def load_session_state(filename="cb_session_state.json"):
+def load_session_state(filename=SESSION_FILE):
     """Load previously saved session data."""
     try:
         with open(filename, "r") as f:
@@ -652,7 +652,7 @@ if "messages" in st.session_state and st.session_state["messages"]:
 # EN3.1 — Auto Memory Mode (Live Sync)
 # ==========================
 
-AUTO_SAVE_FILE = "cb_session_state.json"
+AUTO_SAVE_FILE = SESSION_FILE
 
 def auto_save_session_state():
     """Automatically saves key session variables whenever they change."""
