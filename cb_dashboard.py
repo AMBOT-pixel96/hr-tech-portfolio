@@ -364,7 +364,7 @@ def generate_user_guide_pdf():
     # === HEADER ===
     story.append(Spacer(1, 40))
     story.append(Paragraph("<para align=center><font size=20><b>Compensation & Benefits Dashboard</b></font></para>", heading))
-    story.append(Paragraph("<para align=center><font size=12>User Guide & Reference Manual (v1.0)</font></para>", body))
+    story.append(Paragraph("<para align=center><font size=12>User Guide & Reference Manual</font></para>", body))
     story.append(Spacer(1, 20))
     story.append(hr_line())
     story.append(Spacer(1, 10))
@@ -384,7 +384,7 @@ It enables HR and leadership teams to visualize and analyze compensation data in
 Follow these formatting requirements to ensure accurate analytics:
 - Use the provided CSV templates for internal and benchmark data.
 - Column names must match the required headers exactly.
-- Numeric values (CTC, Bonus) should be in absolute ₹ amounts (not lakhs).
+- Numeric values (CTC, Bonus) should be in absolute INR amounts (not lakhs).
 - Blank or invalid values will be ignored automatically.
 """, body))
 
