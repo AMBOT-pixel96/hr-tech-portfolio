@@ -779,7 +779,7 @@ if st.button("🧾 Compile Selected Report"):
             # --- Auto Insight ---
             clean_title = "".join(ch for ch in title if ord(ch) < 128)
             try:
-                insight_text = generate_insight(clean_title, tbl, clean_title.lower())
+                insight_text = generate_insight(title, tbl, title)
                 if not insight_text or "Unable" in insight_text:
                     raise ValueError("Fallback")
                 story.append(Paragraph(f"<font color='#2563EB'><i>Insight:</i></font> {insight_text}", body))
