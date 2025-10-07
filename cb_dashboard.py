@@ -514,36 +514,45 @@ if bm:
         st.stop()
 
 # ==========================
-# EN2 — Job Level Sequencing Input (v3.0 Shadow Reorder System)
+# EN2 — Job Level Sequencing Input (v3.5 Async Local Moves)
 # ==========================
 st.subheader("⚙️ Step 2.5 — Define Job Level Hierarchy")
 
-# Load from current state or dataset
+# Initialize
 job_levels = sorted(emp_df["JobLevel"].dropna().unique().tolist())
 
 if "job_order" not in st.session_state:
     st.session_state.job_order = job_levels
 
+# Local mutable list (no immediate rerun)
 temp_order = st.session_state.job_order.copy()
 
 st.markdown(
-    "Reorder job levels below using the Move Up / Move Down buttons. "
-    "Changes are stored locally until you hit **Apply Order**."
+    "Reorder job levels using the buttons below. "
+    "All changes happen locally until you click **Apply Order** (no reruns per move)."
 )
 
+# --- Move logic (in-memory only) ---
+def move_up(i):
+    if i > 0:
+        temp_order[i - 1], temp_order[i] = temp_order[i], temp_order[i - 1]
+
+def move_down(i):
+    if i < len(temp_order) - 1:
+        temp_order[i + 1], temp_order[i] = temp_order[i], temp_order[i + 1]
+
+# --- Render UI ---
 for i, level in enumerate(temp_order):
     cols = st.columns([8, 2, 2])
     cols[0].markdown(f"<div style='font-size:15px;padding-top:6px;'>{i+1}. {level}</div>", unsafe_allow_html=True)
     with cols[1]:
-        if st.button("▲", key=f"up_{i}", use_container_width=True):
-            if i > 0:
-                temp_order[i-1], temp_order[i] = temp_order[i], temp_order[i-1]
+        if st.button("↑", key=f"up_{i}", use_container_width=True):
+            move_up(i)
     with cols[2]:
-        if st.button("▼", key=f"down_{i}", use_container_width=True):
-            if i < len(temp_order)-1:
-                temp_order[i+1], temp_order[i] = temp_order[i], temp_order[i+1]
+        if st.button("↓", key=f"down_{i}", use_container_width=True):
+            move_down(i)
 
-# --- Apply order (commit once) ---
+# --- Apply Order ---
 if st.button("✅ Apply Order", use_container_width=True):
     st.session_state.job_order = temp_order
     st.success(f"Updated hierarchy applied: {', '.join(temp_order)}")
@@ -557,12 +566,12 @@ if st.button("↩️ Restore Default Order", use_container_width=True):
     st.session_state.job_order = default_order
     st.success(f"Default hierarchy restored: {', '.join(default_order)}")
 
-# --- Display current state ---
-st.info(f"Current hierarchy (active for analysis):\n\n{', '.join(st.session_state.job_order)}")
+# --- Display active hierarchy ---
+st.info(f"Current hierarchy in use:\n\n{', '.join(st.session_state.job_order)}")
 
-# --- Global override ---
+# --- Global enforcement function ---
 def _ensure_joblevel_order(df, col="JobLevel"):
-    """Applies current hierarchy globally."""
+    """Apply hierarchy globally across all visuals."""
     order = st.session_state.get("job_order", default_order)
     if col in df.columns:
         df = df.copy()
