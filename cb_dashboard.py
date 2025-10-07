@@ -867,36 +867,30 @@ def run_chatbot_ui():
             metrics = ["Average CTC"]
 
         # ----------------------------------------------------
-        # Dynamic filter extraction
-        # ----------------------------------------------------
-        filters = {}
-        rating_col = "Rating"
-        for col_name, col_values in {
-            "JobLevel": df["JobLevel"].unique(),
-            "Department": df["Department"].unique(),
-            "Gender": df["Gender"].unique(),
-            rating_col: df[rating_col].unique(),
-        }.items():
-            for val in col_values:
-                if str(val).lower() in q:
-                    filters[col_name] = val
+# Dynamic filter extraction (v4.9.5 — multi-value support)
+# ----------------------------------------------------
+filters = {}
+rating_col = "Rating"
 
-        # Apply filters
-        if filters:
-            for k, v in filters.items():
-                df = df[df[k] == v]
+# 🔍 Build multi-value dictionary for filters
+for col_name, col_values in {
+    "JobLevel": df["JobLevel"].unique(),
+    "Department": df["Department"].unique(),
+    "Gender": df["Gender"].unique(),
+    rating_col: df[rating_col].unique(),
+}.items():
+    matches = [val for val in col_values if str(val).lower() in q]
+    if matches:
+        filters[col_name] = matches  # store list instead of single value
 
-        # Empty-check
-        if df.empty:
-            res = "⚠️ No matching records found. Try simplifying your question."
-            st.session_state["messages"].append({"role": "assistant", "content": res})
-            with st.chat_message("assistant"):
-                st.markdown(res)
-            return
+# 🧠 Apply filters with multi-value OR logic
+if filters:
+    for k, vals in filters.items():
+        df = df[df[k].isin(vals)]
 
-        # ----------------------------------------------------
+        # -----------------------
         # Metric logic blocks
-        # ----------------------------------------------------
+        # -----------------------
         for metric in metrics:
             chart = None
 
