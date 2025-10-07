@@ -593,6 +593,73 @@ for title, func, desc in last_metrics:
     # Save chart image (F–G)
     img_path = save_chart_image(title, fig)
     sections.append((title, desc, table, {"png": {"path": img_path}}))
+# ==========================
+# DF3 — Insight Engine (v5.0 Stable)
+# ==========================
+def generate_insight(title, df, metric_type):
+    """
+    Generates concise, data-driven insights for each metric type.
+    Returns a clean one-line summary.
+    """
+    try:
+        insight = ""
+        title_lower = title.lower()
+
+        # --- Average CTC / Median CTC ---
+        if "ctc" in metric_type.lower():
+            avg_val = df.select_dtypes(include=[np.number]).iloc[:, -1].mean()
+            top_row = df.iloc[df.iloc[:, -1].idxmax()]
+            insight = (
+                f"📈 {top_row[0]} leads with ₹{top_row[-1]:,.2f}L, "
+                f"~{(top_row[-1] / avg_val - 1) * 100:.1f}% above overall mean."
+            )
+
+        # --- Bonus % ---
+        elif "bonus" in metric_type.lower():
+            top = df.iloc[df["Bonus %"].idxmax()]
+            low = df.iloc[df["Bonus %"].idxmin()]
+            insight = (
+                f"🎁 Bonus % peaks at {top[0]} ({top['Bonus %']}%) "
+                f"and dips lowest at {low[0]} ({low['Bonus %']}%)."
+            )
+
+        # --- Gender Pay Gap ---
+        elif "gender" in metric_type.lower():
+            if "Gap %" in df.columns:
+                max_gap = df["Gap %"].max()
+                lvl = df.loc[df["Gap %"].idxmax(), "JobLevel"]
+                insight = f"⚖️ Gender gap is widest at {lvl}, at {max_gap:.1f}%."
+            else:
+                insight = "⚖️ Minor gender differences observed across levels."
+
+        # --- Market vs Company ---
+        elif "market" in metric_type.lower():
+            gap_mean = df["Gap %"].mean() if "Gap %" in df.columns else 0
+            below = df.loc[df["Gap %"] < 0, "JobLevel"].tolist()
+            if below:
+                insight = (
+                    f"📉 Company pay lags market for {', '.join(below)}, "
+                    f"avg gap {abs(gap_mean):.1f}%."
+                )
+            else:
+                insight = f"🚀 Company pay exceeds market by ~{gap_mean:.1f}% overall."
+
+        # --- Quartile Distribution ---
+        elif "quartile" in metric_type.lower():
+            high_q4 = df.loc[df["Q4"].idxmax(), "JobLevel"]
+            insight = f"🔢 Majority of high earners (Q4) at {high_q4} level."
+
+        # --- Rating ---
+        elif "rating" in metric_type.lower():
+            insight = "⭐ CTC rises steadily with higher performance ratings."
+
+        else:
+            insight = "🧭 Review key level-wise variations for actionable trends."
+
+        return insight
+
+    except Exception:
+        return "⚠️ Unable to auto-generate insight for this section."
 #----------------------
 # PDF Bookmark Helper
 # -----------------------
@@ -728,7 +795,8 @@ if st.button("🧾 Compile Selected Report"):
             except Exception as e:
                 st.warning(f"⚠️ Could not embed chart for {title}: {e}")
 
-            story.append(Paragraph("<i>Insight:</i> Review trends across levels.", body))
+            insight_text = generate_insight(title, tbl, title)
+story.append(Paragraph(f"<i>Insight:</i> {insight_text}", body))
             story.append(PageBreak())
 
         # === Build PDF ===
