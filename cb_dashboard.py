@@ -838,6 +838,8 @@ def run_chatbot_ui():
         res = "🤔 I'm not sure I understood that. Try asking about **CTC**, **Bonus %**, **Gender Gap**, **Market**, or **Rating**."
 
         df = emp_df.copy()
+if "PerformanceRating" in df.columns:
+    df = df.rename(columns={"PerformanceRating": "Rating"})
         metric, chart = None, None
 
         # --- Metric intent detection ---
