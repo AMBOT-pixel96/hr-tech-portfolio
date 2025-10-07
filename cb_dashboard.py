@@ -514,64 +514,46 @@ if bm:
         st.stop()
 
 # ==========================
-# EN2 — Job Level Sequencing Input
+# EN2 — Mobile-Friendly Job Level Reordering
 # ==========================
 st.subheader("⚙️ Step 2.5 — Define Job Level Hierarchy")
 
-# Extract unique job levels
 job_levels = sorted(emp_df["JobLevel"].dropna().unique().tolist())
 
-st.write("Reorder or modify the sequence of job levels as they appear in your reports:")
-default_order = job_levels  # fallback
+if "job_order" not in st.session_state:
+    st.session_state.job_order = job_levels
 
-# --- Interactive reorder UI ---
-edited_levels = st.data_editor(
-    pd.DataFrame({"Job Level Order": job_levels}),
-    hide_index=True,
-    num_rows="fixed",
-    use_container_width=True
-)
+job_order = st.session_state.job_order
 
-# --- Extract reordered list ---
-custom_order = edited_levels["Job Level Order"].tolist()
+st.write("Reorder your job levels using the ↑ and ↓ buttons (touch-friendly).")
 
-# 🔒 Save to session for persistence & later reuse (EN3-ready)
-st.session_state["job_order"] = custom_order
+for i, level in enumerate(job_order):
+    cols = st.columns([6, 1, 1])
+    cols[0].write(f"**{i+1}. {level}**")
 
-# Fallback in case of reload before EN3 persistence
-if "job_order_restored" not in st.session_state:
-    st.session_state["job_order_restored"] = custom_order
-# Confirmation & store
-st.info(
-    f"✅ Custom hierarchy set for all analyses:\n\n"
-    f"**{', '.join(custom_order)}**"
-)
-st.caption(
-    "💡 Tip: Drag rows in the table to reorder levels as per your internal hierarchy "
-    "(e.g., Analyst → Sr Manager → Director)."
-)
-# --- Restore Default Order ---
+    if cols[1].button("↑", key=f"up_{i}") and i > 0:
+        job_order[i-1], job_order[i] = job_order[i], job_order[i-1]
+    if cols[2].button("↓", key=f"down_{i}") and i < len(job_order)-1:
+        job_order[i+1], job_order[i] = job_order[i], job_order[i+1]
+
+# Save back to session
+st.session_state.job_order = job_order
+
+st.info(f"✅ Custom hierarchy set:\n\n**{', '.join(job_order)}**")
+
+# Restore Default button
 default_order = [
-    "Analyst",
-    "Assistant Manager",
-    "Manager",
-    "Senior Manager",
-    "Associate Partner",
-    "Director",
-    "Executive",
-    "Senior Executive"
+    "Analyst", "Assistant Manager", "Manager", "Senior Manager",
+    "Associate Partner", "Director", "Executive", "Senior Executive"
 ]
-
 if st.button("↩️ Restore Default Order"):
-    st.session_state["job_order_restored"] = default_order
+    st.session_state.job_order = default_order
     st.success(f"Default hierarchy restored: {', '.join(default_order)}")
-# --- Override _ensure_joblevel_order globally ---
+
+# Global override
 def _ensure_joblevel_order(df, col="JobLevel"):
-    """Applies custom or default job level order globally."""
-    order = (
-        st.session_state.get("job_order_restored", custom_order)
-        if custom_order else default_order
-    )
+    """Applies the current hierarchy globally."""
+    order = st.session_state.get("job_order", default_order)
     if col in df.columns:
         df = df.copy()
         df[col] = pd.Categorical(df[col], categories=order, ordered=True)
