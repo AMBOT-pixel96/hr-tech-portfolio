@@ -816,45 +816,101 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-#=================
-# Chatbot Section
-#=================
+# ==========================
+# DF2 — Chatbot Expansion (v4.9)
+# ==========================
 def run_chatbot_ui():
-    st.subheader("💬 C&B Data Chatbot")
-    if "messages" not in st.session_state: st.session_state["messages"]=[]
+    st.subheader("💬 C&B Data Chatbot — Smart HR Assistant (v4.9)")
+    if "messages" not in st.session_state:
+        st.session_state["messages"] = []
+
+    # Display chat history
     for msg in st.session_state["messages"]:
-        with st.chat_message(msg["role"]): st.markdown(msg["content"])
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
 
-    if prompt := st.chat_input("Ask about CTC, Bonus %, Gender Gap, Market vs Company..."):
-        q = prompt.lower(); st.session_state["messages"].append({"role":"user","content":prompt})
-        res = "🤔 Try asking about **average CTC**, **bonus %**, **gender gap**, or **market comparison**."
+    # --- Handle user query ---
+    if prompt := st.chat_input("Ask anything: e.g., 'Bonus % for Directors in Finance'"):
+        q = prompt.lower()
+        st.session_state["messages"].append({"role": "user", "content": prompt})
 
-        if "average" in q and "ctc" in q:
-            avg=emp_df.groupby("JobLevel")["CTC"].mean().reset_index()
-            avg["Lakhs"]=avg["CTC"].apply(readable_lakhs_number)
-            res=f"📊 **Average CTC by Level:**\n\n{avg.to_markdown(index=False)}"
-            st.plotly_chart(px.bar(avg,x="JobLevel",y="Lakhs",color="JobLevel",title="Average CTC (L)"))
+        # Default response
+        res = "🤔 I'm not sure I understood that. Try asking about **CTC**, **Bonus %**, **Gender Gap**, **Market**, or **Rating**."
 
+        df = emp_df.copy()
+        metric, chart = None, None
+
+        # --- Metric intent detection ---
+        if "bonus" in q:
+            df["Bonus %"] = np.where(df["CTC"] > 0, (df["Bonus"] / df["CTC"]) * 100, np.nan)
+            metric = "Bonus %"
+        elif "median" in q or "ctc" in q or "average" in q:
+            metric = "CTC"
         elif "gender" in q or "pay gap" in q:
-            g=emp_df.groupby(["JobLevel","Gender"])["CTC"].mean().reset_index()
-            g["Lakhs"]=g["CTC"].apply(readable_lakhs_number)
-            res=f"👫 **Gender Pay Gap:**\n\n{g.pivot(index='JobLevel',columns='Gender',values='Lakhs').to_markdown()}"
-            st.plotly_chart(px.bar(g,x="JobLevel",y="Lakhs",color="Gender",barmode="group"))
+            metric = "Gender Gap"
+        elif "market" in q:
+            metric = "Market"
+        elif "rating" in q or "performance" in q:
+            metric = "Rating"
 
-        elif "bonus" in q:
-            dfB=emp_df.assign(**{"Bonus %":(emp_df["Bonus"]/emp_df["CTC"]*100).round(2)})
-            res=f"🎁 **Bonus % by Level:**\n\n{dfB.groupby('JobLevel')['Bonus %'].mean().round(2).to_markdown()}"
-            st.plotly_chart(px.bar(dfB,x="JobLevel",y="Bonus %",color="JobLevel",title="Bonus %"))
+        # --- Apply filters dynamically ---
+        filters = {}
+        for level in df["JobLevel"].unique():
+            if str(level).lower() in q:
+                filters["JobLevel"] = level
+        for dept in df["Department"].unique():
+            if str(dept).lower() in q:
+                filters["Department"] = dept
+        for gender in df["Gender"].unique():
+            if str(gender).lower() in q:
+                filters["Gender"] = gender
+        for rating in df["PerformanceRating"].unique():
+            if str(rating).lower() in q:
+                filters["PerformanceRating"] = rating
 
-        elif "market" in q and bench_df is not None:
-            comp=emp_df.groupby("JobLevel")["CTC"].median().reset_index()
-            bench=bench_df.groupby("JobLevel")["MarketMedianCTC"].median().reset_index()
-            cmp=pd.merge(comp,bench,on="JobLevel",how="inner")
-            res=f"📉 **Company vs Market Median:**\n\n{cmp.to_markdown(index=False)}"
-            st.plotly_chart(px.line(cmp,x="JobLevel",y=["CTC","MarketMedianCTC"],title="Market Comparison"))
+        # --- Apply filters if found ---
+        if filters:
+            for k, v in filters.items():
+                df = df[df[k] == v]
 
-        st.session_state["messages"].append({"role":"assistant","content":res})
-        with st.chat_message("assistant"): st.markdown(res)
+        # --- Handle metric-specific logic ---
+        if metric == "CTC":
+            avg = df.groupby("JobLevel")["CTC"].mean().reset_index()
+            avg["CTC (₹ Lakhs)"] = (avg["CTC"] / 1e5).round(2)
+            res = f"📊 **Average CTC** by Job Level:\n\n{avg[['JobLevel', 'CTC (₹ Lakhs)']].to_markdown(index=False)}"
+            chart = px.bar(avg, x="JobLevel", y="CTC (₹ Lakhs)", color="JobLevel", text="CTC (₹ Lakhs)")
+        elif metric == "Bonus %":
+            bonus = df.groupby("JobLevel")["Bonus %"].mean().reset_index().round(2)
+            res = f"🎁 **Bonus % by Level:**\n\n{bonus.to_markdown(index=False)}"
+            chart = px.bar(bonus, x="JobLevel", y="Bonus %", color="JobLevel", text="Bonus %")
+        elif metric == "Gender Gap":
+            g = df.groupby(["JobLevel", "Gender"])["CTC"].mean().reset_index()
+            g["CTC (₹ Lakhs)"] = (g["CTC"] / 1e5).round(2)
+            res = f"👫 **Gender Pay Gap:**\n\n{g.pivot(index='JobLevel', columns='Gender', values='CTC (₹ Lakhs)').to_markdown()}"
+            chart = px.bar(g, x="JobLevel", y="CTC (₹ Lakhs)", color="Gender", barmode="group")
+        elif metric == "Market" and bench_df is not None:
+            comp = emp_df.groupby("JobLevel")["CTC"].median().reset_index()
+            bench = bench_df.groupby("JobLevel")["MarketMedianCTC"].median().reset_index()
+            cmp = pd.merge(comp, bench, on="JobLevel", how="inner")
+            cmp["Company (₹ L)"] = (cmp["CTC"] / 1e5).round(2)
+            cmp["Market (₹ L)"] = (cmp["MarketMedianCTC"] / 1e5).round(2)
+            res = f"📉 **Company vs Market Median:**\n\n{cmp[['JobLevel','Company (₹ L)','Market (₹ L)']].to_markdown(index=False)}"
+            chart = px.line(cmp, x="JobLevel", y=["Company (₹ L)", "Market (₹ L)"], markers=True)
+        elif metric == "Rating":
+            r = df.groupby(["JobLevel", "PerformanceRating"])["CTC"].mean().reset_index()
+            r["CTC (₹ Lakhs)"] = (r["CTC"] / 1e5).round(2)
+            res = f"⭐ **Average CTC by Rating:**\n\n{r.pivot(index='JobLevel', columns='PerformanceRating', values='CTC (₹ Lakhs)').to_markdown()}"
+            chart = px.bar(r, x="JobLevel", y="CTC (₹ Lakhs)", color="PerformanceRating", barmode="group")
 
+        # --- Return results ---
+        st.session_state["messages"].append({"role": "assistant", "content": res})
+        with st.chat_message("assistant"):
+            st.markdown(res)
+            if chart is not None:
+                chart = apply_chart_style(chart, title=" ", showlegend=True)
+                st.plotly_chart(chart, use_container_width=True)
+
+# Sidebar toggle
 st.sidebar.subheader("🤖 Chatbot Assistant")
-if st.sidebar.checkbox("Enable Chatbot", value=False): run_chatbot_ui()
+if st.sidebar.checkbox("Enable Chatbot (Smart Mode)", value=False):
+    run_chatbot_ui()
