@@ -378,44 +378,54 @@ It enables HR and leadership teams to visualize and analyze compensation data in
 
     story.append(hr_line())
 
-    # === 2. Data Formatting Rules ===
-    story.append(Paragraph("2. Data Formatting Rules", heading))
-    story.append(Paragraph("""
-Follow these formatting requirements to ensure accurate analytics:
-- Use the provided CSV templates for internal and benchmark data.
-- Column names must match the required headers exactly.
-- Numeric values (CTC, Bonus) should be in absolute INR amounts (not lakhs).
-- Blank or invalid values will be ignored automatically.
-""", body))
+    from reportlab.platypus import ListFlowable, ListItem
 
+# === 2. Data Formatting Rules ===
+    story.append(Paragraph("2. Data Formatting Rules", heading))
+    rules = [
+        "Use the provided CSV templates for internal and benchmark data.",
+        "Column names must match the required headers exactly.",
+        "Numeric values (CTC, Bonus) should be in absolute INR amounts (not lakhs).",
+        "Blank or invalid values will be ignored automatically."
+    ]
+    story.append(ListFlowable(
+        [ListItem(Paragraph(r, body), bulletText="•") for r in rules],
+        bulletType='bullet',
+        start='bullet'
+    ))
     story.append(hr_line())
 
     # === 3. Metric Explanations ===
     story.append(Paragraph("3. Metric Explanations", heading))
-    story.append(Paragraph("""
-Each metric reflects a distinct compensation lens:
-- Average / Median CTC — measures typical pay levels across job hierarchy.
-- Quartile Distribution — identifies pay spread and concentration.
-- Bonus % of CTC — shows incentive dispersion by role and level.
-- Gender & Rating Analysis — evaluates pay equity and performance correlation.
-- Market Comparison — benchmarks internal vs. external compensation medians.
-""", body))
-
+    metrics = [
+        "Average / Median CTC — measures typical pay levels across job hierarchy.",
+        "Quartile Distribution — identifies pay spread and concentration.",
+        "Bonus % of CTC — shows incentive dispersion by role and level.",
+        "Gender & Rating Analysis — evaluates pay equity and performance correlation.",
+        "Market Comparison — benchmarks internal vs. external compensation medians."
+    ]
+    story.append(ListFlowable(
+        [ListItem(Paragraph(m, body), bulletText="•") for m in metrics],
+        bulletType='bullet',
+        start='bullet'
+    ))
     story.append(hr_line())
 
     # === 4. Chatbot Usage ===
     story.append(Paragraph("4. Chatbot Usage", heading))
-    story.append(Paragraph("""
-The Chatbot allows conversational insights using natural queries.
-Examples:
-- "Average CTC for Senior Managers"
-- "Bonus % for Directors in Finance"
-- "Show gender pay gap by department"
-Multiple filters such as Job Level, Department, and Rating are supported.
-""", body))
-
+    chat_examples = [
+        '"Average CTC for Senior Managers"',
+        '"Bonus % for Directors in Finance"',
+        '"Show gender pay gap by department"'
+    ]
+    story.append(Paragraph("The Chatbot allows conversational insights using natural queries. Examples include:", body))
+    story.append(ListFlowable(
+        [ListItem(Paragraph(e, body), bulletText="•") for e in chat_examples],
+        bulletType='bullet',
+        start='bullet'
+    ))
+    story.append(Paragraph("Multiple filters such as Job Level, Department, and Rating are supported.", body))
     story.append(hr_line())
-
     # === 5. Limitations & Disclaimer ===
     story.append(Paragraph("5. Limitations & Disclaimer", heading))
     story.append(Paragraph("""
