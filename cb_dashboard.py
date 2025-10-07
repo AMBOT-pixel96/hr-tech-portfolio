@@ -260,16 +260,104 @@ def apply_chart_style(
         automargin=True,
     )
     return fig
+# =====================================================
+# Step 1 — Templates & Guide (v5.0 with User Guide PDF)
+# =====================================================
 st.header("Step 1 — Templates & Guide")
-c1,c2=st.columns(2)
+c1, c2 = st.columns(2)
+
 def get_employee_template_csv(): 
-    return pd.DataFrame([["E1001","Male","Finance","Analyst","Analyst",600000,50000,3]],
+    return pd.DataFrame([["E1001", "Male", "Finance", "Analyst", "Analyst", 600000, 50000, 3]],
         columns=EMP_REQUIRED).to_csv(index=False)
+
 def get_benchmark_template_csv(): 
-    return pd.DataFrame([["Analyst","Analyst",650000]],columns=BENCH_REQUIRED).to_csv(index=False)
-c1.download_button("📥 Internal Template",get_employee_template_csv(),"Internal_Template.csv")
-c2.download_button("📥 Benchmark Template",get_benchmark_template_csv(),"Benchmark_Template.csv")
-if not st.checkbox("✅ Templates downloaded"): st.stop()
+    return pd.DataFrame([["Analyst", "Analyst", 650000]],
+        columns=BENCH_REQUIRED).to_csv(index=False)
+
+c1.download_button("📥 Internal Template", get_employee_template_csv(), "Internal_Template.csv")
+c2.download_button("📥 Benchmark Template", get_benchmark_template_csv(), "Benchmark_Template.csv")
+
+# --- 📘 EN1: User Guide PDF ---
+def generate_user_guide_pdf():
+    buf = BytesIO()
+    doc = SimpleDocTemplate(buf, pagesize=A4, rightMargin=18*mm, leftMargin=18*mm, topMargin=20*mm, bottomMargin=20*mm)
+    styles = getSampleStyleSheet()
+    header = ParagraphStyle("Header", fontName="Helvetica-Bold", fontSize=16, textColor=colors.black, spaceAfter=12)
+    subheader = ParagraphStyle("Subheader", fontName="Helvetica-Bold", fontSize=13, textColor=colors.black, spaceAfter=6)
+    body = ParagraphStyle("Body", fontName="Helvetica", fontSize=10, textColor=colors.black, leading=14)
+
+    story = []
+    # Page 1 — Introduction
+    story.append(Paragraph("📘 Compensation & Benefits Dashboard — User Guide", header))
+    story.append(Paragraph("This dashboard helps HR professionals visualize, analyze, and benchmark pay and bonus data across job levels, departments, and performance ratings.", body))
+    story.append(Spacer(1, 12))
+    story.append(Paragraph("Use this guide to prepare your data, understand each metric, and make the most of the insights provided.", body))
+    story.append(PageBreak())
+
+    # Page 2 — Data Formatting Rules
+    story.append(Paragraph("📂 Data Formatting Rules", subheader))
+    story.append(Paragraph("<b>Internal Template Required Columns:</b> EmployeeID, Gender, Department, JobRole, JobLevel, CTC, Bonus, PerformanceRating", body))
+    story.append(Spacer(1, 6))
+    story.append(Paragraph("<b>Benchmark Template Required Columns:</b> JobRole, JobLevel, MarketMedianCTC", body))
+    story.append(Spacer(1, 6))
+    story.append(Paragraph("<font color='black' bgcolor='yellow'><b>⚠️ Do not rename or reorder columns.</b></font>", body))
+    story.append(Paragraph("Ensure numeric columns are in rupees, not lakhs or thousands.", body))
+    story.append(PageBreak())
+
+    # Page 3 — Metric Explanations
+    story.append(Paragraph("📊 Metric Explanations", subheader))
+    metrics = [
+        ["Average / Median CTC", "Shows pay trends across levels."],
+        ["Quartile Distribution", "Displays employee spread across four pay quartiles."],
+        ["Bonus %", "Average variable pay as % of total CTC."],
+        ["Market Comparison", "Compares internal medians vs external benchmarks."],
+        ["Gender Pay Gap", "Shows pay differences by gender across levels."],
+        ["CTC by Rating", "Highlights pay differentiation based on performance."]
+    ]
+    t = Table([["Metric", "Description"]] + metrics, colWidths=[60*mm, 110*mm])
+    t.setStyle(TableStyle([
+        ("GRID", (0,0), (-1,-1), 0.25, colors.black),
+        ("BACKGROUND", (0,0), (-1,0), colors.HexColor("#ECEBE8")),
+        ("FONTNAME", (0,0), (-1,-1), "Helvetica"),
+        ("FONTSIZE", (0,0), (-1,-1), 10)
+    ]))
+    story.append(t)
+    story.append(PageBreak())
+
+    # Page 4 — Chatbot Usage
+    story.append(Paragraph("🤖 Chatbot Usage Guide", subheader))
+    story.append(Paragraph("The Smart HR Assistant can answer data-specific questions like:", body))
+    story.append(Paragraph("• “Average CTC for Managers”", body))
+    story.append(Paragraph("• “Bonus % for Directors in Finance department”", body))
+    story.append(Paragraph("• “Gender pay gap for rating 4 employees”", body))
+    story.append(Spacer(1, 8))
+    story.append(Paragraph("💡 The chatbot uses contextual filters (Department, Level, Rating) and provides tables and charts in response.", body))
+    story.append(PageBreak())
+
+    # Page 5 — Disclaimer
+    story.append(Paragraph("⚖️ Limitations & Disclaimer", subheader))
+    story.append(Paragraph("• Session resets after 5 minutes of inactivity.", body))
+    story.append(Paragraph("• All numbers are rounded to two decimals.", body))
+    story.append(Paragraph("• Benchmark accuracy depends on uploaded dataset quality.", body))
+    story.append(Spacer(1, 12))
+    story.append(Paragraph("<para align=center>Prepared with ❤️ by <b>Amlan Mishra</b> | HR Tech Portfolio</para>", body))
+
+    doc.build(story)
+    return buf
+
+# --- 📥 Download User Guide Button ---
+if st.button("📘 Download User Guide (PDF)"):
+    pdf_buf = generate_user_guide_pdf()
+    st.download_button(
+        "⬇️ Download User Guide",
+        pdf_buf.getvalue(),
+        file_name="User_Guide_CB_Dashboard.pdf",
+        mime="application/pdf"
+    )
+
+# --- Continue workflow ---
+if not st.checkbox("✅ Templates downloaded"):
+    st.stop()
 
 st.header("Step 2 — Upload Data")
 col1,col2=st.columns(2)
