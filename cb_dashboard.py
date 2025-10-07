@@ -814,7 +814,6 @@ for title, desc, tbl, asset in selected:
     try:
         clean_title = "".join(ch for ch in title if ord(ch) < 128)
         insight_text = generate_insight(clean_title, tbl, clean_title.lower())
-
         if not insight_text or "Unable" in insight_text:
             raise ValueError("Fallback")
 
@@ -831,7 +830,7 @@ for title, desc, tbl, asset in selected:
 
     story.append(PageBreak())
 
-# ✅ OUTSIDE the loop (no indent!)
+# ✅ OUTSIDE the loop (same indent as “for”)
 # === Build PDF ===
 doc.build(story)
 
@@ -842,7 +841,6 @@ st.download_button(
     file_name="cb_dashboard_compiled.pdf",
     mime="application/pdf",
 )
-
 # -----------------------
 # Quick Chart Downloads (Stable v4.7)
 # -----------------------
