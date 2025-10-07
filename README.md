@@ -51,6 +51,8 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 
 <!-- REPO_TREE_START -->
 ```text
+├── .devcontainer
+│   └── devcontainer.json
 ├── README.md
 ├── app.py
 ├── backups
