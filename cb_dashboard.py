@@ -100,26 +100,42 @@ background:linear-gradient(180deg,#0E1117 0%,#1E293B 100%);color:white;">
 """, unsafe_allow_html=True)
 
 # -----------------------
-# Tech Stack Badges (C&B Dashboard v4.8)
+# Tech Stack + Links Section (v4.8 Final Aesthetic)
 # -----------------------
 st.markdown("""
-<div class="fade-in" style="text-align:center; margin-top:15px;">
+<div class="fade-in" style="text-align:center; margin-top:18px;">
 
-  <div style="margin-bottom:6px;">
-    <span class="badge badge-gray">Python 3.10</span>
-    <span class="badge badge-red">Streamlit Dashboard</span>
-    <span class="badge badge-blue">Plotly Visuals</span>
+  <!-- Tech Stack Row -->
+  <div style="margin-bottom:4px;">
+    <img src="https://img.shields.io/badge/Python-3.10-blue?style=for-the-badge&logo=python&logoColor=white" height="22">
+    <img src="https://img.shields.io/badge/Streamlit-App-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white" height="22">
+    <img src="https://img.shields.io/badge/Plotly-Visuals-239120?style=for-the-badge&logo=plotly&logoColor=white" height="22">
   </div>
 
-  <div>
-    <span class="badge badge-green">Pandas + NumPy</span>
-    <span class="badge badge-yellow">HR Compensation Analytics</span>
-    <span class="badge badge-gray">PDF Report Engine</span>
+  <!-- Data Stack Row -->
+  <div style="margin-bottom:4px;">
+    <img src="https://img.shields.io/badge/Pandas-Data%20Frame-150458?style=for-the-badge&logo=pandas&logoColor=white" height="22">
+    <img src="https://img.shields.io/badge/NumPy-Analysis-013243?style=for-the-badge&logo=numpy&logoColor=white" height="22">
+    <img src="https://img.shields.io/badge/HR%20Analytics-Compensation%20Insights-CA8A04?style=for-the-badge" height="22">
+  </div>
+
+  <!-- Utility Row -->
+  <div style="margin-bottom:8px;">
+    <img src="https://img.shields.io/badge/PDF%20Reports-WeasyPrint-4B5563?style=for-the-badge&logo=adobeacrobatreader&logoColor=white" height="22">
+  </div>
+
+  <!-- Profile Links -->
+  <div style="margin-top:8px;">
+    <a href="https://github.com/AMBOT-pixel96/hr-tech-portfolio" target="_blank">
+      <img src="https://img.shields.io/badge/GitHub-Portfolio-000000?style=for-the-badge&logo=github&logoColor=white" height="22">
+    </a>
+    <a href="https://www.linkedin.com/in/amlanm96/" target="_blank">
+      <img src="https://img.shields.io/badge/LinkedIn-Profile-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" height="22">
+    </a>
   </div>
 
 </div>
 """, unsafe_allow_html=True)
-
 # -----------------------
 # Required headers
 # -----------------------
