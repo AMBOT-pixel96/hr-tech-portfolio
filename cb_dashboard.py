@@ -864,9 +864,11 @@ def run_chatbot_ui():
         for gender in df["Gender"].unique():
             if str(gender).lower() in q:
                 filters["Gender"] = gender
-        for rating in df["PerformanceRating"].unique():
-            if str(rating).lower() in q:
-                filters["PerformanceRating"] = rating
+        # --- Handle rating column safely (PerformanceRating / Rating) ---
+rating_col = "PerformanceRating" if "PerformanceRating" in df.columns else "Rating"
+for rating in df[rating_col].unique():
+    if str(rating).lower() in q:
+        filters[rating_col] = rating
 
         # --- Apply filters if found ---
         if filters:
