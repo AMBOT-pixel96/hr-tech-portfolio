@@ -793,12 +793,12 @@ if st.button("🧾 Compile Selected Report"):
                     story.append(RLImage(img_path, width=160 * mm, height=90 * mm))
                     story.append(Spacer(1, 10))
             except Exception as e:
-                st.warning(f"⚠️ Could not embed chart for {title}: {e}")
+            st.warning(f"⚠️ Could not embed chart for {title}: {e}")
 
-            insight_text = generate_insight(title, tbl, title)
-story.append(Paragraph(f"<i>Insight:</i> {insight_text}", body))
-            story.append(PageBreak())
-
+        # --- Auto Insight (DF3 Engine) ---
+        insight_text = generate_insight(title, tbl, title)
+        story.append(Paragraph(f"<i>Insight:</i> {insight_text}", body))
+        story.append(PageBreak())
         # === Build PDF ===
         doc.build(story)
 
