@@ -611,21 +611,22 @@ class PDFBookmark(Flowable):
         except Exception:
             pass
 # ==========================
-# DF3.5 — Insight Engine + Executive Summary Page (v5.1 Final)
+# DF3.6 — Fixed Insight Engine (Smart Metric Detection)
 # ==========================
 def generate_insight(title, df, metric_type):
     """Smart Insight Generator — returns concise, data-driven insights."""
     try:
         insight = ""
-        title_lower = title.lower()
+        metric_type = metric_type.lower().replace("🏷️","").replace("📏","").replace("📊","") \
+                                        .replace("🎁","").replace("👫","").replace("⭐","").strip()
 
         # --- Average / Median CTC ---
         if "ctc" in metric_type:
             avg_val = df.select_dtypes(include=[np.number]).iloc[:, -1].mean()
             top_row = df.iloc[df.iloc[:, -1].idxmax()]
             insight = (
-                f"{top_row[0]} leads with ₹{top_row[-1]:,.2f}L "
-                f"— ~{(top_row[-1]/avg_val - 1)*100:.1f}% above the mean."
+                f"{top_row[0]} leads with ₹{top_row[-1]:,.2f}L, "
+                f"~{(top_row[-1] / avg_val - 1) * 100:.1f}% above the overall mean."
             )
 
         # --- Bonus % ---
@@ -642,9 +643,9 @@ def generate_insight(title, df, metric_type):
             if "Gap %" in df.columns:
                 lvl = df.loc[df["Gap %"].idxmax(), "JobLevel"]
                 val = df["Gap %"].max()
-                insight = f"Gender gap is widest at {lvl} — {val:.1f}%."
+                insight = f"Gender pay gap widest at {lvl} — {val:.1f}%."
             else:
-                insight = "Minor gender differences observed across levels."
+                insight = "Minor gender differences across levels."
 
         # --- Market vs Company ---
         elif "market" in metric_type:
@@ -658,23 +659,22 @@ def generate_insight(title, df, metric_type):
             else:
                 insight = "Market comparison data unavailable."
 
-        # --- Quartile ---
+        # --- Quartile Distribution ---
         elif "quartile" in metric_type:
             high_q4 = df.loc[df["Q4"].idxmax(), "JobLevel"]
-            insight = f"Majority of high earners (Q4) are at the {high_q4} level."
+            insight = f"Highest concentration of top earners (Q4) seen at {high_q4} level."
 
         # --- Rating ---
         elif "rating" in metric_type:
-            insight = "Higher performance ratings correspond to higher average CTC."
+            insight = "Higher performance ratings correspond to significantly higher CTC levels."
 
         else:
-            insight = "Level-wise variations observed with actionable insights possible."
+            insight = "Review key level-wise variations for actionable trends."
 
         return insight
-    except Exception:
-        return "Unable to auto-generate insight for this section."
 
-
+    except Exception as e:
+        return f"Unable to auto-generate insight for this section ({e})."
 # ==========================
 # PDF Export — v5.1 (With Summary Page)
 # ==========================
@@ -793,10 +793,24 @@ if st.button("🧾 Compile Selected Report"):
         # === Summary Page ===
         story.append(Paragraph("<b>📘 Executive Summary</b>", styles["Heading2"]))
         story.append(Spacer(1, 8))
-        summary_data = [["Metric Name", "Key Insight"]] + [
-            [name, insight] for name, insight in insight_summary
-        ]
-        summary_table = Table(summary_data, colWidths=[70 * mm, 100 * mm])
+       story.append(Paragraph("<b>📘 Executive Summary</b>", styles["Heading2"]))
+story.append(Spacer(1, 8))
+
+# Wrap text in Paragraph objects
+summary_data = [["Metric Name", "Key Insight"]] + [
+    [Paragraph(name, body), Paragraph(insight, body)] for name, insight in insight_summary
+]
+
+summary_table = Table(summary_data, colWidths=[70 * mm, 100 * mm])
+summary_table.setStyle(TableStyle([
+    ("GRID", (0, 0), (-1, -1), 0.25, colors.black),
+    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E5E7EB")),
+    ("FONTNAME", (0, 0), (-1, -1), BODY_FONT),
+    ("FONTSIZE", (0, 0), (-1, -1), 9),
+    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+]))
+story.append(summary_table)
+story.append(PageBreak())
         summary_table.setStyle(TableStyle([
             ("GRID", (0, 0), (-1, -1), 0.25, colors.black),
             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E5E7EB")),
