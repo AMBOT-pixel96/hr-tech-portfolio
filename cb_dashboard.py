@@ -995,17 +995,15 @@ def generate_insight(title, df, metric_type):
                 return f"Company pay exceeds market by ~{avg_gap:.1f}% overall."
             return "Market comparison data unavailable."
 
-        # --- Quartile distribution ---
-        if "quartile" in metric_type or all(q in df_orig.columns for q in ["Q1", "Q2", "Q3", "Q4"]):
-            # coerce Q4 to numeric safely
-            if "Q4" in df_orig.columns:
-                q4 = pd.to_numeric(df_orig["Q4"], errors="coerce")
-                if q4.dropna().empty:
-                    return "Quartile distribution present but non-numeric."
-                idx = q4.idxmax()
-                lvl = df_orig.loc[idx, "JobLevel"] if "JobLevel" in df_orig.columns else str(idx)
-                return f"Highest concentration of top earners (Q4) seen at {lvl} level."
-            return "Quartile data not structured as expected."
+        # --- 5️⃣ Quartile Distribution ---
+elif "quartile" in metric_type or all(q in df.columns for q in ["Q1","Q2","Q3","Q4"]):
+    # 🧹 Exclude Grand Total row from insight analysis
+    filtered = df[~df["JobLevel"].astype(str).str.lower().eq("grand total")].copy()
+    if not filtered.empty:
+        high_q4 = filtered.loc[filtered["Q4"].idxmax(), "JobLevel"]
+        insight = f"Highest concentration of top earners (Q4) seen at {high_q4} level."
+    else:
+        insight = "Quartile distribution data insufficient for meaningful insight."
 
         # --- Rating ---
         if "rating" in metric_type or "rating" in (c.lower() for c in df_orig.columns):
