@@ -760,6 +760,62 @@ for s in sections:
             )
 
 st.success("✅ Dashboard Loaded — All metrics now include images & clean legends.")
+
+# -----------------------
+# Footer — Executive Mirror Gradient (v4.8.4)
+# -----------------------
+st.markdown("""
+<style>
+.footer-container {
+  text-align: center;
+  margin-top: 40px;
+  padding: 25px 10px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  background: linear-gradient(180deg, #0E1117 0%, #1E293B 100%);
+  color: #E5E7EB;
+  font-size: 13px;
+  font-weight: 500;
+  animation: fadeIn 1.2s ease-in-out;
+}
+.footer-container a {
+  color: #60A5FA;
+  text-decoration: none;
+  font-weight: 600;
+  margin: 0 6px;
+}
+.footer-container a:hover {
+  text-decoration: underline;
+  color: #93C5FD;
+}
+.footer-icons {
+  margin-top: 6px;
+}
+.footer-icons img {
+  height: 18px;
+  margin: 0 4px;
+  vertical-align: middle;
+  opacity: 0.85;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.footer-icons img:hover {
+  transform: scale(1.1);
+  opacity: 1;
+}
+</style>
+
+<div class="footer-container fade-in">
+  <p>Prepared with ❤️ by <b>Amlan Mishra</b>  |  © 2025 HR Tech Portfolio</p>
+  <div class="footer-icons">
+    <a href="https://github.com/AMBOT-pixel96/hr-tech-portfolio" target="_blank">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" title="GitHub">
+    </a>
+    <a href="https://www.linkedin.com/in/amlanm96/" target="_blank">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linkedin/linkedin-original.svg" title="LinkedIn">
+    </a>
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
 #=================
 # Chatbot Section
 #=================
