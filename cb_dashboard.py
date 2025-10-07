@@ -473,7 +473,7 @@ All visuals are confidential and not for redistribution outside authorized use.
     story.append(hr_line())
 
     # === Footer ===
-    story.append(Spacer(1, 15))
+    story.append(Spacer(1, 8))
     story.append(Paragraph(
         "<para align=center><font size=9 color='#1E3A8A'><b>Prepared by Amlan Mishra | © 2025 HR Tech Portfolio</b></font></para>",
         body
