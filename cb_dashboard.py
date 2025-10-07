@@ -610,7 +610,7 @@ def generate_insight(title, df, metric_type):
             avg_val = df.select_dtypes(include=[np.number]).iloc[:, -1].mean()
             top_row = df.iloc[df.iloc[:, -1].idxmax()]
             insight = (
-                f"📈 {top_row[0]} leads with ₹{top_row[-1]:,.2f}L, "
+                f"{top_row[0]} leads with ₹{top_row[-1]:,.2f}L, "
                 f"~{(top_row[-1] / avg_val - 1) * 100:.1f}% above overall mean."
             )
 
@@ -619,7 +619,7 @@ def generate_insight(title, df, metric_type):
             top = df.iloc[df["Bonus %"].idxmax()]
             low = df.iloc[df["Bonus %"].idxmin()]
             insight = (
-                f"🎁 Bonus % peaks at {top[0]} ({top['Bonus %']}%) "
+                f"Bonus % peaks at {top[0]} ({top['Bonus %']}%) "
                 f"and dips lowest at {low[0]} ({low['Bonus %']}%)."
             )
 
@@ -628,9 +628,9 @@ def generate_insight(title, df, metric_type):
             if "Gap %" in df.columns:
                 max_gap = df["Gap %"].max()
                 lvl = df.loc[df["Gap %"].idxmax(), "JobLevel"]
-                insight = f"⚖️ Gender gap is widest at {lvl}, at {max_gap:.1f}%."
+                insight = f"Gender gap is widest at {lvl}, at {max_gap:.1f}%."
             else:
-                insight = "⚖️ Minor gender differences observed across levels."
+                insight = "Minor gender differences observed across levels."
 
         # --- Market vs Company ---
         elif "market" in metric_type.lower():
@@ -638,28 +638,28 @@ def generate_insight(title, df, metric_type):
             below = df.loc[df["Gap %"] < 0, "JobLevel"].tolist()
             if below:
                 insight = (
-                    f"📉 Company pay lags market for {', '.join(below)}, "
+                    f"Company pay lags market for {', '.join(below)}, "
                     f"avg gap {abs(gap_mean):.1f}%."
                 )
             else:
-                insight = f"🚀 Company pay exceeds market by ~{gap_mean:.1f}% overall."
+                insight = f"Company pay exceeds market by ~{gap_mean:.1f}% overall."
 
         # --- Quartile Distribution ---
         elif "quartile" in metric_type.lower():
             high_q4 = df.loc[df["Q4"].idxmax(), "JobLevel"]
-            insight = f"🔢 Majority of high earners (Q4) at {high_q4} level."
+            insight = f"Majority of high earners (Q4) at {high_q4} level."
 
         # --- Rating ---
         elif "rating" in metric_type.lower():
-            insight = "⭐ CTC rises steadily with higher performance ratings."
+            insight = "CTC rises steadily with higher performance ratings."
 
         else:
-            insight = "🧭 Review key level-wise variations for actionable trends."
+            insight = "Review key level-wise variations for actionable trends."
 
         return insight
 
     except Exception:
-        return "⚠️ Unable to auto-generate insight for this section."
+        return "Unable to auto-generate insight for this section."
 #----------------------
 # PDF Bookmark Helper
 # -----------------------
@@ -833,16 +833,18 @@ except Exception:
     )
 
 story.append(PageBreak())
-        # === Build PDF ===
-        doc.build(story)
 
-        # === Download Button ===
-        st.download_button(
-            "⬇️ Download Compiled PDF",
-            buf.getvalue(),
-            file_name="cb_dashboard_compiled.pdf",
-            mime="application/pdf",
-        )
+# ✅ Unindent this section (outside the 'for' loop)
+# === Build PDF ===
+doc.build(story)
+
+# === Download Button ===
+st.download_button(
+    "⬇️ Download Compiled PDF",
+    buf.getvalue(),
+    file_name="cb_dashboard_compiled.pdf",
+    mime="application/pdf",
+)
 # -----------------------
 # Quick Chart Downloads (Stable v4.7)
 # -----------------------
