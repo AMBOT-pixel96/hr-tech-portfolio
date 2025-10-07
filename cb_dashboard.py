@@ -794,12 +794,12 @@ if st.button("🧾 Compile Selected Report"):
 
     except Exception as e:
         st.warning(f"⚠️ Could not embed chart for {title}: {e}")
-
-    # --- Auto Insight (DF3 Engine) ---
+# --- Auto Insight (DF3 Engine) ---
     insight_text = generate_insight(title, tbl, title)
     story.append(Paragraph(f"<i>Insight:</i> {insight_text}", body))
     story.append(PageBreak())
 
+# (unindented one level — outside the loop for metrics)
 # === Build PDF ===
 doc.build(story)
 
