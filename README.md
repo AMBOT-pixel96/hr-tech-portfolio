@@ -59,10 +59,10 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │   └── sample.txt
 ├── cb_dashboard.py
 ├── cb_dashboard_artifacts
-│   ├── 4-Upload-Data.jpg
 │   ├── 5-Set-Job-Order.jpg
 │   ├── 6-Appy-Order.jpg
-│   └── ... (27 more)
+│   ├── 7-Session-Persistence.jpg
+│   └── ... (26 more)
 ├── data
 │   ├── Attrition_SQL_Predictions.csv
 │   ├── Comp_Analytics_Processed.csv
