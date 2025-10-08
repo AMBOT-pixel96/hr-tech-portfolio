@@ -60,6 +60,8 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 ├── cb_dashboard.py
 ├── cb_dashboard_artifacts
 │   ├── images
+│   │   ├── app_layout
+│   │   │   └── test
 │   │   └── test
 │   └── test
 ├── data
