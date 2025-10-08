@@ -59,10 +59,10 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │   └── sample.txt
 ├── cb_dashboard.py
 ├── cb_dashboard_artifacts
-│   ├── 1-App-Landing-Page.jpg
 │   ├── 2-Step-1-Download-Templates-Guides.jpg
 │   ├── 3-Guide.jpg
-│   └── ... (30 more)
+│   ├── 4-Upload-Data.jpg
+│   └── ... (29 more)
 ├── data
 │   ├── Attrition_SQL_Predictions.csv
 │   ├── Comp_Analytics_Processed.csv
