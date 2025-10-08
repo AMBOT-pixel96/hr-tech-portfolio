@@ -89,7 +89,7 @@ cb_dashboard_artifacts/
 | File | Description |
 |------|--------------|
 | [📗 CB_User_Guide.pdf](./exports/CB_User_Guide.pdf) | User Guide — Layout, Metrics, and Usage Rules |
-| [📙 CB_Report_Consolidated.pdf](./exports/CB_Report_consolidated.pdf) | Automatically generated executive summary report |
+| [📙 CB_Report_Consolidated.pdf](./exports/Cb_Report_consolidated.pdf) | Automatically generated executive summary report |
 
 ---
 
