@@ -63,6 +63,8 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │   │   ├── benchmarking_data_fakergen.xlsx
 │   │   ├── employee_compensation_fakergen.xlsx
 │   │   └── test
+│   ├── exports
+│   │   └── test
 │   └── images
 │       ├── app_layout
 │       │   ├── 1-App-Landing-Page.jpg
