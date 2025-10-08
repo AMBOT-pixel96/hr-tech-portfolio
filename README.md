@@ -64,6 +64,8 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │   │   ├── employee_compensation_fakergen.xlsx
 │   │   └── test
 │   ├── exports
+│   │   ├── CB_User_Guide.pdf
+│   │   ├── Cb_Report_consolidated.pdf
 │   │   └── test
 │   └── images
 │       ├── app_layout
