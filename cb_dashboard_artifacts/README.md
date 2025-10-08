@@ -145,18 +145,18 @@ The dashboard will open automatically at:
 
 ## 👤 Author
 
-Amlan Mishra
-Assistant Manager – Compensation & Benefits (Tech HR), KPMG India
-🔗[LinkedIn](https://www.linkedin.com/in/amlan-mishra-7aa70894)
-💻 [GitHub Portfolio](https://github.com/AMBOT-pixel96/hr-tech-portfolio)
+### Amlan Mishra
+### Assistant Manager – Compensation & Benefits (Tech HR), KPMG India
+### 🔗[LinkedIn](https://www.linkedin.com/in/amlan-mishra-7aa70894)
+### 💻 [GitHub Portfolio](https://github.com/AMBOT-pixel96/hr-tech-portfolio)
 
-Developer, HR Tech Strategist, and People Analytics Enthusiast.
-Building intelligent HR systems that blend analytics, automation, and design.
+*Developer, HR Tech Strategist, and People Analytics Enthusiast.*
+*Building intelligent HR systems that blend analytics, automation, and design.*
 
 
 ---
 
-📂 Back to Main Portfolio
+## 📂 Back to Main Portfolio
 
 Return to the main portfolio for additional HR Tech & People Analytics projects:
 [HR Tech Portfolio — Main Repository](../README.md)
