@@ -70,7 +70,7 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │       │   ├── 1-App-Landing-Page.jpg
 │       │   ├── 2-Step-1-Download-Templates-Guides.jpg
 │       │   ├── 3-Guide.jpg
-│       │   └── ... (7 more)
+│       │   └── ... (6 more)
 │       ├── chatbot
 │       │   ├── Chatbot-1.jpg
 │       │   ├── Chatbot-2.jpg
