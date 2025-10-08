@@ -57,8 +57,8 @@ cb_dashboard_artifacts/
 | 4️⃣ | Define Job Hierarchy | ![Hierarchy](./images/app_layout/5-Set-Job-Order.jpg) |
 | 5️⃣ | Apply Custom Order | ![Apply](./images/app_layout/6-Appy-Order.jpg) |
 | 6️⃣ | Session Persistence | ![Persistence](./images/app_layout/7-Session-Persistence.jpg) |
-| 7️⃣ | Export Reports | ![PDFs](./images/app_layout/8-PDF-Downloads.jpg) |
-
+| 7️⃣ | Export Reports | ![PDFs](./images/app_layout/8-PDF-Downloads-Section.jpg) |
+| 8️⃣ | Export Charts (PNGs) | ![PDFs](./images/app_layout/9-Image-Downloads-Section.jpg) |
 ---
 
 ## 📊 Key Metrics Showcase
