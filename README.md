@@ -59,28 +59,14 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │   └── sample.txt
 ├── cb_dashboard.py
 ├── cb_dashboard_artifacts
+│   ├── README.md
 │   ├── data
 │   │   ├── benchmarking_data_fakergen.xlsx
 │   │   └── employee_compensation_fakergen.xlsx
 │   ├── exports
 │   │   ├── CB_User_Guide.pdf
 │   │   └── Cb_Report_consolidated.pdf
-│   └── images
-│       ├── app_layout
-│       │   ├── 1-App-Landing-Page.jpg
-│       │   ├── 2-Step-1-Download-Templates-Guides.jpg
-│       │   ├── 3-Guide.jpg
-│       │   └── ... (6 more)
-│       ├── chatbot
-│       │   ├── Chatbot-1.jpg
-│       │   ├── Chatbot-2.jpg
-│       │   ├── Chatbot-3.jpg
-│       │   └── ... (3 more)
-│       └── metrics
-│           ├── Metric-1-Graph.jpg
-│           ├── Metric-1-Table-A.jpg
-│           ├── Metric-1-Table-B.jpg
-│           └── ... (12 more)
+│   └── ... (1 more)
 ├── data
 │   ├── Attrition_SQL_Predictions.csv
 │   ├── Comp_Analytics_Processed.csv
