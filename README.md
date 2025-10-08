@@ -66,7 +66,10 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │       │   ├── 3-Guide.jpg
 │       │   └── ... (5 more)
 │       ├── chatbot
-│       │   └── test
+│       │   ├── Chatbot-1.jpg
+│       │   ├── Chatbot-2.jpg
+│       │   ├── Chatbot-3.jpg
+│       │   └── ... (4 more)
 │       └── metrics
 │           ├── Metric-1-Graph.jpg
 │           ├── Metric-1-Table-A.jpg
