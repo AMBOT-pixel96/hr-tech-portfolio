@@ -66,7 +66,10 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │   │   │   ├── 3-Guide.jpg
 │   │   │   └── ... (5 more)
 │   │   └── metrics
-│   │       └── test
+│   │       ├── Metric-1-Graph.jpg
+│   │       ├── Metric-1-Table-A.jpg
+│   │       ├── Metric-1-Table-B.jpg
+│   │       └── ... (13 more)
 │   └── test
 ├── data
 │   ├── Attrition_SQL_Predictions.csv
