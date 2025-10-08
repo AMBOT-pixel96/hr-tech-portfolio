@@ -61,8 +61,7 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 ├── cb_dashboard_artifacts
 │   ├── data
 │   │   ├── benchmarking_data_fakergen.xlsx
-│   │   ├── employee_compensation_fakergen.xlsx
-│   │   └── test
+│   │   └── employee_compensation_fakergen.xlsx
 │   ├── exports
 │   │   ├── CB_User_Guide.pdf
 │   │   ├── Cb_Report_consolidated.pdf
