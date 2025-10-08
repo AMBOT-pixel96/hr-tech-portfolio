@@ -60,6 +60,8 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 ├── cb_dashboard.py
 ├── cb_dashboard_artifacts
 │   ├── data
+│   │   ├── benchmarking_data_fakergen.xlsx
+│   │   ├── employee_compensation_fakergen.xlsx
 │   │   └── test
 │   └── images
 │       ├── app_layout
