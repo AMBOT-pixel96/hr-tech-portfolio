@@ -58,6 +58,8 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 ├── backups
 │   └── sample.txt
 ├── cb_dashboard.py
+├── cb_dashboard_artifacts
+│   └── test.txt
 ├── data
 │   ├── Attrition_SQL_Predictions.csv
 │   ├── Comp_Analytics_Processed.csv
