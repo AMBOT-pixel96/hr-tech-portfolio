@@ -80,7 +80,7 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │           ├── Metric-1-Graph.jpg
 │           ├── Metric-1-Table-A.jpg
 │           ├── Metric-1-Table-B.jpg
-│           └── ... (13 more)
+│           └── ... (12 more)
 ├── data
 │   ├── Attrition_SQL_Predictions.csv
 │   ├── Comp_Analytics_Processed.csv
