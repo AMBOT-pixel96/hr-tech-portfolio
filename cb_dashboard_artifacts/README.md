@@ -30,7 +30,18 @@ An end-to-end HR Compensation Analytics App built for boardroom-ready insights �
 ## 🗂️ Repository Structure
 
 ```text
-cb_dashboard_artifacts/ │ ├── data/ │   ├── employee_compensation_data.csv │   └── benchmarking_data.csv │ ├── exports/ │   ├── CB_User_Guide.pdf │   └── CB_Report_consolidated.pdf │ ├── images/ │   ├── app_layout/ │   ├── metrics/ │   └── chatbot/ │ └── README.md   ← (this file)
+cb_dashboard_artifacts/ │ 
+├── data/ 
+│   ├── employee_compensation_data.csv 
+│   └── benchmarking_data.csv 
+│ ├── exports/ 
+│   ├── CB_User_Guide.pdf 
+│   └── CB_Report_consolidated.pdf 
+│ ├── images/ 
+│   ├── app_layout/ 
+│   ├── metrics/ 
+│   └── chatbot/ 
+│ └── README.md   ← (this file)
 ```
 ---
 
