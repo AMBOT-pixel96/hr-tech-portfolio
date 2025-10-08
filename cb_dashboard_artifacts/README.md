@@ -30,7 +30,8 @@ An end-to-end HR Compensation Analytics App built for boardroom-ready insights �
 ## 🗂️ Repository Structure
 
 ```text
-cb_dashboard_artifacts/ │ 
+cb_dashboard_artifacts/ 
+│ 
 ├── data/ 
 │   ├── employee_compensation_data.csv 
 │   └── benchmarking_data.csv 
