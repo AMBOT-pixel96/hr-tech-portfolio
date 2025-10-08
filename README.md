@@ -58,11 +58,6 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 ├── backups
 │   └── sample.txt
 ├── cb_dashboard.py
-├── cb_dashboard_artifacts
-│   ├── 7-Session-Persistence.jpg
-│   ├── Chatbot-1.jpg
-│   ├── Chatbot-2.jpg
-│   └── ... (24 more)
 ├── data
 │   ├── Attrition_SQL_Predictions.csv
 │   ├── Comp_Analytics_Processed.csv
