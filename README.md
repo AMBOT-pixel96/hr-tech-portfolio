@@ -59,18 +59,17 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │   └── sample.txt
 ├── cb_dashboard.py
 ├── cb_dashboard_artifacts
-│   ├── images
-│   │   ├── app_layout
-│   │   │   ├── 1-App-Landing-Page.jpg
-│   │   │   ├── 2-Step-1-Download-Templates-Guides.jpg
-│   │   │   ├── 3-Guide.jpg
-│   │   │   └── ... (5 more)
-│   │   └── metrics
-│   │       ├── Metric-1-Graph.jpg
-│   │       ├── Metric-1-Table-A.jpg
-│   │       ├── Metric-1-Table-B.jpg
-│   │       └── ... (13 more)
-│   └── test
+│   └── images
+│       ├── app_layout
+│       │   ├── 1-App-Landing-Page.jpg
+│       │   ├── 2-Step-1-Download-Templates-Guides.jpg
+│       │   ├── 3-Guide.jpg
+│       │   └── ... (5 more)
+│       └── metrics
+│           ├── Metric-1-Graph.jpg
+│           ├── Metric-1-Table-A.jpg
+│           ├── Metric-1-Table-B.jpg
+│           └── ... (13 more)
 ├── data
 │   ├── Attrition_SQL_Predictions.csv
 │   ├── Comp_Analytics_Processed.csv
