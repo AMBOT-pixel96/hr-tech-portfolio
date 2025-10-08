@@ -53,7 +53,7 @@ cb_dashboard_artifacts/
 |------|--------------|-------------|
 | 1️⃣ | App Landing Page | ![Landing](./images/app_layout/1-App-Landing-Page.jpg) |
 | 2️⃣ | Download Templates | ![Templates](./images/app_layout/2-Step-1-Download-Templates-Guides.jpg) |
-| 3️⃣ | Upload Internal Data | ![Upload](./images/app_layout/4-Upload-Data.jpg) |
+| 3️⃣ | Upload Data | ![Upload](./images/app_layout/4-Upload-Data.jpg) |
 | 4️⃣ | Define Job Hierarchy | ![Hierarchy](./images/app_layout/5-Set-Job-Order.jpg) |
 | 5️⃣ | Apply Custom Order | ![Apply](./images/app_layout/6-Appy-Order.jpg) |
 | 6️⃣ | Session Persistence | ![Persistence](./images/app_layout/7-Session-Persistence.jpg) |
