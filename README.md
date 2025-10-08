@@ -579,45 +579,87 @@ This project shows how HR teams can query their employee database (like an HRIS 
 
 ---
 
-## 📊 Project 9 (Sidequest 2): Compensation & Benefits Dashboard (v4.3)
+## 📊 Project 9 (Sidequest 2): Compensation & Benefits Dashboard
 
-**Objective:** Deliver a **Streamlit dashboard** for Compensation & Benefits analytics — from descriptive pay splits to market benchmarking — with **board-ready PDF reports**.  
+An executive-grade **HR Analytics & Insights App** built with **Streamlit** — delivering real-time pay analytics, **AI-powered chatbot querying**, automated **board-ready PDF exports**, and **smart session persistence**.
 
-**Why It Matters (Business Context):**  
-- Compensation is the largest HR cost driver (60–70% of OPEX).  
-- Leaders need **fast, reliable insights** into pay fairness, bonus distribution, gender equity, and market competitiveness.  
-- This dashboard automates C&B analysis → actionable outputs in seconds.  
+📂 [View Dashboard Artifacts & Documentation](./cb_dashboard_artifacts/README.md)  
+🔗 [Launch Live App on Streamlit](https://cb-dashboard.streamlit.app)
+
+---
+
+### 🎯 Objective
+To build a **Compensation & Benefits analytics system** that enables HR leaders to explore data conversationally, benchmark pay structures, and auto-generate boardroom reports — entirely within Streamlit.
+
+---
+
+### 💼 Why It Matters (Business Context)
+- Compensation is the **largest cost driver (≈70% of HR OPEX)** in organizations.  
+- Business heads need **rapid, narrative-ready insights** on fairness, bonus dispersion, and competitiveness.  
+- This app bridges analytics and storytelling — turning complex HR data into **explainable visuals + executive summaries**.
+
+---
 
 ### 🔑 Key Features
-1. **Upload Employee & Benchmark Data**  
-   - Strict header validation ensures HRIS-ready inputs.  
-2. **Per-Metric Insights**  
-   - Avg/Median CTC by level  
-   - Quartile distribution (donut)  
-   - Bonus % analysis  
-   - Gender pay splits + Gap %  
-   - Company vs Market benchmarking  
-   - Performance rating pay distribution  
-3. **Board-Ready Reports**  
-   - Export to PDF with zebra-styled tables, actionable summaries, cover + TOC.  
-   - One-click chart/image downloads.  
-   - Consolidated “Actionable Conclusions” page.  
 
-### 📈 Results (v4.3 — Final UAT Polish)
-- **Tables:** Clean layouts (gender, rating, quartile).  
-- **Charts:** Color-consistent, titles standardized, gender gap % visible.  
-- **Reports:** Styled PDF with per-metric insights and consolidated summary.  
-- **Deployability:** Streamlit-ready, recruiter-demo friendly.  
+#### 🧩 Data & Setup
+- Upload **Internal** and **Benchmark** datasets (CSV/XLSX).  
+- **Header validation** ensures HRIS alignment.  
+- Define job level hierarchy interactively with dropdown sequencing.  
+
+#### 🧠 Smart Analytics Engine
+- **Session Memory System** — auto-saves state, restores prior configurations seamlessly.  
+- **Auto-report generation** with consolidated visuals and summaries.  
+- **7 Core Metrics**:
+  - Avg & Median CTC  
+  - Bonus % of CTC  
+  - Quartile Distribution  
+  - Gender Pay Gap  
+  - Performance & Pay Correlation  
+  - Market Benchmarking  
+  - Distribution Insights by Role  
+
+#### 💬 AI Chatbot Assistant *(Sidequest 3 Integration)*
+- Conversational HR analytics powered by natural language queries.  
+- Generates instant text + visual responses (“What’s the gender pay gap for Managers?”).  
+- Supports job level, department, and rating filters for precise insights.  
+
+#### 📘 Reporting & Visualization
+- **Automated PDF Exports**: User Guide + Executive Summary Reports.  
+- **Zebra-styled tables**, **dark mode charts**, and **HR brand layout**.  
+- Dynamic images auto-saved to `/cb_dashboard_artifacts/images/`.  
+
+---
+
+### 📈 Results (v5.0 — Executive Edition)
+| Aspect | Highlights |
+|:--|:--|
+| **Interface** | Matte dark-mode layout with motion & badge polish |
+| **Chatbot** | Conversational analytics, HR query-to-visual conversion |
+| **Persistence** | Multi-layer memory — save, auto-save, auto-restore |
+| **PDF Engine** | Dual-mode WeasyPrint + ReportLab generation |
+| **Deployment** | Streamlit Cloud, mobile-tested, artifact-linked |
+| **Structure** | `/data`, `/images`, `/exports` + dedicated README |
+
+---
 
 ### 📂 Artifacts
-- [`cb_dashboard.py`](https://github.com/AMBOT-pixel96/hr-tech-portfolio/blob/main/cb_dashboard.py)  
-- [`requirements.txt`](https://github.com/AMBOT-pixel96/hr-tech-portfolio/blob/main/requirements.txt)  
+| File | Description |
+|------|--------------|
+| [`cb_dashboard.py`](https://github.com/AMBOT-pixel96/hr-tech-portfolio/blob/main/cb_dashboard.py) | Core dashboard logic |
+| [`cb_dashboard_artifacts/`](./cb_dashboard_artifacts/) | Data, visuals, PDFs, and app documentation |
+| [`requirements.txt`](https://github.com/AMBOT-pixel96/hr-tech-portfolio/blob/main/requirements.txt) | Dependencies for deployment |
+
+---
 
 ### ✅ Conclusions
-- Demonstrates ability to build **Compensation dashboards at consulting-grade polish**.  
-- Turns a sidequest into a **SaaS-level showcase project**.  
-- Validates **C&B domain expertise + HR Tech delivery skills**.
+- Combines **C&B domain expertise** with **AI-enabled HR Tech engineering**.  
+- Operates fully on Streamlit — **no Django/Flask backend** — mobile + cloud compatible.  
+- Demonstrates end-to-end product thinking: data → insight → narrative → PDF.  
+- Represents a **SaaS-grade HR Intelligence Tool** built solo, in a single-day sidequest.  
+
 ---
+
 ## 📊 Project 10: Attrition Explainability with SHAP (v1.0)
 
 **Objective:**  
