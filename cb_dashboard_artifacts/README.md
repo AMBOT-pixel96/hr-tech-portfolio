@@ -69,9 +69,9 @@ cb_dashboard_artifacts/
 | Median CTC | ![Median](./images/metrics/Metric-2-Graph.jpg) | ![Table](./images/metrics/Metric-2-Table.jpg) |
 | Bonus % of CTC | ![Bonus](./images/metrics/Metric-3-Graph.jpg) | ![Table](./images/metrics/Metric-3-Table.jpg) |
 | Quartile Distribution | ![Quartile](./images/metrics/Metric-4-Graph.jpg) | ![Table](./images/metrics/Metric-4-Table.jpg) |
-| Gender Pay Gap | ![Gender](./images/metrics/Metric-5-Graph.jpg) | ![Table](./images/metrics/Metric-5-Table.jpg) |
-| Performance & Pay | ![Perf](./images/metrics/Metric-6-Graph.jpg) | ![Table](./images/metrics/Metric-6-Table.jpg) |
-| Market Comparison | ![Market](./images/metrics/Metric-7-Graph.jpg) | ![Table](./images/metrics/Metric-7-Table.jpg) |
+| Market Comparison | ![Market](./images/metrics/Metric-5-Graph.jpg) | ![Table](./images/metrics/Metric-5-Table.jpg) |
+| Gender Pay Gap | ![Gender](./images/metrics/Metric-6-Graph.jpg) | ![Table](./images/metrics/Metric-6-Table.jpg) |
+| Performance & Pay | ![Perf](./images/metrics/Metric-7-Graph.jpg) | ![Table](./images/metrics/Metric-7-Table.jpg) |
 
 ---
 
