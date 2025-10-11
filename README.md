@@ -101,9 +101,9 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │   ├── Attrition_ModelComparision.ipynb
 │   └── ... (14 more)
 ├── people_analytics
-│   ├── Test.txt
 │   ├── modules
 │   │   └── test.txt
+│   ├── requirements.txt
 │   ├── templates
 │   │   └── test.txt
 │   └── ... (1 more)
