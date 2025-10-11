@@ -101,7 +101,9 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │   ├── Attrition_ModelComparision.ipynb
 │   └── ... (14 more)
 ├── people_analytics
-│   └── Test.txt
+│   ├── Test.txt
+│   └── modules
+│       └── test.txt
 ├── reports
 │   ├── Attrition_AdvancedModels_aa41c1310f907082a92a9e51b94010b5.pdf
 │   ├── Attrition_ModelComparision_009086358233572ffb338cf8f4ee6ab7.pdf
