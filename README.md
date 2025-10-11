@@ -102,7 +102,9 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │   └── ... (14 more)
 ├── people_analytics
 │   ├── Test.txt
-│   └── modules
+│   ├── modules
+│   │   └── test.txt
+│   └── utils
 │       └── test.txt
 ├── reports
 │   ├── Attrition_AdvancedModels_aa41c1310f907082a92a9e51b94010b5.pdf
