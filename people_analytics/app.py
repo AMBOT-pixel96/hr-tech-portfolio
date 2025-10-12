@@ -128,10 +128,10 @@ st.markdown("### 🧭 Explore Analytics Modules")
 
 tile_cols = st.columns(5)
 tiles = [
-    ("📈 Performance", "Analyze rating distribution, pay vs performance, skill correlation.", "modules/performance.py"),
-    ("💬 Engagement", "Upload survey data, measure engagement, identify hot-zones.", "modules/engagement.py"),
-    ("💰 Compensation", "Analyze pay fairness, bonus distribution, and market benchmarking.", "modules/compensation.py"),
-    ("📉 Attrition", "Explore exit trends, tenure analysis, and attrition hotspots.", "modules/attrition.py"),
+    ("📈 Performance", "Analyze rating distribution, pay vs performance, skill correlation.", "pages/performance.py"),
+    ("💬 Engagement", "Upload survey data, measure engagement, identify hot-zones.", "pages/engagement.py"),
+    ("💰 Compensation", "Analyze pay fairness, bonus distribution, and market benchmarking.", "pages/compensation.py"),
+    ("📉 Attrition", "Explore exit trends, tenure analysis, and attrition hotspots.", "pages/attrition.py"),
     ("🏢 Workforce & Talent", "Assess structure, spans, and skill inventory analytics.", "modules/workforce.py")
 ]
 
