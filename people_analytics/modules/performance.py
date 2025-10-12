@@ -1,0 +1,3 @@
+from modules.performance_module import run_performance_module
+
+run_performance_module()
