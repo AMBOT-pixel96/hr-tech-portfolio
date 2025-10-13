@@ -4,7 +4,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
 
-from utils.template_helper import render_download_template
 # ==============================
 # Performance Analytics Module
 # ==============================
@@ -16,28 +15,10 @@ def run_performance_module():
     Analyze employee performance patterns, identify high-potential clusters, 
     and understand how ratings relate to pay and skills.
     """)
-# --- Download Template Section ---
-sample_data = pd.DataFrame({
-    "EmployeeID": ["E001", "E002", "E003"],
-    "Department": ["Finance", "HR", "IT"],
-    "JobLevel": ["Analyst", "Manager", "Senior Manager"],
-    "Gender": ["Male", "Female", "Male"],
-    "PerformanceRating": [3, 4, 2],
-    "CTC": [600000, 900000, 750000]
-})
 
-render_download_template("Performance Data Template", sample_data, "Performance_Data_Template.csv")
-csv_data = sample_data.to_csv(index=False)
-st.download_button(
-    label="⬇️ Download Template CSV",
-    data=csv_data,
-    file_name="Performance_Data_Template.csv",
-    mime="text/csv",
-    use_container_width=True
-)
-st.caption("Use this format to prepare your input file for uploading.")
     # --- Upload Data ---
     st.subheader("📤 Upload Performance Data")
+
     perf_file = st.file_uploader("Upload Performance Data (CSV or Excel)", type=["csv", "xlsx"])
 
     if perf_file is None:
@@ -60,7 +41,6 @@ st.caption("Use this format to prepare your input file for uploading.")
         return
 
     st.dataframe(df.head(), use_container_width=True)
-
     # ==================================
     # 📊 METRICS A — Descriptive Insights
     # ==================================
