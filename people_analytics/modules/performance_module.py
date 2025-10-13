@@ -4,6 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
 
+from utils.template_helper import render_download_template
 # ==============================
 # Performance Analytics Module
 # ==============================
@@ -16,8 +17,6 @@ def run_performance_module():
     and understand how ratings relate to pay and skills.
     """)
 # --- Download Template Section ---
-st.subheader("📥 Download Performance Data Template")
-
 sample_data = pd.DataFrame({
     "EmployeeID": ["E001", "E002", "E003"],
     "Department": ["Finance", "HR", "IT"],
@@ -27,6 +26,7 @@ sample_data = pd.DataFrame({
     "CTC": [600000, 900000, 750000]
 })
 
+render_download_template("Performance Data Template", sample_data, "Performance_Data_Template.csv")
 csv_data = sample_data.to_csv(index=False)
 st.download_button(
     label="⬇️ Download Template CSV",
