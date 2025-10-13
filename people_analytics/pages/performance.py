@@ -1,4 +1,6 @@
+import streamlit as st
 from modules.performance_module import run_performance_module
+
 # --- Sidebar Customization ---
 with st.sidebar:
     st.markdown("""
@@ -28,10 +30,12 @@ with st.sidebar:
         transform: scale(1.03);
     }
     </style>
-    
+
     <p class="sidebar-title">🏆 Performance Module</p>
     <a class="sidebar-button" href="#" target="_self">Upload Data</a>
     <a class="sidebar-button" href="#" target="_self">Metrics View</a>
     <a class="sidebar-button" href="#" target="_self">Export & Reports</a>
     """, unsafe_allow_html=True)
+
+# --- Run the Module ---
 run_performance_module()
