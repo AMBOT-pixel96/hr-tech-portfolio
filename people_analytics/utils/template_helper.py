@@ -1,6 +1,24 @@
 import streamlit as st
 import pandas as pd
 
+# --- Unified Styling for All Download Buttons ---
+st.markdown("""
+<style>
+.stDownloadButton button {
+    background: linear-gradient(90deg, #1E3A8A, #3B82F6);
+    color: white !important;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 600;
+    transition: all 0.3s ease-in-out;
+}
+.stDownloadButton button:hover {
+    background: linear-gradient(90deg, #2563EB, #60A5FA);
+    transform: scale(1.03);
+}
+</style>
+""", unsafe_allow_html=True)
 def render_download_template(title: str, sample_data: pd.DataFrame, filename: str):
     """
     Reusable Download Template Section for all modules.
