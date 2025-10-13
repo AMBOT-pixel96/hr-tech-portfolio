@@ -39,3 +39,4 @@ with st.sidebar:
 
 # --- Run the Module ---
 run_performance_module()
+# --- End --- #
