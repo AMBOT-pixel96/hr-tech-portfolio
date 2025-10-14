@@ -2,133 +2,127 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import numpy as np
-
 from utils.template_helper import render_download_template
 
-# --- Config: expected columns (demo + Q1..Qn) ---
-DEFAULT_Q = 10
-DEMOGRAPHIC_COLS = ["EmployeeID", "Department", "JobLevel", "Gender"]
-
-def _detect_question_cols(df):
-    return [c for c in df.columns if c.upper().startswith("Q") and c[1:].isdigit()]
-
-def _validate_survey(df, min_questions=4):
-    missing = [c for c in DEMOGRAPHIC_COLS if c not in df.columns]
-    if missing:
-        return False, f"Missing demographic columns: {', '.join(missing)}"
-    qcols = _detect_question_cols(df)
-    if len(qcols) < min_questions:
-        return False, f"Not enough question columns found (need >= {min_questions}). Found: {len(qcols)}"
-    return True, qcols
+# ==============================
+# Engagement Analytics Module (v1.0)
+# ==============================
 
 def run_engagement_module():
-    st.header("💬 Employee Engagement")
+    st.header("💬 Employee Engagement Analytics")
 
-    st.markdown(
-        "Download the survey template, circulate it, and upload the filled responses. "
-        "Answers must be integers 1 (Strongly Disagree) — 5 (Strongly Agree)."
-    )
+    st.markdown("""
+    This module analyzes employee engagement survey data — from overall engagement levels 
+    to departmental heatmaps — based on a standard 1–5 Likert scale (1 = Strongly Disagree, 5 = Strongly Agree).
+    """)
 
-    # ---- Template download ----
-    st.subheader("📥 Download Survey Template")
-    num_q = st.number_input("Number of questions (template)", min_value=4, max_value=30, value=DEFAULT_Q, step=1)
-    template_bytes, template_name = render_download_template(num_questions=int(num_q))
-    st.download_button("Download Engagement Survey Template (Excel)", data=template_bytes, file_name=template_name, mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    # =========================
+    # 📥 Download Template
+    # =========================
+    st.subheader("📄 Step 1 — Download Engagement Survey Template")
 
-    st.markdown("---")
+    sample_data = pd.DataFrame({
+        "EmployeeID": ["E1001", "E1002"],
+        "Department": ["Finance", "HR"],
+        "JobLevel": ["Analyst", "Manager"],
+        "Gender": ["Male", "Female"],
+        "Q1": [5, 4],
+        "Q2": [4, 3],
+        "Q3": [3, 4],
+        "Q4": [5, 5],
+        "Q5": [4, 4],
+    })
+    render_download_template("Engagement Survey Template", sample_data, "Engagement_Survey_Template.csv")
 
-    # ---- Upload filled survey ----
-    st.subheader("📤 Upload Completed Survey")
-    uploaded = st.file_uploader("Upload filled survey (Excel/CSV)", type=["xlsx", "csv"])
-    if uploaded is None:
-        st.info("Upload a completed survey to run the analysis.")
+    # =========================
+    # 📤 Upload Completed Survey
+    # =========================
+    st.subheader("📤 Step 2 — Upload Completed Survey File")
+    uploaded = st.file_uploader("Upload filled survey (CSV only)", type=["csv"])
+
+    if not uploaded:
+        st.info("Please upload the completed survey file to proceed.")
         return
 
-    # Read file
     try:
-        if uploaded.name.endswith(".csv"):
-            df = pd.read_csv(uploaded)
-        else:
-            df = pd.read_excel(uploaded, engine="openpyxl")
+        df = pd.read_csv(uploaded)
+        st.success("✅ File uploaded successfully!")
+        st.dataframe(df.head(), use_container_width=True)
     except Exception as e:
-        st.error(f"Unable to read file: {e}")
+        st.error(f"Error reading file: {e}")
         return
 
-    st.write("Preview (first 5 rows):")
-    st.dataframe(df.head(), use_container_width=True)
+    # =========================
+    # 🧮 Validate and Analyze
+    # =========================
+    required_cols = ["EmployeeID", "Department", "JobLevel", "Gender"]
+    question_cols = [col for col in df.columns if col.startswith("Q")]
 
-    # Validate
-    ok, result = _validate_survey(df, min_questions=4)
-    if not ok:
-        st.error(result)
+    missing = [col for col in required_cols if col not in df.columns]
+    if missing:
+        st.error(f"Missing required columns: {', '.join(missing)}")
         return
-    qcols = result
-    st.success(f"Detected {len(qcols)} question columns: {', '.join(qcols[:10])}{'...' if len(qcols)>10 else ''}")
+    if not question_cols:
+        st.error("No question columns (Q1, Q2, etc.) found.")
+        return
 
-    # Cast questions to numeric and clip 1-5
-    for q in qcols:
+    # Convert to numeric
+    for q in question_cols:
         df[q] = pd.to_numeric(df[q], errors="coerce").clip(1, 5)
 
-    # Drop rows with all-NaN answers
-    df = df.dropna(subset=qcols, how="all")
-
+    # Drop invalid rows
+    df = df.dropna(subset=question_cols, how="all")
     if df.empty:
-        st.error("No valid response rows after processing question columns.")
+        st.error("No valid responses found after cleaning.")
         return
 
-    # ---- Engagement Index (per respondent) ----
-    df["EngagementIndex"] = df[qcols].mean(axis=1)  # 1-5 scale
+    # =========================
+    # 📊 Engagement Index Calculations
+    # =========================
+    df["EngagementIndex"] = df[question_cols].mean(axis=1)
     df["EngagementCategory"] = pd.cut(
         df["EngagementIndex"],
         bins=[0, 2.5, 3.5, 5],
         labels=["Low", "Moderate", "High"],
-        include_lowest=True
+        include_lowest=True,
     )
 
-    # Overall metrics
-    overall_index = df["EngagementIndex"].mean()
-    st.metric("Overall Engagement Index (1-5)", f"{overall_index:.2f}")
+    st.metric("Overall Engagement Index (1–5)", f"{df['EngagementIndex'].mean():.2f}")
 
-    # ---- Department-level averages ----
-    st.subheader("📊 Engagement by Department")
-    dept_avg = df.groupby("Department", observed=True)["EngagementIndex"].mean().reset_index().sort_values("EngagementIndex", ascending=False)
-    dept_avg["EngagementIndex"] = dept_avg["EngagementIndex"].round(2)
-    st.dataframe(dept_avg, use_container_width=True)
+    # Department summary
+    st.subheader("🏢 Engagement by Department")
+    dept_summary = df.groupby("Department", observed=True)["EngagementIndex"].mean().round(2).reset_index()
+    st.dataframe(dept_summary, use_container_width=True)
 
-    bar = px.bar(dept_avg, x="Department", y="EngagementIndex", text="EngagementIndex", title="Average Engagement by Department")
+    bar = px.bar(
+        dept_summary,
+        x="Department",
+        y="EngagementIndex",
+        text="EngagementIndex",
+        title="Average Engagement by Department",
+        color="Department",
+        color_discrete_sequence=px.colors.qualitative.Vivid
+    )
     st.plotly_chart(bar, use_container_width=True)
 
-    # ---- Question heatmap (which questions score high/low by dept) ----
-    st.subheader("🔎 Question Heatmap by Department")
-    # Pivot: dept x question average
-    heat_df = df.groupby("Department")[qcols].mean().reset_index().set_index("Department")
-    if heat_df.shape[0] == 0 or heat_df.shape[1] == 0:
-        st.info("Not enough data to build heatmap.")
-    else:
-        # plotly heatmap expects numeric matrix
-        fig = px.imshow(
-            heat_df.values,
-            x=heat_df.columns,
-            y=heat_df.index,
-            aspect="auto",
-            color_continuous_scale="RdYlGn_r",
-            origin="lower",
-            labels=dict(x="Question", y="Department", color="Avg Score"),
-            title="Average Question Scores by Department (1-5)"
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
-    # ---- Respondent distribution ----
-    st.subheader("👥 Responses Breakdown")
+    # Category distribution
+    st.subheader("🎯 Engagement Level Distribution")
     cat_counts = df["EngagementCategory"].value_counts().reindex(["High", "Moderate", "Low"]).fillna(0).astype(int)
-    p = px.pie(values=cat_counts.values, names=cat_counts.index, title="Engagement Category Distribution")
-    st.plotly_chart(p, use_container_width=True)
+    pie = px.pie(values=cat_counts.values, names=cat_counts.index, title="Engagement Category Breakdown")
+    st.plotly_chart(pie, use_container_width=True)
 
-    # ---- Download aggregated results ----
-    st.subheader("📤 Export Processed Data")
-    to_export = df[[*DEMOGRAPHIC_COLS, *qcols, "EngagementIndex", "EngagementCategory"]]
-    csv_bytes = to_export.to_csv(index=False).encode("utf-8")
-    st.download_button("Download Processed Responses (CSV)", csv_bytes, file_name="engagement_processed.csv", mime="text/csv")
+    # =========================
+    # 📤 Export Processed File
+    # =========================
+    st.subheader("📤 Step 3 — Export Processed Survey")
+    export_df = df[["EmployeeID", "Department", "JobLevel", "Gender", *question_cols, "EngagementIndex", "EngagementCategory"]]
+    csv_bytes = export_df.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        label="⬇️ Download Processed Engagement Data (CSV)",
+        data=csv_bytes,
+        file_name="Engagement_Processed.csv",
+        mime="text/csv",
+        use_container_width=True
+    )
 
-    st.success("✅ Engagement analysis complete.")
+    st.success("✅ Engagement analysis complete!")
