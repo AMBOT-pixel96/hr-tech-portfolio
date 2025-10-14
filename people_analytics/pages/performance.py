@@ -1,6 +1,6 @@
 import streamlit as st
 from modules.performance_module import run_performance_module
-
+from utils.template_helper import render_download_template
 # --- Sidebar Customization ---
 with st.sidebar:
     st.markdown("""
