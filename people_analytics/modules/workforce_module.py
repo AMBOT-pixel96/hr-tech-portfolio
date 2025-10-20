@@ -1,166 +1,165 @@
-# ============================================
-# modules/workforce_module.py — v1.0
-# Workforce & Talent Analytics Module
-# ============================================
-
+# modules/workforce_module.py — v1.0 | Workforce & Talent Planning + PDF Export
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 from utils.template_helper import render_download_template
-from utils.pdf_helper import render_pdf_download_button
+from utils.pdf_auto_exporter import export_module_report
 
 def run_workforce_module():
     st.markdown("""
-    <div style="padding:20px; border-radius:12px; background:linear-gradient(90deg,#0F766E,#14B8A6);
+    <div style="padding:20px; border-radius:12px; background:linear-gradient(90deg,#0B5E3D,#10B981);
                 color:white; text-align:center; margin-bottom:20px;">
-        <h2 style="margin:0;">🏢 Workforce & Talent Analytics</h2>
-        <p style="font-size:14px;margin-top:6px;">
-        Understand workforce structure, span of control, headcount mix, and cost distribution — all from one consolidated view.
+        <h2 style="margin:0;">🏢 Workforce & Talent Planning</h2>
+        <p style="font-size:14px; margin-top:6px;">
+            Headcount, manager spans, org pyramid and a lightweight skill inventory analysis.
         </p>
     </div>
     """, unsafe_allow_html=True)
 
-    # ==========================
-    # Step 1: Download Template
-    # ==========================
-    st.subheader("📄 Step 1 — Download Workforce Data Template")
+    # -----------------------
+    # Template download
+    # -----------------------
+    st.subheader("📄 Step 1 — Download Workforce Template")
+    sample = pd.DataFrame([
+        {"EmployeeID": "E1001", "ManagerID": "M001", "Department": "Finance", "JobLevel": "Analyst",
+         "JobRole": "Analyst", "Gender": "Male", "TenureMonths": 24, "CTC": 600000, "Skills": "Excel,PowerBI"}
+    ])
+    render_download_template("Workforce Data Template", sample, "Workforce_Template.csv")
 
-    sample_data = pd.DataFrame({
-        "EmployeeID": ["E1001", "E1002", "E1003"],
-        "Department": ["Finance", "IT", "HR"],
-        "JobLevel": ["Analyst", "Manager", "Director"],
-        "Gender": ["Male", "Female", "Male"],
-        "ManagerID": ["M001", "M002", "M003"],
-        "CTC": [600000, 1200000, 2500000],
-        "Skills": ["Excel;PowerBI", "Python;SQL", "Leadership;HRIS"]
-    })
-    render_download_template("Workforce Data Template", sample_data, "Workforce_Template.csv")
-
-    # ==========================
-    # Step 2: Upload Data
-    # ==========================
+    # -----------------------
+    # Upload
+    # -----------------------
     st.subheader("📤 Step 2 — Upload Workforce Dataset")
-    uploaded = st.file_uploader("Upload completed workforce dataset (CSV)", type=["csv"])
-
-    if not uploaded:
-        st.info("Please upload your workforce dataset to continue.")
+    wf_file = st.file_uploader(
+        "Upload Workforce Data (CSV or Excel)",
+        type=["csv", "xlsx", "text", "plain", "application/vnd.ms-excel"]
+    )
+    if wf_file is None:
+        st.info("Please upload workforce data (EmployeeID, ManagerID (optional), Department, JobLevel, Skills).")
         return
 
     try:
-        df = pd.read_csv(uploaded)
+        if wf_file.name.endswith(".csv"):
+            df = pd.read_csv(wf_file)
+        else:
+            df = pd.read_excel(wf_file, engine="openpyxl")
         st.success("✅ File uploaded successfully!")
-        st.dataframe(df.head(), use_container_width=True)
     except Exception as e:
         st.error(f"Error reading file: {e}")
         return
 
-    # ==========================
-    # Step 3: Validation
-    # ==========================
-    required_cols = ["EmployeeID", "Department", "JobLevel", "Gender", "ManagerID", "CTC"]
-    missing = [c for c in required_cols if c not in df.columns]
+    # -----------------------
+    # Validation
+    # -----------------------
+    required = ["EmployeeID", "Department", "JobLevel", "JobRole"]
+    missing = [c for c in required if c not in df.columns]
     if missing:
         st.error(f"Missing required columns: {', '.join(missing)}")
         return
 
-    df["CTC"] = pd.to_numeric(df["CTC"], errors="coerce")
-    df = df.dropna(subset=["CTC"])
+    st.dataframe(df.head(), use_container_width=True)
 
-    # ==========================
-    # Step 4: Headcount Overview
-    # ==========================
-    st.subheader("👥 Workforce Composition Overview")
+    # -----------------------
+    # Headcount / Pyramid
+    # -----------------------
+    st.subheader("📊 Headcount & Org Pyramid")
+    headcount = df.groupby("JobLevel", observed=True).size().reset_index(name="Headcount")
+    headcount = headcount.sort_values(by="Headcount", ascending=False)
+    st.dataframe(headcount, use_container_width=True)
 
-    total_employees = len(df)
-    avg_ctc = df["CTC"].mean() / 1e5
-    gender_split = df["Gender"].value_counts(normalize=True).mul(100).round(1).to_dict()
-
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Total Headcount", f"{total_employees:,}")
-    col2.metric("Average CTC (₹ Lakhs)", f"{avg_ctc:.2f}")
-    col3.metric("Gender Split", f"♂ {gender_split.get('Male',0)}% | ♀ {gender_split.get('Female',0)}%")
-
-    # --- Departmental Headcount
-    st.markdown("#### 🏢 Headcount by Department")
-    dept_count = df["Department"].value_counts().reset_index()
-    dept_count.columns = ["Department", "Headcount"]
-    fig_dept = px.bar(dept_count, x="Department", y="Headcount", color="Department",
-                      text="Headcount", title="Headcount by Department")
-    fig_dept.update_traces(textposition="outside")
-    st.plotly_chart(fig_dept, use_container_width=True)
-
-    # --- Job Level Pyramid
-    st.markdown("#### 🪜 Organization Pyramid by Job Level")
-    level_count = df["JobLevel"].value_counts().reset_index()
-    level_count.columns = ["JobLevel", "Headcount"]
-    level_count = level_count.sort_values(by="Headcount", ascending=True)
-
-    fig_pyramid = go.Figure(go.Bar(
-        y=level_count["JobLevel"],
-        x=level_count["Headcount"],
-        orientation="h",
-        text=level_count["Headcount"],
-        textposition="outside",
-        marker=dict(color="#0EA5E9")
-    ))
-    fig_pyramid.update_layout(title="Organization Pyramid (Headcount by Job Level)",
-                              xaxis_title="Headcount", yaxis_title="")
+    fig_pyramid = px.bar(headcount, x="Headcount", y="JobLevel", orientation="h", title="Headcount by Job Level", text="Headcount")
     st.plotly_chart(fig_pyramid, use_container_width=True)
 
-    # ==========================
-    # Step 5: Span of Control
-    # ==========================
-    st.subheader("🧩 Span of Control (Managers vs Directs)")
-    span = df.groupby("ManagerID", observed=True)["EmployeeID"].count().reset_index()
-    span.columns = ["ManagerID", "DirectReports"]
-
-    avg_span = span["DirectReports"].mean().round(1)
-    st.metric("Average Span of Control", f"{avg_span} reports per manager")
-
-    span_fig = px.histogram(span, x="DirectReports", nbins=10, color_discrete_sequence=["#14B8A6"],
-                            title="Span of Control Distribution")
-    st.plotly_chart(span_fig, use_container_width=True)
-
-    # ==========================
-    # Step 6: Workforce Cost Analysis
-    # ==========================
-    st.subheader("💰 Workforce Cost Analysis")
-
-    dept_cost = df.groupby("Department", observed=True)["CTC"].sum().reset_index()
-    dept_cost["CTC_Lakhs"] = (dept_cost["CTC"] / 1e5).round(2)
-    fig_cost = px.pie(dept_cost, values="CTC_Lakhs", names="Department", title="Departmental Cost Share (₹ Lakhs)")
-    st.plotly_chart(fig_cost, use_container_width=True)
-
-    # ==========================
-    # Step 7: Skills Inventory (Text-based Summary)
-    # ==========================
-    st.subheader("🧠 Skills Inventory Summary")
-    if "Skills" in df.columns:
-        skill_series = df["Skills"].dropna().str.split(";").explode().str.strip()
-        skill_count = skill_series.value_counts().head(10)
-        st.bar_chart(skill_count)
-        st.caption("Top 10 most common skills in the organization.")
+    # -----------------------
+    # Manager spans
+    # -----------------------
+    st.subheader("🧭 Manager Span Analysis")
+    if "ManagerID" in df.columns:
+        # managers who appear as ManagerID
+        mgr_counts = df.groupby("ManagerID", observed=True)["EmployeeID"].nunique().reset_index(name="DirectReports")
+        mgr_counts = mgr_counts.sort_values(by="DirectReports", ascending=False)
+        avg_span = mgr_counts["DirectReports"].mean() if not mgr_counts.empty else 0
+        st.metric("Average Span (direct reports per manager)", f"{avg_span:.2f}")
+        st.dataframe(mgr_counts.head(50), use_container_width=True)
+        fig_span = px.histogram(mgr_counts, x="DirectReports", nbins=20, title="Distribution of Manager Spans")
+        st.plotly_chart(fig_span, use_container_width=True)
     else:
-        st.info("No 'Skills' column found. Skipping skills inventory section.")
+        st.info("ManagerID column not found. Add ManagerID to compute spans.")
 
-    # ==========================
-    # Step 8: PDF Export
-    # ==========================
-    st.subheader("📄 Step 3 — Export Workforce Summary Report")
+    # -----------------------
+    # Skill inventory (light)
+    # -----------------------
+    st.subheader("🧠 Skill Inventory (Light)")
+    if "Skills" in df.columns:
+        # Skills assumed comma-separated; normalize
+        skills_series = (
+            df["Skills"].fillna("")
+              .astype(str)
+              .str.split(",")
+              .explode()
+              .str.strip()
+              .replace("", pd.NA)
+              .dropna()
+        )
+        if not skills_series.empty:
+            skills_count = skills_series.value_counts().reset_index()
+            skills_count.columns = ["Skill", "Count"]
+            st.dataframe(skills_count.head(30), use_container_width=True)
+            fig_sk = px.bar(skills_count.head(20), x="Skill", y="Count", title="Top Skills (by count)", text="Count")
+            fig_sk.update_layout(xaxis_tickangle=-35)
+            st.plotly_chart(fig_sk, use_container_width=True)
+        else:
+            st.info("No skill tokens found after parsing 'Skills' column.")
+    else:
+        st.info("Skills column not found. You can add a comma-separated 'Skills' column for inventory analysis.")
 
-    html_summary = f"""
-    <h2>Workforce Summary Report</h2>
-    <p><b>Total Headcount:</b> {total_employees:,}<br>
-    <b>Average CTC:</b> ₹{avg_ctc:.2f} LPA<br>
-    <b>Average Span:</b> {avg_span} direct reports<br>
-    <b>Gender Mix:</b> {gender_split.get('Male',0)}% Male / {gender_split.get('Female',0)}% Female</p>
-    """
-    render_pdf_download_button("Workforce Summary Report", html_summary, "Workforce_Report")
+    # -----------------------
+    # Insights summary
+    # -----------------------
+    st.subheader("💡 Key Insights")
+    top_level = headcount.iloc[0]["JobLevel"] if not headcount.empty else "N/A"
+    insight_text = [
+        f"Top Job Level by headcount: {top_level}",
+    ]
+    if "ManagerID" in df.columns and 'avg_span' in locals():
+        insight_text.append(f"Average direct reports per manager: {avg_span:.2f}")
+    if "Skills" in df.columns and not skills_series.empty:
+        top_skill = skills_count.iloc[0]["Skill"]
+        insight_text.append(f"Top skill: {top_skill}")
 
-    st.markdown("""
-    <hr style="border:1px solid #0F766E;margin-top:40px;"/>
-    <div style="text-align:center;color:#9CA3AF;font-size:13px;">
-        Prepared with ❤️ by <b>Amlan Mishra</b> | © 2025 HR Tech Portfolio
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown("<ul>" + "".join(f"<li>{x}</li>" for x in insight_text) + "</ul>", unsafe_allow_html=True)
+
+    # -----------------------
+    # PDF Export blocks (consistent with other modules)
+    # -----------------------
+    data_blocks = [
+        {
+            "title": "Headcount by Job Level",
+            "desc": "Headcount distribution across job levels.",
+            "df": headcount,
+            "insights": [f"Top job level: {top_level}"]
+        },
+    ]
+
+    if "ManagerID" in df.columns and 'mgr_counts' in locals():
+        data_blocks.append({
+            "title": "Manager Spans",
+            "desc": "Distribution of direct reports per manager.",
+            "df": mgr_counts.head(100),
+            "insights": [f"Average span: {avg_span:.2f}"]
+        })
+
+    if "Skills" in df.columns and not skills_series.empty:
+        data_blocks.append({
+            "title": "Top Skills",
+            "desc": "Most common skills found in inventory.",
+            "df": skills_count.head(50),
+            "insights": [f"Top skill: {skills_count.iloc[0]['Skill']} ({skills_count.iloc[0]['Count']})"]
+        })
+
+    export_module_report(
+        report_title="Workforce & Talent Planning Executive Report",
+        module_name="Workforce & Talent",
+        data_blocks=data_blocks,
+        filename_prefix="Workforce_Talent"
+    )
