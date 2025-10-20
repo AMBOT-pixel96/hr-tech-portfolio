@@ -1,74 +1,121 @@
 # utils/pdf_helper.py
+import io
+from datetime import datetime
 import streamlit as st
-from io import BytesIO
+
+# reportlab (pure-python)
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
 from reportlab.lib import colors
-from reportlab.lib.units import inch
+from reportlab.lib.units import mm
 
-# ==========================
-# ReportLab-Based PDF Export
-# ==========================
+DOC_PAGE_SIZE = A4
 
-def render_pdf_download_button(title: str, dataframe, filename: str):
+def _make_pdf_bytes(title: str, html_summary: str, author: str = "HR Tech Portfolio"):
     """
-    Generate a simple ReportLab PDF export for analytics tables.
-    
-    Args:
-        title (str): Section title for the PDF
-        dataframe (pd.DataFrame): The table to export
-        filename (str): The name of the downloadable file (e.g., "Performance_Report.pdf")
+    Build a simple PDF using ReportLab and return bytes.
+    html_summary is expected to be simple HTML (basic tags). We'll do minimal cleaning
+    and insert paragraphs. This intentionally keeps things simple to avoid fragile HTML parsing.
     """
+    buf = io.BytesIO()
+    doc = SimpleDocTemplate(buf, pagesize=DOC_PAGE_SIZE,
+                            rightMargin=12*mm, leftMargin=12*mm,
+                            topMargin=12*mm, bottomMargin=12*mm)
 
-    buffer = BytesIO()
-    pdf = canvas.Canvas(buffer, pagesize=A4)
-    width, height = A4
-
-    # --- Header ---
-    pdf.setFillColor(colors.HexColor("#1E3A8A"))
-    pdf.setFont("Helvetica-Bold", 18)
-    pdf.drawCentredString(width / 2, height - 70, title)
-
-    # --- Subtitle ---
-    pdf.setFont("Helvetica", 10)
-    pdf.setFillColor(colors.black)
-    pdf.drawCentredString(width / 2, height - 90, "Generated via Streamlit | ReportLab Engine")
-
-    # --- Draw Table ---
-    from reportlab.platypus import Table, TableStyle
-    from reportlab.lib import colors
-
-    data = [list(dataframe.columns)] + dataframe.values.tolist()
-    table = Table(data, colWidths=[1.8 * inch] * len(dataframe.columns))
-
-    style = TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#1E3A8A")),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.whitesmoke),
-        ('GRID', (0, 0), (-1, -1), 0.25, colors.grey),
-    ])
-    table.setStyle(style)
-
-    table_width, table_height = table.wrap(0, 0)
-    table.drawOn(pdf, 40, height - 130 - table_height)
-
-    # --- Footer ---
-    pdf.setFont("Helvetica-Oblique", 8)
-    pdf.setFillColor(colors.grey)
-    pdf.drawString(40, 40, "Prepared by Amlan Mishra | HR Tech Portfolio | © 2025")
-
-    pdf.save()
-    pdf_bytes = buffer.getvalue()
-    buffer.close()
-
-    # --- Streamlit Download Button ---
-    st.download_button(
-        label=f"⬇️ Download {title} (PDF)",
-        data=pdf_bytes,
-        file_name=filename,
-        mime="application/pdf",
-        use_container_width=True
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        "Title",
+        parent=styles["Heading1"],
+        fontSize=18,
+        leading=22,
+        alignment=1,  # center
+        textColor=colors.HexColor("#0E1117")
     )
+    meta_style = ParagraphStyle(
+        "Meta",
+        parent=styles["Normal"],
+        fontSize=9,
+        leading=11,
+        textColor=colors.HexColor("#6B7280"),
+        alignment=1
+    )
+    body_style = ParagraphStyle(
+        "Body",
+        parent=styles["Normal"],
+        fontSize=11,
+        leading=14,
+        textColor=colors.HexColor("#0B1220")
+    )
+
+    story = []
+    story.append(Paragraph(title, title_style))
+    story.append(Spacer(1, 6))
+    ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    story.append(Paragraph(f"Generated: {ts}", meta_style))
+    story.append(Spacer(1, 12))
+
+    # Very small HTML -> plain paragraph conversion:
+    # Replace common tags, then add as paragraphs
+    # Keep it defensive: if html_summary is already plain text, this still works.
+    text = str(html_summary)
+    # Remove newlines that break paragraphing
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    # Convert simple block tags to newlines
+    replacements = [
+        ("</p>", "\n\n"),
+        ("<br>", "\n"),
+        ("<br/>", "\n"),
+        ("</div>", "\n\n"),
+        ("</h1>", "\n\n"),
+        ("</h2>", "\n\n"),
+        ("</h3>", "\n\n"),
+    ]
+    for a, b in replacements:
+        text = text.replace(a, b)
+    # strip remaining html tags (naive)
+    import re
+    text = re.sub(r"<[^>]+>", "", text)
+
+    # Split into paragraphs by double newlines
+    paragraphs = [p.strip() for p in text.split("\n\n") if p.strip()]
+
+    for p in paragraphs:
+        story.append(Paragraph(p.replace("\n", "<br/>"), body_style))
+        story.append(Spacer(1, 6))
+
+    # Footer small credit
+    story.append(Spacer(1, 12))
+    footer_style = ParagraphStyle(
+        "Footer",
+        parent=styles["Normal"],
+        fontSize=8,
+        leading=10,
+        textColor=colors.HexColor("#6B7280"),
+        alignment=1
+    )
+    story.append(Paragraph(f"Prepared by {author} | Generated by People Analytics App", footer_style))
+
+    doc.build(story)
+    buf.seek(0)
+    return buf.read()
+
+
+def render_pdf_download_button(title: str, html_summary: str, filename: str = "report"):
+    """
+    Creates a Streamlit download button for a ReportLab-generated PDF.
+    - title: human title for the report
+    - html_summary: short HTML/markup string (kept simple)
+    - filename: base filename (without .pdf)
+    """
+    try:
+        pdf_bytes = _make_pdf_bytes(title, html_summary)
+        st.download_button(
+            label=f"⬇️ Download {title} (PDF)",
+            data=pdf_bytes,
+            file_name=f"{filename}.pdf",
+            mime="application/pdf",
+            use_container_width=True
+        )
+    except Exception as e:
+        st.error(f"⚠️ Could not generate PDF: {e}")
