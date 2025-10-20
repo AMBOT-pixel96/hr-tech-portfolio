@@ -5,6 +5,8 @@
 import streamlit as st
 from modules.workforce_module import run_workforce_module
 
+st.set_page_config(page_title="Workforce & Talent Analytics", layout="wide")
+
 # --- Unified Executive Sidebar Styling ---
 st.markdown("""
 <style>
@@ -47,5 +49,4 @@ a[href*="app"] span::before { content: "🏠 "; }
 </style>
 """, unsafe_allow_html=True)
 
-st.set_page_config(page_title="Workforce & Talent Analytics", layout="wide")
 run_workforce_module()
