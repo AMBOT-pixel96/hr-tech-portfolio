@@ -144,39 +144,28 @@ def run_compensation_module():
         st.warning("⚠️ Benchmark data not uploaded. Skipping market comparison.")
         comp_summary = pd.DataFrame()
 
-    # =========================
-    # 📄 Step 6 — Executive PDF Export
-    # =========================
-    data_blocks = [
-        {
-            "title": "Compensation Metrics",
-            "desc": "Average pay levels and bonus percentages across job levels.",
-            "df": avg_ctc,
-            "insights": [
-                f"Average CTC range: ₹{avg_ctc['CTC'].min():,.0f} – ₹{avg_ctc['CTC'].max():,.0f}",
-                f"Highest bonus level: {avg_bonus.loc[avg_bonus['BonusPct'].idxmax(), 'JobLevel']} ({avg_bonus['BonusPct'].max():.1f}%)"
-            ]
-        },
-        {
-            "title": "Gender Pay Gap",
-            "desc": "Comparison of average CTC by gender.",
-            "df": gender_gap,
-            "insights": [f"Gender pay gap: ₹{gap:,.0f}"]
-        },
-        {
-            "title": "Market Benchmarking",
-            "desc": "Internal vs external CTC differences.",
-            "df": comp_summary,
-            "insights": [
-                "Market comparison performed where benchmark data available.",
-                f"Highest variance job level: {comp_summary.iloc[0]['JobLevel'] if not comp_summary.empty else 'N/A'}"
-            ]
-        }
-    ]
+# ==================================
+# 📄 Export Executive Report
+# ==================================
+st.markdown("---")
+st.subheader("📄 Step 6 — Export Executive Report")
 
-    export_module_report(
-        report_title="Compensation Analytics Executive Report",
-        module_name="Compensation",
-        data_blocks=data_blocks,
-        filename_prefix="Compensation"
-    )
+data_blocks = [
+    {
+        "title": "Compensation Overview",
+        "desc": "Pay, bonus, gender gap, and market comparison summarized for leadership review.",
+        "df": emp_df.head(10) if "emp_df" in locals() else None,
+        "insights": [
+            "Average CTC and bonus % compared by job level.",
+            "Gender pay gap and market competitiveness analyzed."
+        ],
+    }
+]
+
+from utils.pdf_auto_exporter import export_module_report
+export_module_report(
+    report_title="Compensation Analytics Executive Report",
+    module_name="Compensation",
+    data_blocks=data_blocks,
+    filename_prefix="Compensation"
+)
