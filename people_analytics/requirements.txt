@@ -1,31 +1,30 @@
 # ==========================
-# 📊 People Analytics Dashboard — Dependencies
-# Streamlit Cloud compatible | v2025.10
+# 📊 People Analytics Dashboard — Clean Requirements (v5.0)
 # ==========================
 
-# Core Framework
+# Core
 streamlit==1.39.0
 pandas==2.2.3
 numpy==1.26.4
 
 # Visualization
 plotly==5.24.1
-kaleido==0.3.0    # required for Plotly → PNG export
 matplotlib==3.9.2
 seaborn==0.13.2
+kaleido>=0.2.1
 
 # Excel Handling
 openpyxl==3.1.5
 xlsxwriter==3.2.0
 
-# PDF & Fonts
+# PDF Generation
 reportlab==4.2.5
 Pillow==10.4.0
 
-# Optional NLP (Engagement summaries / sentiment)
+# NLP (optional)
 nltk==3.9.1
 textblob==0.18.0
 
-# Utility & Helpers
+# Utility
 python-dateutil==2.9.0.post0
 requests==2.32.3
