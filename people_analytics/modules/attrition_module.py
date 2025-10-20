@@ -1,20 +1,24 @@
 # ============================================
-# modules/attrition_module.py — v1.2 | Universal Upload + Insights + PDF Export
+# modules/attrition_module.py — v2.0 | Attrition Trends + PDF Export
 # ============================================
 
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from datetime import datetime
-from utils.pdf_helper import render_pdf_download_button
 from utils.template_helper import render_download_template
+from utils.pdf_auto_exporter import export_module_report
 
 def run_attrition_module():
+    # =========================
+    # 📉 Header
+    # =========================
     st.markdown("""
     <div style="padding:20px; border-radius:12px; background:linear-gradient(90deg,#7F1D1D,#DC2626);
                 color:white; text-align:center; margin-bottom:20px;">
         <h2 style="margin:0;">📉 Attrition Analytics</h2>
-        <p style="font-size:14px; margin-top:6px;">Monitor employee turnover patterns, identify high-risk departments, and track key retention trends.</p>
+        <p style="font-size:14px; margin-top:6px;">
+            Analyze employee turnover patterns, identify high-risk segments, and uncover attrition trends by department, tenure, and job level.
+        </p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -25,34 +29,35 @@ def run_attrition_module():
 
     sample_data = pd.DataFrame({
         "EmployeeID": ["E1001", "E1002", "E1003"],
-        "Department": ["Finance", "HR", "Operations"],
+        "Department": ["Finance", "IT", "HR"],
         "JobLevel": ["Analyst", "Manager", "Executive"],
-        "Gender": ["Male", "Female", "Male"],
-        "Age": [28, 35, 40],
-        "TenureYears": [2, 5, 10],
-        "AttritionFlag": ["Yes", "No", "No"]
+        "Gender": ["Male", "Female", "Female"],
+        "TenureMonths": [24, 60, 12],
+        "AttritionFlag": ["Yes", "No", "Yes"],
+        "ExitReason": ["Better Pay", "", "Relocation"],
+        "CTC": [600000, 1200000, 450000]
     })
+
     render_download_template("Attrition Data Template", sample_data, "Attrition_Template.csv")
 
     # =========================
     # 📤 Step 2 — Upload Data
     # =========================
-    st.subheader("📤 Step 2 — Upload Attrition Data")
-    uploaded = st.file_uploader(
+    st.subheader("📤 Step 2 — Upload Attrition Dataset")
+    attr_file = st.file_uploader(
         "Upload Attrition Data (CSV, Excel, or Text)",
         type=["csv", "xlsx", "text", "plain", "application/vnd.ms-excel"]
     )
 
-    if not uploaded:
-        st.info("Please upload your dataset to begin analysis.")
+    if attr_file is None:
+        st.info("Please upload your attrition dataset to continue.")
         return
 
-    # --- Read uploaded data ---
     try:
-        if uploaded.name.endswith(".csv"):
-            df = pd.read_csv(uploaded)
+        if attr_file.name.endswith(".csv"):
+            df = pd.read_csv(attr_file)
         else:
-            df = pd.read_excel(uploaded, engine="openpyxl")
+            df = pd.read_excel(attr_file, engine="openpyxl")
         st.success("✅ File uploaded successfully!")
         st.dataframe(df.head(), use_container_width=True)
     except Exception as e:
@@ -62,116 +67,127 @@ def run_attrition_module():
     # =========================
     # 🧮 Step 3 — Validation
     # =========================
-    required_cols = ["EmployeeID", "Department", "JobLevel", "Gender", "Age", "TenureYears", "AttritionFlag"]
+    required_cols = ["EmployeeID", "Department", "JobLevel", "Gender", "TenureMonths", "AttritionFlag"]
     missing = [col for col in required_cols if col not in df.columns]
     if missing:
         st.error(f"Missing required columns: {', '.join(missing)}")
         return
 
-    df["AttritionFlag"] = df["AttritionFlag"].str.strip().str.title()
-    df["AttritionFlag"] = df["AttritionFlag"].replace({"Y": "Yes", "N": "No"})
+    # Normalize attrition flag
+    df["AttritionFlag"] = df["AttritionFlag"].astype(str).str.strip().str.lower().replace({
+        "yes": "Yes", "y": "Yes", "1": "Yes",
+        "no": "No", "n": "No", "0": "No"
+    })
 
     # =========================
-    # 📊 Step 4 — Overall Attrition Insights
+    # 📊 Step 4 — Core Metrics
     # =========================
-    st.subheader("📈 Attrition Overview")
+    st.subheader("📊 Step 4 — Attrition Insights")
 
-    total_emp = len(df)
-    total_attr = len(df[df["AttritionFlag"] == "Yes"])
-    attr_rate = (total_attr / total_emp) * 100 if total_emp > 0 else 0
+    total_employees = len(df)
+    total_left = (df["AttritionFlag"] == "Yes").sum()
+    turnover_rate = (total_left / total_employees * 100) if total_employees > 0 else 0
 
-    st.metric("Overall Attrition Rate", f"{attr_rate:.1f}%", delta=None)
+    avg_tenure = df["TenureMonths"].mean()
+    st.metric("Overall Attrition Rate", f"{turnover_rate:.1f}%")
+    st.metric("Average Tenure (months)", f"{avg_tenure:.1f}")
 
-    # 📊 Distribution
-    pie = px.pie(df, names="AttritionFlag", title="Attrition Distribution", color_discrete_sequence=["#16A34A", "#DC2626"])
-    st.plotly_chart(pie, use_container_width=True)
-
-    # =========================
-    # 🏢 Step 5 — Attrition by Department
-    # =========================
-    st.subheader("🏢 Attrition by Department")
+    # --- Department-wise Attrition ---
     dept_summary = (
         df.groupby("Department", observed=True)["AttritionFlag"]
-        .value_counts(normalize=True)
-        .rename("AttritionRate")
-        .mul(100)
-        .reset_index()
+        .apply(lambda x: (x == "Yes").mean() * 100)
+        .round(2)
+        .reset_index(name="AttritionRate")
     )
-    dept_summary = dept_summary[dept_summary["AttritionFlag"] == "Yes"]
-    st.dataframe(dept_summary[["Department", "AttritionRate"]].round(1), use_container_width=True)
+    dept_highest = dept_summary.loc[dept_summary["AttritionRate"].idxmax(), "Department"]
 
-    dept_fig = px.bar(
-        dept_summary,
-        x="Department",
-        y="AttritionRate",
-        text="AttritionRate",
-        title="Department-wise Attrition Rate (%)",
-        color="Department",
-        color_discrete_sequence=px.colors.qualitative.Safe
+    st.subheader("🏢 Attrition by Department")
+    st.dataframe(dept_summary, use_container_width=True)
+
+    fig_dept = px.bar(
+        dept_summary, x="Department", y="AttritionRate", text="AttritionRate",
+        title="Attrition % by Department", color="Department", color_discrete_sequence=px.colors.qualitative.Set2
     )
-    dept_fig.update_traces(texttemplate="%{text:.1f}%", textposition="outside")
-    st.plotly_chart(dept_fig, use_container_width=True)
+    fig_dept.update_traces(texttemplate="%{text:.1f}%", textposition="outside")
+    st.plotly_chart(fig_dept, use_container_width=True)
 
-    # =========================
-    # 👥 Step 6 — Attrition by Job Level
-    # =========================
-    st.subheader("👥 Attrition by Job Level")
-    level_summary = (
+    # --- Job Level Analysis ---
+    job_summary = (
         df.groupby("JobLevel", observed=True)["AttritionFlag"]
-        .value_counts(normalize=True)
-        .rename("AttritionRate")
-        .mul(100)
-        .reset_index()
+        .apply(lambda x: (x == "Yes").mean() * 100)
+        .round(2)
+        .reset_index(name="AttritionRate")
     )
-    level_summary = level_summary[level_summary["AttritionFlag"] == "Yes"]
+    fig_job = px.bar(
+        job_summary, x="JobLevel", y="AttritionRate", text="AttritionRate",
+        title="Attrition % by Job Level", color="JobLevel", color_discrete_sequence=px.colors.qualitative.Safe
+    )
+    fig_job.update_traces(texttemplate="%{text:.1f}%", textposition="outside")
+    st.plotly_chart(fig_job, use_container_width=True)
 
-    fig_level = px.bar(
-        level_summary,
-        x="JobLevel",
-        y="AttritionRate",
-        text="AttritionRate",
-        title="Attrition by Job Level (%)",
-        color="JobLevel",
-        color_discrete_sequence=px.colors.qualitative.Vivid
-    )
-    fig_level.update_traces(texttemplate="%{text:.1f}%", textposition="outside")
-    st.plotly_chart(fig_level, use_container_width=True)
+    # --- Exit Reasons ---
+    if "ExitReason" in df.columns:
+        exit_reason = df[df["AttritionFlag"] == "Yes"]["ExitReason"].value_counts().reset_index()
+        exit_reason.columns = ["ExitReason", "Count"]
+        if not exit_reason.empty:
+            fig_exit = px.pie(exit_reason, values="Count", names="ExitReason", title="Top Exit Reasons")
+            st.plotly_chart(fig_exit, use_container_width=True)
+        else:
+            st.info("No exit reasons available for visualization.")
+    else:
+        st.info("Exit reason column not found — skipping.")
 
     # =========================
-    # 💡 Step 7 — Insight Summary
+    # 💡 Insights Summary
     # =========================
-    top_dept = dept_summary.loc[dept_summary["AttritionRate"].idxmax(), "Department"]
-    top_rate = dept_summary["AttritionRate"].max()
-    top_level = level_summary.loc[level_summary["AttritionRate"].idxmax(), "JobLevel"]
-
     st.markdown(f"""
     <div style="background:#0F172A;padding:10px 15px;border-radius:8px;margin-top:10px;">
-    <b>💡 Insights:</b><br>
-    • Highest attrition department: <b>{top_dept}</b> ({top_rate:.1f}%)<br>
-    • Most impacted job level: <b>{top_level}</b><br>
-    • Total attrition rate: <b>{attr_rate:.1f}%</b><br>
-    • Total employees analyzed: <b>{total_emp}</b>
+    <b>💡 Key Insights:</b><br>
+    • Overall attrition rate: <b>{turnover_rate:.1f}%</b><br>
+    • Highest attrition department: <b>{dept_highest}</b><br>
+    • Average tenure: <b>{avg_tenure:.1f} months</b><br>
+    • Total employees left: <b>{total_left}</b> of <b>{total_employees}</b>
     </div>
     """, unsafe_allow_html=True)
 
     # =========================
-    # 📄 Step 8 — Export Summary Report (PDF)
+    # 📄 Step 5 — Executive PDF Export
     # =========================
-    st.subheader("📄 Step 8 — Export Summary Report")
-    html_summary = f"""
-    <h2>Attrition Analytics Summary</h2>
-    <p>This report summarizes key retention insights across departments and job levels.</p>
-    <div class='summary'>
-    <p><b>Overall Attrition Rate:</b> {attr_rate:.1f}%</p>
-    <p><b>Top Department:</b> {top_dept} ({top_rate:.1f}%)</p>
-    <p><b>Most Impacted Job Level:</b> {top_level}</p>
-    </div>
-    """
-    render_pdf_download_button("Attrition Analytics Report", html_summary, "Attrition_Report")
+    data_blocks = [
+        {
+            "title": "Overall Attrition Overview",
+            "desc": "Summary of total employees, attrition count, and overall turnover rate.",
+            "df": pd.DataFrame({
+                "Metric": ["Total Employees", "Employees Left", "Attrition Rate (%)", "Average Tenure (Months)"],
+                "Value": [total_employees, total_left, round(turnover_rate, 1), round(avg_tenure, 1)]
+            }),
+            "insights": [
+                f"Overall attrition: {turnover_rate:.1f}%",
+                f"Average tenure: {avg_tenure:.1f} months"
+            ]
+        },
+        {
+            "title": "Departmental Attrition",
+            "desc": "Turnover rate by department, ranked highest to lowest.",
+            "df": dept_summary.sort_values(by='AttritionRate', ascending=False),
+            "insights": [
+                f"Highest attrition department: {dept_highest}",
+                f"Lowest attrition department: {dept_summary.loc[dept_summary['AttritionRate'].idxmin(), 'Department']}"
+            ]
+        },
+        {
+            "title": "Attrition by Job Level",
+            "desc": "Turnover rates segmented by job level.",
+            "df": job_summary,
+            "insights": [
+                f"Top attrition job level: {job_summary.loc[job_summary['AttritionRate'].idxmax(), 'JobLevel']}"
+            ]
+        }
+    ]
 
-    st.markdown("""
-    <hr style="border:1px solid #7F1D1D;margin-top:40px;"/>
-    <div style="text-align:center;color:#9CA3AF;font-size:13px;">
-        Prepared with ❤️ by <b>Amlan Mishra</b> | © 2025 HR Tech Portfolio
-    </div>
-    """, unsafe_allow_html=True)
+    export_module_report(
+        report_title="Attrition Analytics Executive Report",
+        module_name="Attrition",
+        data_blocks=data_blocks,
+        filename_prefix="Attrition"
+    )
