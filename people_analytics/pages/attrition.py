@@ -5,6 +5,9 @@
 import streamlit as st
 from modules.attrition_module import run_attrition_module
 
+st.set_page_config(page_title="Attrition Analytics", layout="wide")
+run_attrition_module()
+
 # --- Unified Executive Sidebar Styling ---
 st.markdown("""
 <style>
@@ -46,6 +49,4 @@ a[href*="app"] span::before { content: "🏠 "; }
 }
 </style>
 """, unsafe_allow_html=True)
-
-st.set_page_config(page_title="Attrition Analytics", layout="wide")
 run_attrition_module()
