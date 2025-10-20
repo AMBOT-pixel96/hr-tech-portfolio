@@ -18,7 +18,10 @@ def run_performance_module():
     """, unsafe_allow_html=True)
 
     st.subheader("📤 Step 1 — Upload Performance Data")
-    perf_file = st.file_uploader("Upload Performance Data (CSV or Excel)", type=["csv", "xlsx"])
+perf_file = st.file_uploader(
+    "Upload Performance Data (CSV, Excel, or Text)",
+    type=["csv", "xlsx", "text", "plain", "application/vnd.ms-excel"]
+)
     if perf_file is None:
         st.info("Please upload a dataset to continue.")
         return
