@@ -150,44 +150,28 @@ def run_attrition_module():
     </div>
     """, unsafe_allow_html=True)
 
-    # =========================
-    # 📄 Step 5 — Executive PDF Export
-    # =========================
-    data_blocks = [
-        {
-            "title": "Overall Attrition Overview",
-            "desc": "Summary of total employees, attrition count, and overall turnover rate.",
-            "df": pd.DataFrame({
-                "Metric": ["Total Employees", "Employees Left", "Attrition Rate (%)", "Average Tenure (Months)"],
-                "Value": [total_employees, total_left, round(turnover_rate, 1), round(avg_tenure, 1)]
-            }),
-            "insights": [
-                f"Overall attrition: {turnover_rate:.1f}%",
-                f"Average tenure: {avg_tenure:.1f} months"
-            ]
-        },
-        {
-            "title": "Departmental Attrition",
-            "desc": "Turnover rate by department, ranked highest to lowest.",
-            "df": dept_summary.sort_values(by='AttritionRate', ascending=False),
-            "insights": [
-                f"Highest attrition department: {dept_highest}",
-                f"Lowest attrition department: {dept_summary.loc[dept_summary['AttritionRate'].idxmin(), 'Department']}"
-            ]
-        },
-        {
-            "title": "Attrition by Job Level",
-            "desc": "Turnover rates segmented by job level.",
-            "df": job_summary,
-            "insights": [
-                f"Top attrition job level: {job_summary.loc[job_summary['AttritionRate'].idxmax(), 'JobLevel']}"
-            ]
-        }
-    ]
+    
+# ==================================
+# 📄 Export Executive Report
+# ==================================
+st.markdown("---")
+st.subheader("📄 Step X — Export Executive Report")
 
-    export_module_report(
-        report_title="Attrition Analytics Executive Report",
-        module_name="Attrition",
-        data_blocks=data_blocks,
-        filename_prefix="Attrition"
-    )
+data_blocks = [
+    {
+        "title": "Summary of Key Insights",
+        "desc": "Auto-generated insights from module analysis.",
+        "df": df.head(10) if "df" in locals() else None,
+        "insights": [
+            "Top metric highlights and performance trends will appear here."
+        ],
+    }
+]
+
+from utils.pdf_auto_exporter import export_module_report
+export_module_report(
+    report_title="Executive Summary Report",
+    module_name="People Analytics",
+    data_blocks=data_blocks,
+    filename_prefix="People_Analytics"
+)
