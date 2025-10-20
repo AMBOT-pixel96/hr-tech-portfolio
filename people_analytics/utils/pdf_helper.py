@@ -1,132 +1,74 @@
-# ============================================
-# utils/pdf_helper.py — v1.0 | WeasyPrint PDF Generator
-# ============================================
-
+# utils/pdf_helper.py
 import streamlit as st
-from weasyprint import HTML, CSS
-from datetime import datetime
-import os
+from io import BytesIO
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from reportlab.lib import colors
+from reportlab.lib.units import inch
 
-# Ensure export directory exists
-EXPORT_DIR = os.path.join(os.getcwd(), "exports")
-os.makedirs(EXPORT_DIR, exist_ok=True)
+# ==========================
+# ReportLab-Based PDF Export
+# ==========================
 
-def generate_pdf_report(title: str, html_content: str, filename_prefix: str = "Report"):
+def render_pdf_download_button(title: str, dataframe, filename: str):
     """
-    Generates a fully-styled PDF report from an HTML block using WeasyPrint.
+    Generate a simple ReportLab PDF export for analytics tables.
     
     Args:
-        title (str): Report title (e.g., "Performance Analytics Report")
-        html_content (str): The full HTML of the report (charts excluded, but can include images)
-        filename_prefix (str): Base filename for the exported PDF
-        
-    Returns:
-        str: Path to the generated PDF
+        title (str): Section title for the PDF
+        dataframe (pd.DataFrame): The table to export
+        filename (str): The name of the downloadable file (e.g., "Performance_Report.pdf")
     """
 
-    # --- Define output file ---
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"{filename_prefix}_{timestamp}.pdf"
-    output_path = os.path.join(EXPORT_DIR, filename)
+    buffer = BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
 
-    # --- PDF CSS Theme (Brand + Matte) ---
-    css = CSS(string="""
-        @page {
-            size: A4;
-            margin: 1.2cm;
-        }
-        body {
-            font-family: 'Open Sans', sans-serif;
-            color: #111827;
-            background: #FAFAFA;
-            line-height: 1.5;
-            font-size: 11pt;
-        }
-        h1, h2, h3 {
-            color: #1E3A8A;
-            font-weight: 700;
-        }
-        h1 {
-            font-size: 18pt;
-            border-bottom: 2px solid #1E3A8A;
-            padding-bottom: 4px;
-        }
-        h2 {
-            font-size: 14pt;
-            margin-top: 18px;
-        }
-        .summary {
-            background: #EFF6FF;
-            border-left: 5px solid #3B82F6;
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-        }
-        .footer {
-            text-align: center;
-            font-size: 9pt;
-            color: #6B7280;
-            margin-top: 40px;
-            border-top: 1px solid #E5E7EB;
-            padding-top: 8px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        th, td {
-            border: 1px solid #D1D5DB;
-            padding: 6px 8px;
-            font-size: 10pt;
-        }
-        th {
-            background: #1E3A8A;
-            color: white;
-        }
-        tr:nth-child(even) {
-            background: #F3F4F6;
-        }
-    """)
+    # --- Header ---
+    pdf.setFillColor(colors.HexColor("#1E3A8A"))
+    pdf.setFont("Helvetica-Bold", 18)
+    pdf.drawCentredString(width / 2, height - 70, title)
 
-    # --- Build final HTML ---
-    html_template = f"""
-    <html>
-        <head>
-            <meta charset="utf-8">
-            <title>{title}</title>
-        </head>
-        <body>
-            <h1>{title}</h1>
-            {html_content}
-            <div class="footer">
-                Prepared with ❤️ by Amlan Mishra | © 2025 HR Tech Portfolio
-            </div>
-        </body>
-    </html>
-    """
+    # --- Subtitle ---
+    pdf.setFont("Helvetica", 10)
+    pdf.setFillColor(colors.black)
+    pdf.drawCentredString(width / 2, height - 90, "Generated via Streamlit | ReportLab Engine")
 
-    # --- Generate PDF ---
-    HTML(string=html_template).write_pdf(output_path, stylesheets=[css])
-    return output_path
+    # --- Draw Table ---
+    from reportlab.platypus import Table, TableStyle
+    from reportlab.lib import colors
 
+    data = [list(dataframe.columns)] + dataframe.values.tolist()
+    table = Table(data, colWidths=[1.8 * inch] * len(dataframe.columns))
 
-def render_pdf_download_button(title: str, html_content: str, filename_prefix: str = "Report"):
-    """
-    Generates a PDF on-demand and shows a Streamlit download button.
-    """
-    try:
-        pdf_path = generate_pdf_report(title, html_content, filename_prefix)
-        with open(pdf_path, "rb") as f:
-            pdf_bytes = f.read()
+    style = TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#1E3A8A")),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.whitesmoke),
+        ('GRID', (0, 0), (-1, -1), 0.25, colors.grey),
+    ])
+    table.setStyle(style)
 
-        st.download_button(
-            label=f"📄 Download {title} (PDF)",
-            data=pdf_bytes,
-            file_name=os.path.basename(pdf_path),
-            mime="application/pdf",
-            use_container_width=True
-        )
-        st.success("✅ PDF generated successfully!")
-    except Exception as e:
-        st.error(f"⚠️ PDF generation failed: {e}")
+    table_width, table_height = table.wrap(0, 0)
+    table.drawOn(pdf, 40, height - 130 - table_height)
+
+    # --- Footer ---
+    pdf.setFont("Helvetica-Oblique", 8)
+    pdf.setFillColor(colors.grey)
+    pdf.drawString(40, 40, "Prepared by Amlan Mishra | HR Tech Portfolio | © 2025")
+
+    pdf.save()
+    pdf_bytes = buffer.getvalue()
+    buffer.close()
+
+    # --- Streamlit Download Button ---
+    st.download_button(
+        label=f"⬇️ Download {title} (PDF)",
+        data=pdf_bytes,
+        file_name=filename,
+        mime="application/pdf",
+        use_container_width=True
+    )
