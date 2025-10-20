@@ -13,6 +13,31 @@ PDF Auto Exporter (v2.1)
 - Uses ReportLab for robust PDF generation and kaleido (plotly) for fig -> PNG.
 - For currencies and symbols include a TTF font at utils/fonts/DejaVuSans.ttf (recommended).
 """
+# ============================================
+# Font Setup — ensures ₹, symbols, and emojis work everywhere
+# ============================================
+
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+import os
+
+# Define font path inside Streamlit Cloud (safe & portable)
+FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+
+try:
+    if os.path.exists(FONT_PATH):
+        pdfmetrics.registerFont(TTFont("DejaVuSans", FONT_PATH))
+    else:
+        # fallback — create folder and download font if missing
+        os.makedirs("/tmp/fonts", exist_ok=True)
+        import urllib.request
+        urllib.request.urlretrieve(
+            "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSans.ttf",
+            "/tmp/fonts/DejaVuSans.ttf"
+        )
+        pdfmetrics.registerFont(TTFont("DejaVuSans", "/tmp/fonts/DejaVuSans.ttf"))
+except Exception as e:
+    print(f"⚠️ Font setup skipped: {e}")
 
 from io import BytesIO
 from reportlab.platypus import (
