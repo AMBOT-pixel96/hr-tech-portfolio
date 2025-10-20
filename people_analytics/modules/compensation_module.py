@@ -1,12 +1,12 @@
 # ============================================
-# modules/compensation_module.py — v1.2 | CSV Fix + PDF Export + Smart Insights
+# modules/compensation_module.py — v1.3 | CSV Fix + Smart PDF Export + Insights
 # ============================================
 
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from utils.pdf_helper import render_pdf_download_button
 from utils.template_helper import render_download_template
+from utils.pdf_auto_exporter import export_module_report
 
 def run_compensation_module():
     st.markdown("""
@@ -51,8 +51,14 @@ def run_compensation_module():
     st.subheader("📤 Step 2 — Upload Compensation Data")
     col1, col2 = st.columns(2)
 
-    emp_file = col1.file_uploader("Upload Internal Data", type=["csv", "xlsx", "text", "plain", "application/vnd.ms-excel"])
-    bench_file = col2.file_uploader("Upload Benchmark Data (optional)", type=["csv", "xlsx", "text", "plain", "application/vnd.ms-excel"])
+    emp_file = col1.file_uploader(
+        "Upload Internal Data",
+        type=["csv", "xlsx", "text", "plain", "application/vnd.ms-excel"]
+    )
+    bench_file = col2.file_uploader(
+        "Upload Benchmark Data (optional)",
+        type=["csv", "xlsx", "text", "plain", "application/vnd.ms-excel"]
+    )
 
     if emp_file is None:
         st.info("Please upload your internal compensation file to begin analysis.")
@@ -124,40 +130,53 @@ def run_compensation_module():
     # 🧭 Step 5 — Market Comparison
     # =========================
     if bench_df is not None:
-        st.subheader("🌏 Internal vs Market Median Comparison")
         merged = emp_df.merge(bench_df, on=["JobRole", "JobLevel"], how="left")
-        merged["DiffPct"] = ((merged["CTC"] - merged["MarketMedianCTC"]) / merged["MarketMedianCTC"]) * 100
+        merged["MarketMedianCTC"] = pd.to_numeric(merged["MarketMedianCTC"], errors="coerce").fillna(0)
+        merged["DiffPct"] = ((merged["CTC"] - merged["MarketMedianCTC"]) / merged["MarketMedianCTC"].replace(0, pd.NA)) * 100
+        merged["DiffPct"] = merged["DiffPct"].fillna(0)
 
         comp_summary = merged.groupby("JobLevel", observed=True)["DiffPct"].mean().round(2).reset_index()
+        comp_summary = comp_summary.sort_values(by="DiffPct", ascending=False)
+
+        st.subheader("🏦 Company vs Market Median (CTC % Difference)")
         st.dataframe(comp_summary, use_container_width=True)
-
-        fig_market = px.bar(
-            comp_summary, x="JobLevel", y="DiffPct", text="DiffPct",
-            color="JobLevel", title="Company vs Market Median (%)"
-        )
-        fig_market.update_traces(texttemplate="%{text:.1f}%", textposition="outside")
-        st.plotly_chart(fig_market, use_container_width=True)
+    else:
+        st.warning("⚠️ Benchmark data not uploaded. Skipping market comparison.")
+        comp_summary = pd.DataFrame()
 
     # =========================
-    # 📄 Step 6 — Export Summary Report (PDF)
+    # 📄 Step 6 — Executive PDF Export
     # =========================
-    st.subheader("📄 Step 6 — Export Summary Report")
+    data_blocks = [
+        {
+            "title": "Compensation Metrics",
+            "desc": "Average pay levels and bonus percentages across job levels.",
+            "df": avg_ctc,
+            "insights": [
+                f"Average CTC range: ₹{avg_ctc['CTC'].min():,.0f} – ₹{avg_ctc['CTC'].max():,.0f}",
+                f"Highest bonus level: {avg_bonus.loc[avg_bonus['BonusPct'].idxmax(), 'JobLevel']} ({avg_bonus['BonusPct'].max():.1f}%)"
+            ]
+        },
+        {
+            "title": "Gender Pay Gap",
+            "desc": "Comparison of average CTC by gender.",
+            "df": gender_gap,
+            "insights": [f"Gender pay gap: ₹{gap:,.0f}"]
+        },
+        {
+            "title": "Market Benchmarking",
+            "desc": "Internal vs external CTC differences.",
+            "df": comp_summary,
+            "insights": [
+                "Market comparison performed where benchmark data available.",
+                f"Highest variance job level: {comp_summary.iloc[0]['JobLevel'] if not comp_summary.empty else 'N/A'}"
+            ]
+        }
+    ]
 
-    html_summary = f"""
-    <h2>Compensation Analytics Summary</h2>
-    <p>This report summarizes key metrics including pay structure, bonus percentage, gender gap, and market comparison.</p>
-    <div class='summary'>
-    <p><b>Average Pay Gap (Gender):</b> ₹{gap:,.0f}</p>
-    <p><b>Highest Bonus Level:</b> {avg_bonus.loc[avg_bonus['BonusPct'].idxmax(), 'JobLevel']} ({avg_bonus['BonusPct'].max():.1f}%)</p>
-    <p><b>Average CTC Range:</b> ₹{avg_ctc['CTC'].min():,.0f} – ₹{avg_ctc['CTC'].max():,.0f}</p>
-    </div>
-    """
-
-    render_pdf_download_button("Compensation Analytics Report", html_summary, "Compensation_Report")
-
-    st.markdown("""
-    <hr style="border:1px solid #14532D;margin-top:40px;"/>
-    <div style="text-align:center;color:#9CA3AF;font-size:13px;">
-        Prepared with ❤️ by <b>Amlan Mishra</b> | © 2025 HR Tech Portfolio
-    </div>
-    """, unsafe_allow_html=True)
+    export_module_report(
+        report_title="Compensation Analytics Executive Report",
+        module_name="Compensation",
+        data_blocks=data_blocks,
+        filename_prefix="Compensation"
+    )
