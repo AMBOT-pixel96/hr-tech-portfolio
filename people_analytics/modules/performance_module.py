@@ -89,33 +89,28 @@ def run_performance_module():
         </div>
         """, unsafe_allow_html=True)
 
-    # ==================================
-    # 📄 Executive PDF Export
-    # ==================================
-    data_blocks = [
-        {
-            "title": "Performance Distribution Insights",
-            "desc": "Distribution of performance ratings across departments and demographics.",
-            "df": gender_avg,
-            "insights": [
-                f"Top performing department: {dept_best}",
-                f"Gender gap in ratings: {gender_diff:.2f}",
-                f"Overall average rating: {df['PerformanceRating'].mean():.2f}"
-            ]
-        },
-        {
-            "title": "Performance vs Pay",
-            "desc": "Relationship between performance rating and average CTC.",
-            "df": perf_pay_avg,
-            "insights": [
-                f"Highest-paying rating tier: {top_rating} ({top_ctc:.2f} LPA)"
-            ]
-        }
-    ]
+# ==================================
+# 📄 Export Executive Report
+# ==================================
+st.markdown("---")
+st.subheader("📄 Step 5 — Export Executive Report")
 
-    export_module_report(
-        report_title="Performance Analytics Executive Report",
-        module_name="Performance",
-        data_blocks=data_blocks,
-        filename_prefix="Performance"
-    )
+data_blocks = [
+    {
+        "title": "Performance Highlights",
+        "desc": "Distribution of ratings, pay correlation, and performance insights.",
+        "df": df.head(10) if "df" in locals() else None,
+        "insights": [
+            "Top-performing department and gender distribution insights included.",
+            "Performance–pay relationship summarized across rating levels."
+        ],
+    }
+]
+
+from utils.pdf_auto_exporter import export_module_report
+export_module_report(
+    report_title="Performance Analytics Executive Report",
+    module_name="Performance",
+    data_blocks=data_blocks,
+    filename_prefix="Performance"
+)
