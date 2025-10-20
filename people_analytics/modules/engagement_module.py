@@ -137,46 +137,28 @@ def run_engagement_module():
     </div>
     """, unsafe_allow_html=True)
 
-    # =========================
-    # 📄 Step 5 — Executive PDF Export
-    # =========================
-    data_blocks = [
-        {
-            "title": "Engagement Index Overview",
-            "desc": "Employee engagement analysis across all survey questions (Likert scale 1–5).",
-            "df": df[["EmployeeID", "EngagementIndex", "EngagementCategory"]],
-            "insights": [
-                f"Overall engagement index: {overall_index:.2f}",
-                f"Highly engaged employees: {(cat_counts['High']/cat_counts.sum())*100:.1f}%",
-            ]
-        },
-        {
-            "title": "Departmental Engagement",
-            "desc": "Average engagement index by department.",
-            "df": dept_summary,
-            "insights": [
-                f"Highest engaged department: {dept_best}",
-                f"Lowest engaged department: {dept_summary.loc[dept_summary['EngagementIndex'].idxmin(), 'Department']}",
-            ]
-        },
-        {
-            "title": "Engagement Category Breakdown",
-            "desc": "Distribution of respondents by engagement level (High, Moderate, Low).",
-            "df": pd.DataFrame({
-                "Category": cat_counts.index,
-                "Employees": cat_counts.values,
-                "Percentage": (cat_counts.values / cat_counts.sum() * 100).round(1)
-            }),
-            "insights": [
-                f"High engagement share: {(cat_counts['High']/cat_counts.sum())*100:.1f}%",
-                f"Low engagement share: {(cat_counts['Low']/cat_counts.sum())*100:.1f}%"
-            ]
-        }
-    ]
+# ==================================
+# 📄 Export Executive Report
+# ==================================
+st.markdown("---")
+st.subheader("📄 Step 5 — Export Executive Report")
 
-    export_module_report(
-        report_title="Engagement Analytics Executive Report",
-        module_name="Engagement",
-        data_blocks=data_blocks,
-        filename_prefix="Engagement"
-    )
+data_blocks = [
+    {
+        "title": "Engagement Insights",
+        "desc": "Summarizes engagement index distribution and categorical breakdown.",
+        "df": df.head(10) if "df" in locals() else None,
+        "insights": [
+            "Engagement levels across departments analyzed.",
+            "Distribution of High, Moderate, and Low engagement visualized."
+        ],
+    }
+]
+
+from utils.pdf_auto_exporter import export_module_report
+export_module_report(
+    report_title="Engagement Analytics Executive Report",
+    module_name="Engagement",
+    data_blocks=data_blocks,
+    filename_prefix="Engagement"
+)
