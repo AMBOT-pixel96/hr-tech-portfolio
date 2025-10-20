@@ -1,0 +1,151 @@
+EmployeeID,Department,JobLevel,Gender,Q1,Q2,Q3,Q4,Q5
+E2000,Finance,Manager,Female,2.8,3.5,3.9,3.9,3.6
+E2001,HR,Manager,Female,4.3,3.2,3.8,4.0,4.3
+E2002,Finance,Associate,Male,4.2,2.9,2.6,4.6,3.9
+E2003,Finance,Manager,Female,3.4,5.0,4.0,4.7,3.9
+E2004,Finance,Senior Manager,Female,5.0,5.0,3.9,4.8,4.6
+E2005,Marketing,Analyst,Male,4.5,2.8,4.0,4.2,2.3
+E2006,IT,Manager,Female,3.1,2.5,3.7,4.4,5.0
+E2007,Marketing,Manager,Male,4.0,5.0,2.9,2.7,3.9
+E2008,Marketing,Manager,Male,4.2,3.9,2.5,3.8,3.0
+E2009,IT,Senior Manager,Female,4.6,4.4,3.4,3.7,3.4
+E2010,Operations,Associate,Male,3.7,4.4,3.0,4.1,3.3
+E2011,HR,Manager,Male,3.3,3.8,3.2,3.5,3.1
+E2012,Operations,Analyst,Male,4.9,3.5,3.0,3.6,3.4
+E2013,HR,Associate,Male,3.5,4.1,4.2,3.3,3.3
+E2014,HR,Manager,Male,3.7,2.3,2.8,4.9,5.0
+E2015,IT,Manager,Female,3.7,4.3,4.1,5.0,4.7
+E2016,Finance,Associate,Male,3.6,3.0,2.6,3.8,3.2
+E2017,Finance,Associate,Female,2.7,3.2,2.9,4.9,4.3
+E2018,HR,Associate,Female,3.7,4.7,3.8,3.1,4.8
+E2019,HR,Associate,Male,4.1,3.0,3.6,3.1,2.7
+E2020,Operations,Senior Manager,Male,4.7,5.0,3.1,4.5,3.6
+E2021,Finance,Associate,Female,3.4,3.3,3.1,3.7,3.1
+E2022,Marketing,Associate,Male,3.9,3.7,3.5,3.1,3.3
+E2023,Marketing,Senior Manager,Female,4.6,4.5,3.4,4.2,4.6
+E2024,Finance,Associate,Male,2.5,4.1,3.2,4.1,3.2
+E2025,IT,Senior Manager,Male,2.8,3.0,4.1,4.3,3.5
+E2026,Marketing,Manager,Male,4.3,2.7,3.9,3.1,3.4
+E2027,HR,Manager,Female,3.9,3.3,3.6,4.6,3.5
+E2028,IT,Analyst,Female,4.1,2.7,3.9,4.5,1.8
+E2029,IT,Senior Manager,Female,3.5,4.5,4.0,4.4,3.7
+E2030,IT,Manager,Female,4.0,3.8,4.7,4.1,4.1
+E2031,Operations,Manager,Female,3.6,3.6,3.6,4.2,3.6
+E2032,Marketing,Associate,Female,3.9,5.0,4.3,3.5,4.5
+E2033,IT,Manager,Female,3.6,2.5,3.2,2.6,3.7
+E2034,Marketing,Associate,Female,3.7,4.9,3.9,3.5,4.3
+E2035,Marketing,Senior Manager,Female,2.6,4.3,4.6,3.1,4.9
+E2036,HR,Associate,Female,3.9,3.4,4.1,5.0,3.8
+E2037,Operations,Associate,Female,3.9,3.4,3.1,4.3,3.1
+E2038,HR,Associate,Female,3.8,3.4,4.0,3.9,4.4
+E2039,Marketing,Manager,Male,3.5,3.7,3.2,3.6,4.2
+E2040,Marketing,Senior Manager,Female,4.6,3.5,4.7,5.0,4.4
+E2041,Marketing,Associate,Male,5.0,3.2,2.8,2.5,4.7
+E2042,HR,Associate,Female,4.2,3.7,3.9,2.9,5.0
+E2043,HR,Manager,Female,4.0,4.0,4.4,4.2,4.1
+E2044,HR,Associate,Male,3.1,4.0,5.0,4.6,4.8
+E2045,IT,Senior Manager,Female,3.7,3.4,4.0,4.1,4.9
+E2046,Marketing,Senior Manager,Male,2.9,5.0,4.0,3.8,3.4
+E2047,Marketing,Associate,Female,2.5,4.3,3.8,2.8,2.8
+E2048,Finance,Associate,Female,3.5,4.9,3.5,2.6,3.5
+E2049,HR,Analyst,Female,3.3,1.6,3.5,3.3,4.0
+E2050,HR,Manager,Male,5.0,4.7,3.7,3.1,5.0
+E2051,Marketing,Manager,Female,3.9,3.9,3.9,4.0,3.8
+E2052,Marketing,Manager,Female,3.5,3.5,3.9,3.5,3.4
+E2053,Marketing,Analyst,Female,3.6,3.3,4.6,1.6,4.3
+E2054,Marketing,Analyst,Male,4.4,2.0,3.3,3.2,2.5
+E2055,HR,Analyst,Male,3.0,2.7,4.7,4.2,4.4
+E2056,Finance,Manager,Female,4.4,3.1,3.5,4.2,3.0
+E2057,HR,Manager,Male,4.4,3.7,3.6,4.4,4.2
+E2058,Finance,Senior Manager,Male,3.8,4.9,3.3,4.5,4.5
+E2059,Marketing,Associate,Female,3.5,3.9,2.8,4.3,3.6
+E2060,IT,Associate,Male,3.3,4.4,3.2,2.7,2.6
+E2061,HR,Associate,Female,4.1,2.8,4.9,2.2,4.9
+E2062,Finance,Senior Manager,Male,4.2,4.0,3.7,4.4,4.1
+E2063,Operations,Manager,Female,4.7,4.0,4.0,3.6,3.9
+E2064,HR,Analyst,Female,3.7,2.3,2.6,4.0,3.6
+E2065,IT,Analyst,Male,3.4,3.5,3.7,3.1,3.0
+E2066,HR,Analyst,Female,3.6,2.8,3.8,2.3,4.2
+E2067,Marketing,Associate,Female,4.0,3.9,4.4,4.9,4.4
+E2068,Finance,Analyst,Female,2.2,2.6,3.1,3.5,3.9
+E2069,Marketing,Analyst,Male,3.0,3.6,3.0,3.1,2.5
+E2070,Operations,Analyst,Female,2.9,2.6,2.8,4.2,2.8
+E2071,IT,Manager,Female,5.0,4.2,4.0,3.3,4.4
+E2072,Finance,Analyst,Male,3.1,3.6,5.0,3.4,4.3
+E2073,Operations,Senior Manager,Female,3.6,4.1,5.0,3.7,5.0
+E2074,Finance,Senior Manager,Male,4.6,3.7,4.5,4.8,4.5
+E2075,Operations,Senior Manager,Male,3.0,3.6,3.9,4.0,4.5
+E2076,HR,Senior Manager,Female,4.2,3.2,4.4,4.5,4.5
+E2077,Marketing,Associate,Male,4.5,4.3,4.0,3.7,2.5
+E2078,IT,Associate,Female,4.0,3.8,3.9,2.8,2.9
+E2079,Marketing,Associate,Male,4.4,3.7,4.2,3.7,3.7
+E2080,Marketing,Analyst,Male,4.2,3.1,3.6,3.2,3.2
+E2081,IT,Senior Manager,Female,3.9,4.3,3.8,5.0,3.5
+E2082,IT,Manager,Male,3.8,3.6,4.9,4.0,4.6
+E2083,Finance,Analyst,Male,2.5,3.7,4.1,3.6,4.2
+E2084,Marketing,Analyst,Female,3.1,4.5,5.0,3.2,3.2
+E2085,Marketing,Analyst,Male,4.5,4.6,3.1,3.2,3.3
+E2086,Marketing,Senior Manager,Male,3.2,3.5,3.4,3.6,4.1
+E2087,Marketing,Analyst,Male,3.7,4.6,2.8,4.2,3.4
+E2088,Finance,Analyst,Male,3.5,4.0,2.7,3.8,3.6
+E2089,Finance,Manager,Female,4.2,4.1,5.0,3.5,3.5
+E2090,Operations,Senior Manager,Male,3.7,3.7,3.7,4.9,5.0
+E2091,Marketing,Senior Manager,Female,3.7,3.5,4.4,3.7,4.5
+E2092,Operations,Associate,Female,3.8,2.6,4.8,5.0,3.3
+E2093,IT,Senior Manager,Male,3.8,4.3,4.3,4.6,5.0
+E2094,HR,Manager,Male,3.8,3.3,2.9,3.4,3.9
+E2095,Finance,Senior Manager,Male,5.0,3.7,4.3,4.1,4.9
+E2096,IT,Analyst,Male,5.0,3.1,3.2,4.2,4.0
+E2097,Operations,Senior Manager,Male,5.0,4.5,3.8,4.5,4.9
+E2098,Operations,Manager,Female,4.5,4.3,4.6,4.7,4.9
+E2099,Finance,Analyst,Male,4.0,3.4,3.6,4.3,2.9
+E2100,Marketing,Associate,Male,4.0,3.4,3.7,4.6,3.8
+E2101,Marketing,Analyst,Male,3.5,2.5,4.0,4.0,5.0
+E2102,HR,Senior Manager,Female,3.9,4.3,4.3,5.0,4.0
+E2103,Finance,Analyst,Female,3.7,3.9,3.6,3.2,3.6
+E2104,HR,Senior Manager,Female,4.9,3.4,4.2,3.6,4.9
+E2105,HR,Associate,Male,2.6,3.3,4.0,4.8,3.7
+E2106,Marketing,Manager,Male,3.5,5.0,2.9,2.4,4.2
+E2107,HR,Senior Manager,Male,3.7,3.4,4.6,4.3,3.7
+E2108,HR,Associate,Male,2.8,4.3,4.2,3.6,5.0
+E2109,Finance,Analyst,Male,2.8,2.4,3.0,3.5,3.7
+E2110,Finance,Senior Manager,Female,3.9,4.3,3.2,5.0,4.0
+E2111,HR,Manager,Female,4.7,4.1,4.2,4.3,4.2
+E2112,Operations,Manager,Male,4.3,4.8,4.0,4.4,3.8
+E2113,IT,Manager,Female,4.9,3.4,5.0,3.9,2.9
+E2114,HR,Analyst,Male,3.6,3.0,4.1,3.0,3.2
+E2115,IT,Manager,Male,2.6,3.6,2.2,2.8,4.4
+E2116,HR,Senior Manager,Male,4.7,4.4,3.4,4.1,4.1
+E2117,Operations,Senior Manager,Male,3.3,5.0,4.7,3.9,4.1
+E2118,IT,Analyst,Male,3.6,2.1,3.3,3.0,2.8
+E2119,HR,Associate,Female,3.5,5.0,4.1,3.3,4.1
+E2120,Finance,Manager,Female,4.9,4.5,3.9,3.4,4.4
+E2121,Operations,Analyst,Male,3.8,4.1,3.9,4.2,3.1
+E2122,HR,Senior Manager,Female,5.0,4.2,5.0,3.6,5.0
+E2123,Finance,Analyst,Male,3.6,3.0,3.2,3.3,3.8
+E2124,Marketing,Senior Manager,Male,4.5,3.7,4.1,5.0,5.0
+E2125,Operations,Manager,Male,4.2,3.9,4.0,4.3,3.2
+E2126,Operations,Senior Manager,Male,3.9,2.9,4.4,4.6,3.8
+E2127,Finance,Analyst,Female,4.6,2.6,2.5,3.7,4.2
+E2128,IT,Senior Manager,Female,5.0,3.8,4.9,4.1,4.0
+E2129,HR,Analyst,Female,4.1,4.0,2.4,4.5,4.5
+E2130,HR,Analyst,Female,3.1,3.8,3.8,3.7,3.1
+E2131,IT,Manager,Female,3.4,3.9,4.7,4.3,3.6
+E2132,IT,Associate,Male,4.2,1.7,4.5,2.5,3.4
+E2133,Marketing,Analyst,Male,2.7,2.6,4.3,3.2,3.7
+E2134,Finance,Associate,Female,3.7,4.0,3.8,2.8,4.4
+E2135,Finance,Senior Manager,Female,3.8,3.0,3.8,5.0,4.7
+E2136,Operations,Analyst,Female,3.3,3.3,3.3,5.0,3.8
+E2137,IT,Associate,Female,4.0,4.4,3.9,3.5,3.6
+E2138,IT,Manager,Female,3.8,3.9,4.4,3.9,4.4
+E2139,HR,Associate,Male,3.6,3.8,2.3,4.3,3.9
+E2140,Finance,Senior Manager,Male,4.8,2.1,5.0,4.0,4.9
+E2141,Operations,Analyst,Male,2.8,3.9,2.8,3.1,4.8
+E2142,HR,Senior Manager,Female,4.0,4.3,4.7,4.4,4.2
+E2143,Finance,Analyst,Male,3.8,5.0,3.5,3.6,4.2
+E2144,Operations,Analyst,Male,4.3,4.3,3.9,2.7,4.6
+E2145,Marketing,Manager,Female,3.1,4.1,3.4,3.9,4.1
+E2146,Marketing,Manager,Male,4.1,4.2,5.0,4.2,3.7
+E2147,HR,Analyst,Male,4.2,4.3,2.6,3.9,4.0
+E2148,HR,Analyst,Female,3.3,4.5,3.4,3.6,3.4
+E2149,HR,Manager,Male,3.9,3.1,2.9,5.0,3.3

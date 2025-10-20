@@ -1,0 +1,151 @@
+EmployeeID,Gender,Department,JobRole,JobLevel,CTC,Bonus,PerformanceRating
+E3000,Male,Finance,Senior Manager,Senior Manager,581593.0,56710.0,2.0
+E3001,Male,Operations,Director,Director,887883.0,57392.0,1.7
+E3002,Male,IT,Analyst,Analyst,721178.0,125411.0,4.6
+E3003,Female,HR,Senior Manager,Senior Manager,758041.0,168790.0,1.0
+E3004,Female,HR,Senior Manager,Senior Manager,1114913.0,61463.0,1.0
+E3005,Male,Finance,Senior Manager,Senior Manager,656064.0,85134.0,1.8
+E3006,Male,IT,Manager,Manager,1012770.0,173772.0,4.0
+E3007,Male,Marketing,Senior Manager,Senior Manager,909056.0,176016.0,3.7
+E3008,Female,Operations,Manager,Manager,753743.0,74392.0,3.8
+E3009,Female,IT,Analyst,Analyst,666369.0,46835.0,2.8
+E3010,Male,Operations,Manager,Manager,708199.0,75759.0,1.3
+E3011,Female,Finance,Analyst,Analyst,525906.0,83005.0,4.0
+E3012,Male,Marketing,Senior Manager,Senior Manager,651540.0,125897.0,3.9
+E3013,Male,IT,Analyst,Analyst,409583.0,30464.0,2.4
+E3014,Male,Finance,Manager,Manager,603799.0,52100.0,3.6
+E3015,Male,IT,Analyst,Analyst,626674.0,44729.0,4.8
+E3016,Male,IT,Director,Director,1012857.0,245704.0,1.4
+E3017,Female,IT,Analyst,Analyst,590983.0,94584.0,4.4
+E3018,Female,Marketing,Director,Director,908471.0,218288.0,3.1
+E3019,Female,Operations,Senior Manager,Senior Manager,886077.0,200999.0,4.2
+E3020,Male,HR,Director,Director,880452.0,151610.0,2.3
+E3021,Female,IT,Analyst,Analyst,563892.0,129698.0,4.1
+E3022,Male,IT,Senior Manager,Senior Manager,756851.0,155991.0,1.8
+E3023,Female,IT,Director,Director,892746.0,120295.0,3.8
+E3024,Male,Operations,Manager,Manager,753479.0,131687.0,2.3
+E3025,Male,IT,Manager,Manager,571461.0,47776.0,5.0
+E3026,Male,Marketing,Analyst,Analyst,649656.0,60644.0,3.6
+E3027,Male,Marketing,Manager,Manager,914808.0,145765.0,4.2
+E3028,Male,Finance,Analyst,Analyst,435624.0,73575.0,2.4
+E3029,Female,Finance,Director,Director,959750.0,74177.0,3.3
+E3030,Female,IT,Analyst,Analyst,796694.0,108064.0,2.2
+E3031,Male,Operations,Analyst,Analyst,732486.0,181841.0,4.0
+E3032,Male,HR,Manager,Manager,915408.0,95964.0,3.6
+E3033,Male,IT,Senior Manager,Senior Manager,754644.0,91311.0,1.9
+E3034,Male,HR,Manager,Manager,627603.0,39867.0,3.0
+E3035,Female,Marketing,Director,Director,1044165.0,164981.0,2.4
+E3036,Male,IT,Analyst,Analyst,700023.0,109618.0,3.3
+E3037,Female,HR,Senior Manager,Senior Manager,691984.0,127254.0,1.8
+E3038,Female,HR,Senior Manager,Senior Manager,890282.0,127347.0,4.7
+E3039,Female,Finance,Analyst,Analyst,518294.0,125181.0,3.1
+E3040,Male,IT,Director,Director,849519.0,76615.0,3.5
+E3041,Male,HR,Senior Manager,Senior Manager,849753.0,119028.0,2.1
+E3042,Male,IT,Manager,Manager,868331.0,158889.0,2.3
+E3043,Female,Operations,Manager,Manager,551143.0,44358.0,2.5
+E3044,Male,Marketing,Manager,Manager,737006.0,113640.0,4.2
+E3045,Female,Finance,Manager,Manager,747041.0,150196.0,2.3
+E3046,Female,IT,Analyst,Analyst,581704.0,120067.0,3.1
+E3047,Male,Finance,Analyst,Analyst,493230.0,60188.0,1.9
+E3048,Male,IT,Manager,Manager,780959.0,101053.0,1.2
+E3049,Female,Finance,Manager,Manager,584226.0,89466.0,5.0
+E3050,Female,Marketing,Director,Director,1060619.0,263491.0,3.0
+E3051,Female,HR,Manager,Manager,775677.0,183152.0,2.6
+E3052,Male,IT,Senior Manager,Senior Manager,828133.0,104448.0,3.1
+E3053,Male,HR,Director,Director,1031951.0,114480.0,3.6
+E3054,Female,Marketing,Senior Manager,Senior Manager,749311.0,63470.0,2.8
+E3055,Female,Finance,Senior Manager,Senior Manager,997568.0,244526.0,2.0
+E3056,Female,Operations,Director,Director,1016964.0,77803.0,4.1
+E3057,Male,Finance,Analyst,Analyst,563983.0,114467.0,5.0
+E3058,Female,Operations,Analyst,Analyst,442580.0,57417.0,3.0
+E3059,Male,HR,Manager,Manager,600922.0,38239.0,2.6
+E3060,Male,Finance,Manager,Manager,783563.0,190535.0,3.1
+E3061,Female,Marketing,Director,Director,882416.0,133446.0,1.2
+E3062,Female,HR,Director,Director,942709.0,167958.0,2.1
+E3063,Female,HR,Director,Director,806100.0,145130.0,3.5
+E3064,Female,Finance,Analyst,Analyst,778887.0,48005.0,2.8
+E3065,Male,Finance,Director,Director,910688.0,67643.0,2.4
+E3066,Female,Marketing,Senior Manager,Senior Manager,803704.0,151444.0,2.4
+E3067,Male,Marketing,Manager,Manager,632552.0,157720.0,3.0
+E3068,Male,Finance,Senior Manager,Senior Manager,982878.0,109346.0,3.4
+E3069,Male,HR,Director,Director,1234642.0,166944.0,3.5
+E3070,Male,Marketing,Manager,Manager,693028.0,85625.0,1.6
+E3071,Male,IT,Director,Director,922002.0,181379.0,4.2
+E3072,Female,Finance,Manager,Manager,409075.0,22024.0,2.4
+E3073,Female,Marketing,Manager,Manager,624427.0,48344.0,3.9
+E3074,Male,Marketing,Senior Manager,Senior Manager,862003.0,45190.0,1.5
+E3075,Female,Operations,Manager,Manager,716287.0,114314.0,2.0
+E3076,Male,Marketing,Senior Manager,Senior Manager,820976.0,57154.0,4.2
+E3077,Female,Operations,Director,Director,955189.0,109785.0,1.8
+E3078,Male,Operations,Manager,Manager,925405.0,115840.0,2.8
+E3079,Female,IT,Senior Manager,Senior Manager,566835.0,117337.0,2.1
+E3080,Female,Finance,Analyst,Analyst,724789.0,135990.0,2.3
+E3081,Female,IT,Director,Director,911193.0,198799.0,1.4
+E3082,Male,HR,Manager,Manager,647314.0,117728.0,5.0
+E3083,Male,Marketing,Director,Director,1055940.0,182452.0,3.3
+E3084,Male,Operations,Analyst,Analyst,509590.0,40784.0,3.0
+E3085,Male,Finance,Senior Manager,Senior Manager,1046655.0,194726.0,3.1
+E3086,Female,Operations,Senior Manager,Senior Manager,862162.0,55395.0,2.6
+E3087,Male,HR,Manager,Manager,875857.0,95737.0,2.2
+E3088,Female,Finance,Analyst,Analyst,521173.0,94996.0,4.2
+E3089,Male,IT,Manager,Manager,667674.0,46523.0,2.5
+E3090,Male,Finance,Senior Manager,Senior Manager,926274.0,95415.0,4.2
+E3091,Female,IT,Analyst,Analyst,757339.0,95719.0,3.6
+E3092,Female,Operations,Analyst,Analyst,569900.0,98594.0,2.7
+E3093,Female,Marketing,Analyst,Analyst,746955.0,116570.0,3.6
+E3094,Female,Operations,Director,Director,1071341.0,263543.0,2.4
+E3095,Female,HR,Senior Manager,Senior Manager,1055913.0,210776.0,4.5
+E3096,Female,Marketing,Manager,Manager,848701.0,64178.0,3.5
+E3097,Female,HR,Manager,Manager,694756.0,65948.0,3.6
+E3098,Female,Finance,Manager,Manager,484037.0,66740.0,2.0
+E3099,Male,HR,Manager,Manager,737724.0,72399.0,3.6
+E3100,Male,IT,Manager,Manager,686782.0,156164.0,2.8
+E3101,Female,IT,Senior Manager,Senior Manager,949560.0,202436.0,1.7
+E3102,Female,Marketing,Director,Director,993910.0,199784.0,2.8
+E3103,Female,HR,Director,Director,943195.0,184581.0,4.2
+E3104,Male,Marketing,Analyst,Analyst,740817.0,63329.0,3.7
+E3105,Male,IT,Manager,Manager,723637.0,171848.0,3.3
+E3106,Male,HR,Senior Manager,Senior Manager,761837.0,162696.0,3.4
+E3107,Female,Marketing,Senior Manager,Senior Manager,660968.0,144184.0,3.0
+E3108,Female,Finance,Manager,Manager,924266.0,155341.0,3.3
+E3109,Male,Finance,Manager,Manager,729412.0,118897.0,1.1
+E3110,Male,IT,Manager,Manager,765739.0,135734.0,3.8
+E3111,Male,Marketing,Analyst,Analyst,657371.0,93551.0,2.4
+E3112,Female,IT,Analyst,Analyst,497938.0,104574.0,2.8
+E3113,Male,HR,Director,Director,791939.0,155707.0,3.3
+E3114,Female,Operations,Director,Director,1013352.0,122694.0,1.8
+E3115,Male,HR,Analyst,Analyst,774577.0,39539.0,3.3
+E3116,Female,Marketing,Senior Manager,Senior Manager,917794.0,221752.0,2.2
+E3117,Male,HR,Director,Director,827243.0,65995.0,1.6
+E3118,Female,IT,Senior Manager,Senior Manager,795260.0,198232.0,3.7
+E3119,Female,Operations,Director,Director,708706.0,137782.0,2.2
+E3120,Male,IT,Analyst,Analyst,711911.0,91342.0,3.2
+E3121,Female,IT,Director,Director,869891.0,44054.0,4.7
+E3122,Male,Operations,Senior Manager,Senior Manager,991510.0,207066.0,1.5
+E3123,Male,Finance,Senior Manager,Senior Manager,739709.0,108141.0,3.2
+E3124,Male,Marketing,Analyst,Analyst,622146.0,103274.0,2.4
+E3125,Female,Finance,Manager,Manager,946394.0,161547.0,4.9
+E3126,Female,IT,Analyst,Analyst,671103.0,69771.0,4.0
+E3127,Male,Marketing,Analyst,Analyst,757489.0,49549.0,3.0
+E3128,Male,Marketing,Director,Director,905613.0,187443.0,2.8
+E3129,Female,IT,Senior Manager,Senior Manager,921844.0,141460.0,3.9
+E3130,Male,Marketing,Senior Manager,Senior Manager,816761.0,94449.0,1.9
+E3131,Male,Marketing,Senior Manager,Senior Manager,823771.0,77535.0,2.2
+E3132,Male,Marketing,Manager,Manager,795697.0,198661.0,4.5
+E3133,Female,Operations,Director,Director,1029211.0,138171.0,3.2
+E3134,Female,Finance,Director,Director,1029852.0,75866.0,4.2
+E3135,Female,Finance,Analyst,Analyst,563493.0,71432.0,4.1
+E3136,Female,Operations,Analyst,Analyst,785189.0,68229.0,4.9
+E3137,Female,Finance,Analyst,Analyst,459064.0,25358.0,1.6
+E3138,Female,Operations,Director,Director,747787.0,82066.0,3.1
+E3139,Female,Marketing,Manager,Manager,696607.0,152130.0,4.0
+E3140,Female,Finance,Senior Manager,Senior Manager,776076.0,109921.0,3.5
+E3141,Female,Finance,Manager,Manager,713803.0,47197.0,1.9
+E3142,Male,Operations,Director,Director,1172670.0,161090.0,3.0
+E3143,Male,Operations,Analyst,Analyst,693373.0,56705.0,3.9
+E3144,Female,Operations,Director,Director,996215.0,199517.0,2.0
+E3145,Female,IT,Analyst,Analyst,614581.0,39205.0,3.4
+E3146,Male,HR,Manager,Manager,695559.0,71184.0,2.9
+E3147,Female,IT,Manager,Manager,693466.0,69284.0,3.4
+E3148,Female,Marketing,Analyst,Analyst,503619.0,70480.0,3.9
+E3149,Male,IT,Analyst,Analyst,598318.0,37413.0,2.5

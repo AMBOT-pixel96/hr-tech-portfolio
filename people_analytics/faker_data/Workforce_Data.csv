@@ -1,0 +1,151 @@
+EmployeeID,Department,JobLevel,Gender,ManagerID,CTC,Skills
+E5000,Operations,Senior Manager,Female,M020,904346.0053600477,Supply Chain;Lean
+E5001,IT,Senior Manager,Female,M010,910334.4731250436,Cloud;SQL
+E5002,HR,Associate,Male,M017,684661.9235541514,Recruitment;Onboarding
+E5003,Operations,Manager,Female,M008,967390.1125927184,Automation;Lean
+E5004,Finance,Analyst,Female,M009,677162.373896512,Excel;Risk Analysis
+E5005,Operations,Manager,Female,M020,437749.4774936435,Automation;Lean
+E5006,Finance,Manager,Female,M017,905267.1009488689,Risk Analysis;PowerBI
+E5007,Finance,Analyst,Female,M010,625315.7053134406,Risk Analysis;Accounting
+E5008,Finance,Manager,Female,M014,817567.8616620332,PowerBI;Risk Analysis
+E5009,Finance,Analyst,Male,M006,549492.6010984449,Risk Analysis;PowerBI
+E5010,HR,Manager,Male,M003,966134.6535981817,Analytics;HRIS
+E5011,Operations,Senior Manager,Female,M001,1053178.4400759714,Six Sigma;Supply Chain
+E5012,Marketing,Manager,Female,M019,719525.9031829308,Content;Campaigns
+E5013,HR,Analyst,Male,M001,652916.7973261896,HRIS;Onboarding
+E5014,IT,Associate,Female,M018,583684.6245096328,SQL;Cloud
+E5015,IT,Analyst,Female,M007,420649.63857743895,SQL;Cloud
+E5016,Operations,Analyst,Male,M020,518526.76080330455,Lean;Supply Chain
+E5017,IT,Associate,Female,M011,822111.1514097586,SQL;Machine Learning
+E5018,Marketing,Associate,Male,M012,833906.2558988912,Content;SEO
+E5019,IT,Associate,Female,M018,776701.104612648,SQL;Machine Learning
+E5020,HR,Analyst,Male,M016,694262.4522902396,Recruitment;Analytics
+E5021,Finance,Analyst,Male,M008,667103.1773249446,Accounting;PowerBI
+E5022,Operations,Senior Manager,Male,M019,846607.3926210162,Six Sigma;Automation
+E5023,Operations,Manager,Male,M006,876149.9308076121,Six Sigma;Lean
+E5024,Operations,Analyst,Male,M020,704053.2382795986,Supply Chain;Lean
+E5025,HR,Analyst,Male,M014,698057.8728757646,Onboarding;Recruitment
+E5026,HR,Associate,Male,M004,864558.7382917036,Analytics;HRIS
+E5027,Operations,Associate,Male,M019,802079.5001361382,Lean;Six Sigma
+E5028,Operations,Senior Manager,Female,M017,975688.2669804059,Automation;Supply Chain
+E5029,Operations,Associate,Male,M005,849119.5309811354,Six Sigma;Lean
+E5030,Marketing,Analyst,Female,M001,596552.2362976222,Campaigns;Content
+E5031,HR,Analyst,Male,M018,485356.29534039664,Onboarding;Recruitment
+E5032,Marketing,Senior Manager,Male,M020,908801.2946873107,Content;SEO
+E5033,IT,Analyst,Female,M006,503162.6561751616,SQL;Python
+E5034,Marketing,Associate,Female,M016,622226.8242533304,SEO;Content
+E5035,Marketing,Manager,Male,M014,801212.5728069826,Content;CRM
+E5036,Marketing,Analyst,Female,M014,496985.410270005,Campaigns;SEO
+E5037,HR,Associate,Female,M009,669965.0011469247,HRIS;Onboarding
+E5038,IT,Associate,Female,M008,463830.09329600784,Cloud;SQL
+E5039,HR,Associate,Female,M006,737728.1819584819,Onboarding;Analytics
+E5040,Operations,Analyst,Male,M018,600156.7117970891,Supply Chain;Six Sigma
+E5041,Marketing,Manager,Male,M001,713778.4779611351,SEO;Campaigns
+E5042,IT,Manager,Female,M010,905701.9368962125,SQL;Machine Learning
+E5043,Operations,Associate,Male,M018,831884.1178914525,Automation;Supply Chain
+E5044,HR,Senior Manager,Female,M013,721017.2176320334,Analytics;Onboarding
+E5045,Finance,Senior Manager,Female,M018,830845.7787863922,PowerBI;Accounting
+E5046,Operations,Associate,Male,M009,610011.4945276512,Supply Chain;Lean
+E5047,Operations,Manager,Male,M002,697812.5968558475,Lean;Supply Chain
+E5048,IT,Associate,Male,M007,817831.7294511272,SQL;Cloud
+E5049,Finance,Senior Manager,Female,M011,904802.6019595356,Excel;PowerBI
+E5050,IT,Senior Manager,Male,M015,895613.0706296207,Machine Learning;Cloud
+E5051,HR,Analyst,Male,M004,339497.892627122,Recruitment;Onboarding
+E5052,Operations,Senior Manager,Female,M004,1012604.3439271996,Supply Chain;Automation
+E5053,IT,Associate,Male,M019,548896.4086690486,Cloud;Python
+E5054,HR,Manager,Female,M011,827791.2419346226,Recruitment;HRIS
+E5055,HR,Manager,Female,M004,856059.0019345648,Analytics;Recruitment
+E5056,HR,Analyst,Female,M011,776885.6174590247,Recruitment;Analytics
+E5057,Finance,Senior Manager,Female,M017,759853.3481145155,Accounting;Excel
+E5058,Operations,Manager,Male,M013,427463.41974329256,Automation;Lean
+E5059,Marketing,Senior Manager,Female,M012,953900.4408179804,SEO;Campaigns
+E5060,IT,Senior Manager,Female,M014,1164066.453596411,Machine Learning;Cloud
+E5061,HR,Manager,Male,M005,981063.0258821268,Recruitment;Onboarding
+E5062,Marketing,Manager,Male,M010,847255.7239857012,SEO;Campaigns
+E5063,HR,Associate,Female,M007,646087.2958678338,Recruitment;Onboarding
+E5064,Marketing,Senior Manager,Female,M011,1034925.9375628504,SEO;Content
+E5065,Operations,Senior Manager,Female,M013,803438.9940384191,Lean;Supply Chain
+E5066,Operations,Manager,Male,M011,881926.5100163085,Automation;Lean
+E5067,Operations,Associate,Female,M019,775711.1206916615,Supply Chain;Lean
+E5068,Marketing,Manager,Female,M014,957827.2879748542,Content;SEO
+E5069,Finance,Senior Manager,Female,M016,1288755.8050584402,Excel;PowerBI
+E5070,Marketing,Analyst,Female,M011,651014.0757332398,Campaigns;CRM
+E5071,HR,Senior Manager,Male,M011,863834.7286580253,Analytics;Recruitment
+E5072,IT,Manager,Male,M010,816675.3394150407,SQL;Python
+E5073,IT,Associate,Female,M001,480020.1323644146,Machine Learning;Cloud
+E5074,Finance,Associate,Male,M003,619687.2929584223,Risk Analysis;Excel
+E5075,HR,Associate,Female,M017,656793.2830452964,Analytics;Onboarding
+E5076,Marketing,Associate,Male,M012,641868.5082685029,CRM;SEO
+E5077,IT,Manager,Male,M004,839806.1333643838,SQL;Cloud
+E5078,HR,Analyst,Male,M017,493085.40879031393,HRIS;Analytics
+E5079,IT,Analyst,Female,M008,745733.9867521813,SQL;Python
+E5080,IT,Senior Manager,Male,M011,930026.9184393658,Cloud;Python
+E5081,HR,Associate,Female,M005,708790.9582519801,HRIS;Analytics
+E5082,Finance,Analyst,Male,M014,557373.6868533207,Excel;Risk Analysis
+E5083,Finance,Manager,Male,M020,840174.7889016672,Accounting;Excel
+E5084,Finance,Senior Manager,Female,M018,1037262.7744067925,Risk Analysis;Accounting
+E5085,IT,Senior Manager,Male,M004,817273.071957583,Cloud;SQL
+E5086,HR,Associate,Female,M014,624444.8564202166,Recruitment;HRIS
+E5087,Marketing,Manager,Male,M013,780515.6162590336,Campaigns;SEO
+E5088,Marketing,Manager,Female,M014,645036.7799484819,Content;SEO
+E5089,Marketing,Manager,Male,M008,713496.4782362053,Content;CRM
+E5090,IT,Associate,Female,M018,648091.2864391943,SQL;Cloud
+E5091,Operations,Analyst,Female,M001,713670.5934926546,Six Sigma;Supply Chain
+E5092,Finance,Senior Manager,Male,M018,964132.9727702503,Risk Analysis;Accounting
+E5093,Finance,Analyst,Female,M010,625166.6884777808,Accounting;Excel
+E5094,IT,Senior Manager,Male,M013,1040616.7350818365,Cloud;SQL
+E5095,Operations,Associate,Female,M017,692141.6675080784,Lean;Automation
+E5096,Marketing,Manager,Female,M010,870760.4304907555,SEO;Campaigns
+E5097,Finance,Senior Manager,Female,M017,916581.1721187757,Risk Analysis;Excel
+E5098,Finance,Analyst,Female,M008,634497.1054219517,Accounting;Excel
+E5099,Marketing,Senior Manager,Female,M011,854241.3745104944,Campaigns;SEO
+E5100,IT,Analyst,Female,M006,282953.7694240642,Python;SQL
+E5101,HR,Manager,Female,M016,802543.7089157803,Recruitment;Onboarding
+E5102,HR,Senior Manager,Female,M007,1114957.2576929925,Analytics;HRIS
+E5103,IT,Associate,Male,M014,830408.002291407,Python;Machine Learning
+E5104,HR,Associate,Male,M013,835501.6729968522,Recruitment;Onboarding
+E5105,Marketing,Manager,Female,M001,980696.9938348082,SEO;Campaigns
+E5106,IT,Manager,Male,M005,831525.4868249868,Python;Machine Learning
+E5107,Operations,Analyst,Male,M001,625651.0419627274,Lean;Automation
+E5108,Finance,Senior Manager,Female,M020,849705.2535935346,Accounting;Excel
+E5109,HR,Manager,Female,M015,778910.5287164834,HRIS;Onboarding
+E5110,Operations,Associate,Male,M006,790050.2494702484,Lean;Automation
+E5111,Operations,Associate,Female,M011,866504.9768319462,Lean;Supply Chain
+E5112,Finance,Manager,Male,M005,801871.9841614701,Excel;Risk Analysis
+E5113,Finance,Analyst,Male,M014,541475.3955693165,PowerBI;Excel
+E5114,IT,Manager,Male,M009,820068.6346513577,Cloud;Python
+E5115,HR,Associate,Female,M011,788156.8773607849,Analytics;HRIS
+E5116,Finance,Manager,Female,M002,632298.8739026395,Accounting;PowerBI
+E5117,HR,Senior Manager,Male,M012,631496.476092159,HRIS;Onboarding
+E5118,IT,Associate,Male,M013,638430.2095660941,Python;Machine Learning
+E5119,Marketing,Analyst,Female,M013,441307.38463115937,CRM;Campaigns
+E5120,Finance,Analyst,Female,M012,533941.7743058496,Risk Analysis;PowerBI
+E5121,Marketing,Analyst,Male,M009,580788.5585537287,Content;Campaigns
+E5122,Marketing,Associate,Male,M020,651077.7068270082,Content;SEO
+E5123,HR,Manager,Female,M010,1008820.7794811968,HRIS;Recruitment
+E5124,Operations,Manager,Female,M017,862476.8193983015,Lean;Supply Chain
+E5125,Operations,Analyst,Male,M016,639061.6667494077,Six Sigma;Automation
+E5126,IT,Analyst,Male,M009,680886.9287256423,Cloud;Python
+E5127,Marketing,Manager,Female,M014,671951.6946884999,CRM;Content
+E5128,Finance,Manager,Male,M009,955084.5323646349,Risk Analysis;Excel
+E5129,IT,Associate,Male,M004,700150.6427503901,Machine Learning;Cloud
+E5130,IT,Manager,Female,M007,907162.4802413576,Machine Learning;SQL
+E5131,IT,Manager,Male,M020,680658.5597047798,SQL;Cloud
+E5132,Marketing,Manager,Male,M006,618011.3604179116,CRM;SEO
+E5133,Operations,Associate,Female,M003,816325.6555432536,Supply Chain;Lean
+E5134,IT,Associate,Male,M018,758933.2383926772,Python;Machine Learning
+E5135,Finance,Analyst,Female,M017,482733.2979335236,Risk Analysis;Excel
+E5136,Operations,Analyst,Male,M007,486943.79943428974,Supply Chain;Six Sigma
+E5137,HR,Senior Manager,Female,M016,1076306.52197392,Analytics;Recruitment
+E5138,Operations,Analyst,Female,M002,445376.4539272473,Automation;Lean
+E5139,Finance,Senior Manager,Female,M019,1143547.4839232753,Excel;Risk Analysis
+E5140,Finance,Senior Manager,Female,M016,812919.3044957771,PowerBI;Excel
+E5141,Operations,Associate,Female,M015,792990.9503290898,Six Sigma;Supply Chain
+E5142,IT,Analyst,Female,M004,557279.598152632,SQL;Machine Learning
+E5143,Finance,Senior Manager,Male,M019,1008414.3660407048,Excel;Risk Analysis
+E5144,HR,Associate,Female,M008,639265.1797251549,HRIS;Onboarding
+E5145,Finance,Associate,Male,M019,688836.9222106017,Excel;Accounting
+E5146,Marketing,Associate,Male,M001,715319.4928014437,Campaigns;CRM
+E5147,IT,Manager,Female,M019,689715.6307484085,Python;SQL
+E5148,IT,Analyst,Male,M003,696307.1649046164,SQL;Python
+E5149,IT,Associate,Male,M012,643282.2363586939,Python;SQL
