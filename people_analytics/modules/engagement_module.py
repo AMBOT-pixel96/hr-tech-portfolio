@@ -1,10 +1,11 @@
 # ============================================
-# modules/engagement_module.py — v1.1 | CSV Upload Fix + Polished Layout
+# modules/engagement_module.py — v1.2 | PDF Export + Insights + CSV Fix
 # ============================================
 
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from utils.pdf_helper import render_pdf_download_button
 from utils.template_helper import render_download_template
 
 def run_engagement_module():
@@ -12,7 +13,7 @@ def run_engagement_module():
     <div style="padding:20px; border-radius:12px; background:linear-gradient(90deg,#1E40AF,#3B82F6);
                 color:white; text-align:center; margin-bottom:20px;">
         <h2 style="margin:0;">💬 Employee Engagement Analytics</h2>
-        <p style="font-size:14px; margin-top:6px;">Analyze engagement survey responses — discover sentiment patterns, departmental scores, and organizational engagement trends.</p>
+        <p style="font-size:14px; margin-top:6px;">Analyze employee sentiment through survey responses — uncover engagement strengths and improvement zones.</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -74,17 +75,15 @@ def run_engagement_module():
         st.error("No question columns (Q1, Q2, etc.) found.")
         return
 
-    # --- Numeric Conversion ---
+    # --- Clean numeric values ---
     for q in question_cols:
         df[q] = pd.to_numeric(df[q], errors="coerce").clip(1, 5)
 
-    # Drop invalid rows
     df = df.dropna(subset=question_cols, how="all")
     if df.empty:
         st.error("No valid responses found after cleaning.")
         return
 
-    # --- Engagement Index ---
     df["EngagementIndex"] = df[question_cols].mean(axis=1)
     df["EngagementCategory"] = pd.cut(
         df["EngagementIndex"],
@@ -93,13 +92,12 @@ def run_engagement_module():
         include_lowest=True,
     )
 
-    st.metric("Overall Engagement Index (1–5)", f"{df['EngagementIndex'].mean():.2f}")
+    overall_index = df["EngagementIndex"].mean()
+    st.metric("Overall Engagement Index (1–5)", f"{overall_index:.2f}")
 
     # =========================
-    # 📊 Step 4 — Visualizations
+    # 📊 Step 4 — Visual Insights
     # =========================
-
-    # Department Summary
     st.subheader("🏢 Engagement by Department")
     dept_summary = df.groupby("Department", observed=True)["EngagementIndex"].mean().round(2).reset_index()
     st.dataframe(dept_summary, use_container_width=True)
@@ -115,19 +113,48 @@ def run_engagement_module():
     )
     st.plotly_chart(bar, use_container_width=True)
 
-    # Category Breakdown
     st.subheader("🎯 Engagement Level Distribution")
     cat_counts = df["EngagementCategory"].value_counts().reindex(["High", "Moderate", "Low"]).fillna(0).astype(int)
     pie = px.pie(values=cat_counts.values, names=cat_counts.index, title="Engagement Category Breakdown")
     st.plotly_chart(pie, use_container_width=True)
 
+    # --- Insights ---
+    top_dept = dept_summary.loc[dept_summary["EngagementIndex"].idxmax(), "Department"]
+    high_pct = (df["EngagementCategory"].value_counts(normalize=True).get("High", 0) * 100)
+    low_pct = (df["EngagementCategory"].value_counts(normalize=True).get("Low", 0) * 100)
+
+    st.markdown(f"""
+    <div style="background:#0F172A;padding:10px 15px;border-radius:8px;margin-top:10px;">
+    <b>💡 Insights:</b><br>
+    • Top engaged department: <b>{top_dept}</b><br>
+    • High engagement share: <b>{high_pct:.1f}%</b><br>
+    • Low engagement share: <b>{low_pct:.1f}%</b><br>
+    • Overall Index: <b>{overall_index:.2f}</b>
+    </div>
+    """, unsafe_allow_html=True)
+
     # =========================
-    # 📤 Step 5 — Export Processed File
+    # 📄 Step 5 — Export Summary Report (PDF)
     # =========================
-    st.subheader("📤 Step 5 — Export Processed Survey")
+    st.subheader("📄 Step 5 — Export Summary Report")
+
+    html_summary = f"""
+    <h2>Engagement Analytics Summary</h2>
+    <p>This report highlights engagement performance across departments and overall sentiment scores.</p>
+    <div class='summary'>
+    <p><b>Overall Engagement Index:</b> {overall_index:.2f}</p>
+    <p><b>Top Department:</b> {top_dept}</p>
+    <p><b>High Engagement:</b> {high_pct:.1f}% | <b>Low Engagement:</b> {low_pct:.1f}%</p>
+    </div>
+    """
+    render_pdf_download_button("Engagement Analytics Report", html_summary, "Engagement_Report")
+
+    # =========================
+    # 📤 Step 6 — Export Processed CSV
+    # =========================
+    st.subheader("📤 Step 6 — Export Processed Data (CSV)")
     export_df = df[["EmployeeID", "Department", "JobLevel", "Gender", *question_cols, "EngagementIndex", "EngagementCategory"]]
     csv_bytes = export_df.to_csv(index=False).encode("utf-8")
-
     st.download_button(
         label="⬇️ Download Processed Engagement Data (CSV)",
         data=csv_bytes,
@@ -135,8 +162,6 @@ def run_engagement_module():
         mime="text/csv",
         use_container_width=True
     )
-
-    st.success("✅ Engagement analysis complete!")
 
     st.markdown("""
     <hr style="border:1px solid #1E40AF;margin-top:40px;"/>
