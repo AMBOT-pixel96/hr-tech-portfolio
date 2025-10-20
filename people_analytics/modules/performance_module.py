@@ -6,7 +6,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from datetime import datetime
-from utils.pdf_helper import render_pdf_download_button
+from utils.pdf_auto_exporter import export_module_report
 
 def run_performance_module():
     st.markdown("""
@@ -89,22 +89,33 @@ def run_performance_module():
         </div>
         """, unsafe_allow_html=True)
 
-    # --- PDF Export ---
-    st.subheader("📄 Step 3 — Export Summary Report")
-    html_summary = f"""
-    <h2>Performance Analytics Summary</h2>
-    <p>This report summarizes the performance distribution and pay correlation insights.</p>
-    <div class='summary'>
-    <p><b>Top Department:</b> {dept_best}<br>
-    <b>Gender Gap:</b> {gender_diff:.2f} points<br>
-    <b>Highest Paying Tier:</b> Rating {top_rating} ({top_ctc:.2f} LPA)</p>
-    </div>
-    """
-    render_pdf_download_button("Performance Analytics Report", html_summary, "Performance_Report")
+    # ==================================
+    # 📄 Executive PDF Export
+    # ==================================
+    data_blocks = [
+        {
+            "title": "Performance Distribution Insights",
+            "desc": "Distribution of performance ratings across departments and demographics.",
+            "df": gender_avg,
+            "insights": [
+                f"Top performing department: {dept_best}",
+                f"Gender gap in ratings: {gender_diff:.2f}",
+                f"Overall average rating: {df['PerformanceRating'].mean():.2f}"
+            ]
+        },
+        {
+            "title": "Performance vs Pay",
+            "desc": "Relationship between performance rating and average CTC.",
+            "df": perf_pay_avg,
+            "insights": [
+                f"Highest-paying rating tier: {top_rating} ({top_ctc:.2f} LPA)"
+            ]
+        }
+    ]
 
-    st.markdown("""
-    <hr style="border:1px solid #1E3A8A;margin-top:40px;"/>
-    <div style="text-align:center;color:#9CA3AF;font-size:13px;">
-        Prepared with ❤️ by <b>Amlan Mishra</b> | © 2025 HR Tech Portfolio
-    </div>
-    """, unsafe_allow_html=True)
+    export_module_report(
+        report_title="Performance Analytics Executive Report",
+        module_name="Performance",
+        data_blocks=data_blocks,
+        filename_prefix="Performance"
+    )
