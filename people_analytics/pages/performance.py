@@ -5,6 +5,8 @@
 import streamlit as st
 from modules.performance_module import run_performance_module
 
+st.set_page_config(page_title="Performance Analytics", layout="wide")
+
 # --- Unified Executive Sidebar Styling ---
 st.markdown("""
 <style>
@@ -32,10 +34,7 @@ st.markdown("""
     background: rgba(255,255,255,0.1);
     transform: scale(1.03);
 }
-[data-testid="stSidebarNav"] a span::before {
-    margin-right: 8px;
-}
-/* Icons */
+[data-testid="stSidebarNav"] a span::before { margin-right: 8px; }
 a[href*="performance"] span::before { content: "🏆 "; }
 a[href*="engagement"] span::before { content: "💬 "; }
 a[href*="compensation"] span::before { content: "💰 "; }
@@ -50,5 +49,4 @@ a[href*="app"] span::before { content: "🏠 "; }
 </style>
 """, unsafe_allow_html=True)
 
-st.set_page_config(page_title="Performance Analytics", layout="wide")
 run_performance_module()
