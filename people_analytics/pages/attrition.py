@@ -5,7 +5,6 @@
 import streamlit as st
 from modules.attrition_module import run_attrition_module
 
-# ⚙️ Must come before any other Streamlit commands
 st.set_page_config(page_title="Attrition Analytics", layout="wide")
 
 # --- Unified Executive Sidebar Styling ---
@@ -50,5 +49,4 @@ a[href*="app"] span::before { content: "🏠 "; }
 </style>
 """, unsafe_allow_html=True)
 
-# ✅ Call the module only once
 run_attrition_module()
