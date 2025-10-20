@@ -155,23 +155,24 @@ def run_attrition_module():
 # 📄 Export Executive Report
 # ==================================
 st.markdown("---")
-st.subheader("📄 Step X — Export Executive Report")
+st.subheader("📄 Step 5 — Export Executive Report")
 
 data_blocks = [
     {
-        "title": "Summary of Key Insights",
-        "desc": "Auto-generated insights from module analysis.",
+        "title": "Attrition Summary",
+        "desc": "Turnover patterns, department-level trends, and tenure-based attrition insights.",
         "df": df.head(10) if "df" in locals() else None,
         "insights": [
-            "Top metric highlights and performance trends will appear here."
+            "Overall attrition rate and tenure distribution summarized.",
+            "Department and job-level trends highlighted for workforce planning."
         ],
     }
 ]
 
 from utils.pdf_auto_exporter import export_module_report
 export_module_report(
-    report_title="Executive Summary Report",
-    module_name="People Analytics",
+    report_title="Attrition Analytics Executive Report",
+    module_name="Attrition",
     data_blocks=data_blocks,
-    filename_prefix="People_Analytics"
+    filename_prefix="Attrition"
 )
