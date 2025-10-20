@@ -1,5 +1,5 @@
 # ============================================
-# app.py — People Analytics Dashboard (v1.0)
+# app.py — People Analytics Dashboard (v1.1 Executive Edition)
 # ============================================
 
 import streamlit as st
@@ -15,7 +15,10 @@ st.set_page_config(
     layout="wide",
     page_icon="📊"
 )
-# --- Sidebar Custom Styling ---
+
+# ---------------------------
+# Sidebar Styling (Executive Theme)
+# ---------------------------
 st.markdown("""
 <style>
 [data-testid="stSidebar"] {
@@ -50,6 +53,7 @@ st.markdown("""
     margin-right: 8px;
 }
 
+/* Module icons */
 a[href*="performance"] span::before { content: "🏆 "; }
 a[href*="engagement"] span::before { content: "💬 "; }
 a[href*="compensation"] span::before { content: "💰 "; }
@@ -62,16 +66,21 @@ a[href*="app"] span::before { content: "🏠 "; }
     color: white !important;
     font-weight: 700;
 }
+
+[data-testid="stSidebarNav"]::before:hover {
+    text-shadow: 0px 0px 8px #FACC15;
+    transition: 0.3s ease-in-out;
+}
 </style>
 """, unsafe_allow_html=True)
-# Ensure persistent directory exists
+
+# ---------------------------
+# Session Persistence Setup
+# ---------------------------
 SESSION_DIR = os.path.join(os.getcwd(), "session_data")
 os.makedirs(SESSION_DIR, exist_ok=True)
 SESSION_FILE = os.path.join(SESSION_DIR, "people_analytics_state.json")
 
-# ---------------------------
-# Persistence Utilities
-# ---------------------------
 def preload_session_state(filename=SESSION_FILE):
     """Restore previously saved session variables."""
     try:
@@ -97,11 +106,11 @@ def auto_save_session_state(filename=SESSION_FILE):
     except Exception as e:
         st.warning(f"⚠️ Auto-save skipped: {e}")
 
-# Load existing session state early
+# Load session early
 preload_session_state()
 
 # ---------------------------
-# Custom Styling
+# Global Styling
 # ---------------------------
 st.markdown("""
 <style>
@@ -131,6 +140,12 @@ h1, h2, h3, h4 {
     font-size: 22px;
     font-weight: bold;
     color: #93C5FD;
+    animation: pulse 2.5s infinite;
+}
+@keyframes pulse {
+  0% { color: #60A5FA; }
+  50% { color: #93C5FD; }
+  100% { color: #60A5FA; }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -146,7 +161,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ---------------------------
-# Scorecard Section (Mock placeholders for now)
+# Executive Summary
 # ---------------------------
 st.markdown("### 🔎 Executive Summary — Key Metrics Overview")
 
@@ -169,7 +184,7 @@ for idx, (metric, value) in enumerate(scorecards.items()):
         """, unsafe_allow_html=True)
 
 # ---------------------------
-# Tiles Navigation Section
+# Navigation Tiles
 # ---------------------------
 st.markdown("---")
 st.markdown("### 🧭 Explore Analytics Modules")
@@ -180,7 +195,7 @@ tiles = [
     ("💬 Engagement", "Upload survey data, measure engagement, identify hot-zones.", "pages/engagement.py"),
     ("💰 Compensation", "Analyze pay fairness, bonus distribution, and market benchmarking.", "pages/compensation.py"),
     ("📉 Attrition", "Explore exit trends, tenure analysis, and attrition hotspots.", "pages/attrition.py"),
-    ("🏢 Workforce & Talent", "Assess structure, spans, and skill inventory analytics.", "modules/workforce.py")
+    ("🏢 Workforce & Talent", "Assess structure, spans, and skill inventory analytics.", "pages/workforce.py")
 ]
 
 for idx, (title, desc, path) in enumerate(tiles):
@@ -198,7 +213,8 @@ for idx, (title, desc, path) in enumerate(tiles):
 st.markdown("---")
 st.markdown("""
 <div style='text-align:center; font-size:13px; color:#9CA3AF;'>
-Prepared with ❤️ by <a href='https://www.linkedin.com/in/amlan-mishra-7aa70894' target='_blank' style='color:#60A5FA;'>Amlan Mishra</a> |
+Prepared with ❤️ by 
+<a href='https://www.linkedin.com/in/amlan-mishra-7aa70894' target='_blank' style='color:#60A5FA;'>Amlan Mishra</a> |
 <a href='https://github.com/AMBOT-pixel96/hr-tech-portfolio' target='_blank' style='color:#60A5FA;'>GitHub Portfolio</a>
 </div>
 """, unsafe_allow_html=True)
