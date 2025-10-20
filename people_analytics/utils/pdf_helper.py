@@ -1,5 +1,5 @@
 # ============================================
-# utils/pdf_helper.py — v2 Executive Edition
+# utils/pdf_helper.py — v3 Executive Production
 # ============================================
 
 import os
@@ -14,33 +14,36 @@ from reportlab.platypus import (
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+import streamlit as st
 
-# Register DejaVuSans (emoji + ₹ support)
+# ----------------------------------------------------
+# Font registration (for ₹, emojis, special characters)
+# ----------------------------------------------------
 try:
     pdfmetrics.registerFont(TTFont("DejaVuSans", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"))
 except:
     pass
 
+# ----------------------------------------------------
+# Styles
+# ----------------------------------------------------
 styles = getSampleStyleSheet()
 base_style = ParagraphStyle(
-    "Body",
+    "Base",
     parent=styles["Normal"],
     fontName="DejaVuSans",
     fontSize=10,
     leading=14,
     textColor=colors.black,
 )
-
 title_style = ParagraphStyle(
     "Title",
     parent=styles["Title"],
     fontName="DejaVuSans",
     fontSize=22,
-    leading=28,
     alignment=1,
     textColor=colors.HexColor("#1E3A8A"),
 )
-
 subtitle_style = ParagraphStyle(
     "Subtitle",
     parent=styles["Normal"],
@@ -49,7 +52,6 @@ subtitle_style = ParagraphStyle(
     alignment=1,
     textColor=colors.HexColor("#374151"),
 )
-
 section_style = ParagraphStyle(
     "Section",
     parent=styles["Heading2"],
@@ -58,23 +60,25 @@ section_style = ParagraphStyle(
     textColor=colors.HexColor("#1E3A8A"),
     spaceAfter=8,
 )
-
 summary_style = ParagraphStyle(
     "Summary",
     parent=styles["Normal"],
     fontName="DejaVuSans",
     fontSize=10,
-    textColor=colors.black,
+    textColor=colors.HexColor("#111827"),
 )
 
-# ============================================
-# Helper: Create Zebra Table
-# ============================================
+# ----------------------------------------------------
+# Helper: Zebra Table
+# ----------------------------------------------------
 def zebra_table(data, col_widths=None):
-    """Creates a zebra-styled table."""
+    """Creates zebra-styled tables."""
+    if not data:
+        return Paragraph("No data available.", base_style)
+
     table = Table(data, colWidths=col_widths)
     table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E5E7EB")),  # Header row
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E5E7EB")),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#111827")),
         ("FONTNAME", (0, 0), (-1, -1), "DejaVuSans"),
         ("FONTSIZE", (0, 0), (-1, -1), 9),
@@ -86,74 +90,84 @@ def zebra_table(data, col_widths=None):
     ]))
     return table
 
-# ============================================
+# ----------------------------------------------------
 # Section 1: Cover Page
-# ============================================
-def cover_page(title: str, author: str, module_name: str):
+# ----------------------------------------------------
+def cover_page(report_title, module_name, author="Amlan Mishra"):
     now = datetime.now().strftime("%d %b %Y, %I:%M %p")
     return [
         Spacer(1, 120),
-        Paragraph(title, title_style),
-        Spacer(1, 10),
+        Paragraph(report_title, title_style),
+        Spacer(1, 8),
         Paragraph(f"<b>{module_name}</b>", subtitle_style),
-        Spacer(1, 180),
+        Spacer(1, 200),
         Paragraph(f"Prepared with ❤️ by <b>{author}</b>", base_style),
         Paragraph(f"Generated on {now}", base_style),
         PageBreak(),
     ]
 
-# ============================================
+# ----------------------------------------------------
 # Section 2: Table of Contents
-# ============================================
-def table_of_contents(sections):
+# ----------------------------------------------------
+def table_of_contents(section_titles):
     data = [["Section", "Description"]]
-    for s in sections:
-        data.append([s[0], s[1]])
+    for title, desc in section_titles:
+        data.append([title, desc])
     return [
         Paragraph("📖 Table of Contents", section_style),
         Spacer(1, 6),
-        zebra_table(data, col_widths=[100 * mm, 80 * mm]),
+        zebra_table(data, col_widths=[80 * mm, 90 * mm]),
         PageBreak(),
     ]
 
-# ============================================
-# Section 3: Metric Content Blocks
-# ============================================
-def metric_section(title, table_data=None, insights=None):
-    elements = [Paragraph(f"📊 {title}", section_style), Spacer(1, 8)]
+# ----------------------------------------------------
+# Section 3: Metric Sections
+# ----------------------------------------------------
+def metric_section(title, description, table_data=None, insights=None):
+    elements = [
+        Paragraph(f"📊 {title}", section_style),
+        Paragraph(description, summary_style),
+        Spacer(1, 8)
+    ]
+
     if table_data is not None:
         elements.append(zebra_table(table_data))
         elements.append(Spacer(1, 8))
+
     if insights:
         elements.append(Paragraph("💡 Key Insights:", summary_style))
-        for insight in insights:
-            elements.append(Paragraph(f"• {insight}", base_style))
-        elements.append(Spacer(1, 12))
+        for i in insights:
+            elements.append(Paragraph(f"• {i}", base_style))
+        elements.append(Spacer(1, 10))
+
     elements.append(PageBreak())
     return elements
 
-# ============================================
+# ----------------------------------------------------
 # Section 4: Consolidated Insights Summary
-# ============================================
+# ----------------------------------------------------
 def summary_section(all_insights):
     data = [["Metric", "Insight Summary"]]
-    for k, v in all_insights.items():
-        data.append([k, v])
+    for metric, insight in all_insights.items():
+        data.append([metric, insight])
     return [
         Paragraph("🧾 Consolidated Insights Summary", section_style),
-        Spacer(1, 8),
+        Spacer(1, 6),
         zebra_table(data, col_widths=[60 * mm, 120 * mm]),
         PageBreak(),
     ]
 
-# ============================================
-# Main Export Function
-# ============================================
-def generate_pdf_report(report_title, module_name, sections, insights, author="Amlan Mishra"):
+# ----------------------------------------------------
+# Section 5: Full PDF Generator
+# ----------------------------------------------------
+def generate_pdf_report(report_title, module_name, sections, all_insights, author="Amlan Mishra"):
     """
-    Creates full executive PDF with cover, TOC, metrics, and insights.
-    sections = [(title, description, table_data, insight_list), ...]
-    insights = {metric: summary}
+    Generates a full executive PDF report.
+    sections = [
+        {"title": "Metric Name", "desc": "Description", "table": [[...]], "insights": ["...", "..."]},
+        ...
+    ]
+    all_insights = {metric_name: summary_text, ...}
     """
     buffer = BytesIO()
     doc = SimpleDocTemplate(
@@ -167,49 +181,48 @@ def generate_pdf_report(report_title, module_name, sections, insights, author="A
 
     elements = []
     # Cover Page
-    elements += cover_page(report_title, author, module_name)
-    # TOC
-    toc_data = [(s[0], s[1]) for s in sections]
+    elements += cover_page(report_title, module_name, author)
+    # Table of Contents
+    toc_data = [(s["title"], s.get("desc", "")) for s in sections]
     elements += table_of_contents(toc_data)
-    # Each Metric Section
-    for title, desc, table_data, insight_list in sections:
-        elements += metric_section(title, table_data, insight_list)
-    # Consolidated Summary
-    elements += summary_section(insights)
-
-    # Footer & Branding
+    # Metric Sections
+    for s in sections:
+        elements += metric_section(s["title"], s.get("desc", ""), s.get("table"), s.get("insights"))
+    # Summary
+    elements += summary_section(all_insights)
+    # Footer
     elements.append(Paragraph(
         "<para align=center><font size=9 color='#6B7280'>Prepared with ❤️ by Amlan Mishra | © 2025 HR Tech Portfolio</font></para>",
-        base_style
+        base_style,
     ))
 
     doc.build(elements)
     return buffer.getvalue()
 
-# ============================================
-# Streamlit Wrapper for Download Button
-# ============================================
-import streamlit as st
-
-def render_pdf_download_button(report_title, html_summary, filename_prefix, module_name="Module Report"):
+# ----------------------------------------------------
+# Streamlit Wrapper — Plug & Play
+# ----------------------------------------------------
+def render_pdf_download_button(report_title, module_name, sections, all_insights, filename_prefix):
     """
-    Renders a PDF download button for Streamlit using the new Executive PDF layout.
-    html_summary = optional simple summary text for compatibility.
+    Renders a fully functional PDF download button for any module.
+    Example call:
+        render_pdf_download_button(
+            report_title="Engagement Analytics",
+            module_name="Engagement",
+            sections=sections_list,
+            all_insights=insight_dict,
+            filename_prefix="Engagement_Report"
+        )
     """
     try:
         st.subheader("📄 Export Executive Report (PDF)")
-        fake_sections = [
-            ("Overview", "Executive overview and context", [["Metric", "Value"], ["Performance Index", "78%"]], ["Sample insight"]),
-            ("Analysis", "Detailed performance metrics", [["Rating", "CTC"], ["5", "15.0 LPA"], ["4", "12.2 LPA"]], ["Top performers align with high CTC"]),
-        ]
-        fake_insights = {"Performance": "High correlation between rating and CTC"}
-        pdf_data = generate_pdf_report(report_title, module_name, fake_sections, fake_insights)
+        pdf_bytes = generate_pdf_report(report_title, module_name, sections, all_insights)
         st.download_button(
             label="⬇️ Download Executive Report (PDF)",
-            data=pdf_data,
+            data=pdf_bytes,
             file_name=f"{filename_prefix}_Executive_Report.pdf",
             mime="application/pdf",
             use_container_width=True,
         )
     except Exception as e:
-        st.error(f"⚠️ Failed to generate report: {e}")
+        st.error(f"⚠️ Error generating PDF: {e}")
