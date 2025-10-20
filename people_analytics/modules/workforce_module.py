@@ -129,37 +129,28 @@ def run_workforce_module():
 
     st.markdown("<ul>" + "".join(f"<li>{x}</li>" for x in insight_text) + "</ul>", unsafe_allow_html=True)
 
-    # -----------------------
-    # PDF Export blocks (consistent with other modules)
-    # -----------------------
-    data_blocks = [
-        {
-            "title": "Headcount by Job Level",
-            "desc": "Headcount distribution across job levels.",
-            "df": headcount,
-            "insights": [f"Top job level: {top_level}"]
-        },
-    ]
+# ==================================
+# 📄 Export Executive Report
+# ==================================
+st.markdown("---")
+st.subheader("📄 Step 5 — Export Executive Report")
 
-    if "ManagerID" in df.columns and 'mgr_counts' in locals():
-        data_blocks.append({
-            "title": "Manager Spans",
-            "desc": "Distribution of direct reports per manager.",
-            "df": mgr_counts.head(100),
-            "insights": [f"Average span: {avg_span:.2f}"]
-        })
+data_blocks = [
+    {
+        "title": "Workforce Overview",
+        "desc": "Headcount, structure, and span of control analytics summarized.",
+        "df": df.head(10) if "df" in locals() else None,
+        "insights": [
+            "Organizational hierarchy and manager spans analyzed.",
+            "Skill inventory and job-level distribution visualized."
+        ],
+    }
+]
 
-    if "Skills" in df.columns and not skills_series.empty:
-        data_blocks.append({
-            "title": "Top Skills",
-            "desc": "Most common skills found in inventory.",
-            "df": skills_count.head(50),
-            "insights": [f"Top skill: {skills_count.iloc[0]['Skill']} ({skills_count.iloc[0]['Count']})"]
-        })
-
-    export_module_report(
-        report_title="Workforce & Talent Planning Executive Report",
-        module_name="Workforce & Talent",
-        data_blocks=data_blocks,
-        filename_prefix="Workforce_Talent"
-    )
+from utils.pdf_auto_exporter import export_module_report
+export_module_report(
+    report_title="Workforce Analytics Executive Report",
+    module_name="Workforce & Talent",
+    data_blocks=data_blocks,
+    filename_prefix="Workforce"
+)
