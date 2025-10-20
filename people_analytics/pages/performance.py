@@ -1,42 +1,54 @@
+# ============================================
+# pages/performance.py — Performance Analytics
+# ============================================
+
 import streamlit as st
 from modules.performance_module import run_performance_module
-from utils.template_helper import render_download_template
-# --- Sidebar Customization ---
-with st.sidebar:
-    st.markdown("""
-    <style>
-    .sidebar-title {
-        font-size: 22px;
-        font-weight: 700;
-        color: #FACC15;
-        text-align: center;
-        margin-bottom: 10px;
-    }
-    .sidebar-button {
-        display: block;
-        width: 100%;
-        padding: 10px 15px;
-        background: linear-gradient(90deg,#1E3A8A,#3B82F6);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        text-align: center;
-        text-decoration: none;
-        font-weight: 600;
-        transition: all 0.2s ease-in-out;
-    }
-    .sidebar-button:hover {
-        background: linear-gradient(90deg,#2563EB,#60A5FA);
-        transform: scale(1.03);
-    }
-    </style>
 
-    <p class="sidebar-title">🏆 Performance Module</p>
-    <a class="sidebar-button" href="#" target="_self">Upload Data</a>
-    <a class="sidebar-button" href="#" target="_self">Metrics View</a>
-    <a class="sidebar-button" href="#" target="_self">Export & Reports</a>
-    """, unsafe_allow_html=True)
+# --- Unified Executive Sidebar Styling ---
+st.markdown("""
+<style>
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #0F172A 0%, #1E3A8A 100%);
+    color: white;
+    padding-top: 1rem;
+    border-right: 1px solid #1E293B;
+}
+[data-testid="stSidebarNav"]::before {
+    content: "📊 People Analytics Dashboard";
+    margin-left: 20px;
+    font-weight: 700;
+    font-size: 18px;
+    color: #FACC15;
+}
+[data-testid="stSidebarNav"] a {
+    color: #E2E8F0 !important;
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 10px 15px;
+    transition: all 0.2s ease-in-out;
+}
+[data-testid="stSidebarNav"] a:hover {
+    background: rgba(255,255,255,0.1);
+    transform: scale(1.03);
+}
+[data-testid="stSidebarNav"] a span::before {
+    margin-right: 8px;
+}
+/* Icons */
+a[href*="performance"] span::before { content: "🏆 "; }
+a[href*="engagement"] span::before { content: "💬 "; }
+a[href*="compensation"] span::before { content: "💰 "; }
+a[href*="attrition"] span::before { content: "📉 "; }
+a[href*="workforce"] span::before { content: "🏢 "; }
+a[href*="app"] span::before { content: "🏠 "; }
+[data-testid="stSidebarNav"] a[data-testid="stSidebarNavLinkActive"] {
+    background: #1D4ED8;
+    color: white !important;
+    font-weight: 700;
+}
+</style>
+""", unsafe_allow_html=True)
 
-# --- Run the Module ---
+st.set_page_config(page_title="Performance Analytics", layout="wide")
 run_performance_module()
-# --- End --- #
