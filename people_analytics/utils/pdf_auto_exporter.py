@@ -1,7 +1,10 @@
-# utils/pdf_auto_exporter.py — v3.1 | Executive PDF Engine (wrapping, 2-decimal, colored charts)
+# ============================================
+# utils/pdf_auto_exporter.py — v3.2 | Executive Board-Ready Edition
+# ============================================
 from io import BytesIO
 import os, datetime, textwrap
 import pandas as pd
+import plotly.express as px
 from reportlab.platypus import (SimpleDocTemplate, Paragraph, Spacer,
                                 Image as RLImage, Table, TableStyle, PageBreak)
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -12,28 +15,62 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 import plotly.io as pio
 
-# Kaleido init (ensure renderer)
+# ---------------------------
+# 🧩 Kaleido Init
+# ---------------------------
 try:
     pio.renderers.default = "kaleido"
 except Exception as e:
     print(f"⚠️ Kaleido init failed: {e}")
 
-# Font registration (DejaVu for wider glyph support)
+# ---------------------------
+# 🔤 Font Setup
+# ---------------------------
 DEFAULT_FONT_NAME = "DejaVuSans"
 FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 try:
     pdfmetrics.registerFont(TTFont(DEFAULT_FONT_NAME, FONT_PATH))
 except Exception as e:
-    print(f"⚠️ Font registration skipped (fallback to default): {e}")
+    print(f"⚠️ Font registration skipped: {e}")
     DEFAULT_FONT_NAME = "Helvetica"
 
+# ---------------------------
+# 🎨 Global Style Presets
+# ---------------------------
 styles = getSampleStyleSheet()
 BODY_STYLE = ParagraphStyle("Body", parent=styles["Normal"], fontName=DEFAULT_FONT_NAME, fontSize=10, leading=12)
 TITLE_STYLE = ParagraphStyle("Title", parent=styles["Title"], fontName=DEFAULT_FONT_NAME, fontSize=20, alignment=1)
 SUBTITLE_STYLE = ParagraphStyle("Subtitle", parent=styles["Normal"], fontName=DEFAULT_FONT_NAME, fontSize=11, alignment=1, textColor=colors.HexColor("#374151"))
 H2_STYLE = ParagraphStyle("H2", parent=styles["Heading2"], fontName=DEFAULT_FONT_NAME, fontSize=14, textColor=colors.HexColor("#111827"))
 
-# helper: format numbers to max 2 decimals
+# ---------------------------
+# 🎨 Color & Theme Helpers
+# ---------------------------
+DEFAULT_COLORWAY = px.colors.qualitative.Plotly
+
+def apply_bright_theme(fig):
+    """Force bright PDF-safe palette while keeping category colors."""
+    fig.update_layout(
+        template="plotly_white",
+        plot_bgcolor="white",
+        paper_bgcolor="white",
+        font_color="black",
+        colorway=DEFAULT_COLORWAY,
+        margin=dict(t=60, b=40, l=40, r=40)
+    )
+    # ensure borders are visible
+    for tr in fig.data:
+        if hasattr(tr, "marker"):
+            if hasattr(tr.marker, "line"):
+                tr.marker.line.color = "black"
+                tr.marker.line.width = 1
+            else:
+                tr.marker.line = dict(color="black", width=1)
+    return fig
+
+# ---------------------------
+# 🔢 Formatting Helpers
+# ---------------------------
 def _format_val(v):
     try:
         if v is None:
@@ -42,7 +79,6 @@ def _format_val(v):
             return str(int(v))
         if isinstance(v, float):
             return f"{v:.2f}"
-        # try numeric string
         f = float(v)
         if f.is_integer():
             return str(int(f))
@@ -50,30 +86,24 @@ def _format_val(v):
     except Exception:
         return str(v)
 
-# helper: wrap text into Paragraph for table cells
 from reportlab.platypus import Paragraph as RLParagraph
-from reportlab.lib.styles import ParagraphStyle
 TABLE_PAR_STYLE = ParagraphStyle("TableCell", fontName=DEFAULT_FONT_NAME, fontSize=9, leading=11)
 
 def _cell_val(v):
-    """Return a Paragraph-wrapped and formatted value for table cell"""
-    # format numeric to 2 decimals
+    """Return Paragraph-wrapped and formatted value for table cell."""
     text = _format_val(v)
-    # safe-escape
     return RLParagraph(str(text), TABLE_PAR_STYLE)
 
-# convert dataframe to table data (wrapped Paragraphs)
 def _df_to_table_data(df: pd.DataFrame, max_rows=20):
+    """Convert DataFrame → wrapped table rows (limited rows)."""
     if df is None or df.empty:
         return [[RLParagraph("No data available.", TABLE_PAR_STYLE)]]
     df2 = df.head(max_rows).copy()
-    # Format numeric columns
+    for c in df2.select_dtypes(include=["float", "int"]).columns:
+        df2[c] = df2[c].round(2)
     for c in df2.columns:
-        if pd.api.types.is_numeric_dtype(df2[c]):
-            df2[c] = df2[c].apply(lambda x: _format_val(x))
-        else:
-            df2[c] = df2[c].fillna("").astype(str)
-    header = [RLParagraph(str(h), ParagraphStyle("h", fontName=DEFAULT_FONT_NAME, fontSize=9, textColor=colors.white)) for h in df2.columns]
+        df2[c] = df2[c].astype(str)
+    header = [RLParagraph(str(h), ParagraphStyle("Header", fontName=DEFAULT_FONT_NAME, fontSize=9, textColor=colors.white)) for h in df2.columns]
     rows = []
     for _, r in df2.iterrows():
         rows.append([_cell_val(v) for v in r.tolist()])
@@ -92,26 +122,30 @@ def _zebra_table_style(n_cols, n_rows):
     style.add("VALIGN", (0, 0), (-1, -1), "MIDDLE")
     return style
 
-# convert plotly fig to png bytes (force bright template for PDF)
+# ---------------------------
+# 🖼 Figure Export
+# ---------------------------
 def fig_to_png_bytes(fig, width=900, height=520, scale=1):
+    """Convert Plotly fig to PNG with enforced bright theme + colors."""
     try:
-        # force white template for PDF export (keeps color palettes)
-        fig.update_layout(template="plotly_white",
-                          plot_bgcolor="white", paper_bgcolor="white",
-                          font_color="black")
+        fig = apply_bright_theme(fig)
         img_bytes = fig.to_image(format="png", width=width, height=height, scale=scale)
         return img_bytes
     except Exception as e:
         print(f"⚠️ Kaleido export failed: {e}")
         return None
 
-# The exporter: builds cover, toc, each section (one page), summary, returns bytes
+# ---------------------------
+# 🧾 PDF Exporter
+# ---------------------------
 def export_module_report(report_title: str, module_name: str, data_blocks: list, filename_prefix: str = None) -> bytes:
     buf = BytesIO()
-    doc = SimpleDocTemplate(buf, pagesize=A4, leftMargin=18*mm, rightMargin=18*mm, topMargin=22*mm, bottomMargin=18*mm)
+    doc = SimpleDocTemplate(buf, pagesize=A4,
+                            leftMargin=18*mm, rightMargin=18*mm,
+                            topMargin=22*mm, bottomMargin=18*mm)
     story = []
 
-    # Cover
+    # --- Cover Page ---
     story.append(Spacer(1, 80))
     story.append(Paragraph(report_title, TITLE_STYLE))
     story.append(Spacer(1, 8))
@@ -119,10 +153,10 @@ def export_module_report(report_title: str, module_name: str, data_blocks: list,
     story.append(Spacer(1, 6))
     story.append(Paragraph(f"Generated on {datetime.datetime.now().strftime('%d %b %Y, %H:%M')}", SUBTITLE_STYLE))
     story.append(Spacer(1, 80))
-    story.append(Paragraph(f"<b>Prepared by:</b> Amlan Mishra", SUBTITLE_STYLE))
+    story.append(Paragraph("<b>Prepared by:</b> Amlan Mishra", SUBTITLE_STYLE))
     story.append(PageBreak())
 
-    # TOC (page numbers: cover=1, toc=2, section i start page = i+2 because each section is 1 page)
+    # --- TOC ---
     toc_rows = [["#", "Section", "Description", "Page"]]
     for i, block in enumerate(data_blocks, 1):
         desc = block.get("desc", "")
@@ -135,7 +169,7 @@ def export_module_report(report_title: str, module_name: str, data_blocks: list,
     story.append(toc_table)
     story.append(PageBreak())
 
-    # Sections: one page per data_block (Metric -> Table -> Graph -> Insight)
+    # --- Main Sections ---
     summary_insights = []
     for i, block in enumerate(data_blocks, 1):
         title = block.get("title", f"Section {i}")
@@ -150,15 +184,18 @@ def export_module_report(report_title: str, module_name: str, data_blocks: list,
             story.append(Paragraph(desc, BODY_STYLE))
         story.append(Spacer(1, 8))
 
-        # Table (summary - limited rows)
+        # Table
         if df is not None:
             table_data = _df_to_table_data(df, max_rows=25)
-            table = Table(table_data, repeatRows=1, hAlign="LEFT")
-            table.setStyle(_zebra_table_style(len(table_data[0]), len(table_data)))
+            n_cols = len(table_data[0])
+            # adaptive column width control (prevents spill)
+            col_widths = [max(30, min(60, 500 / n_cols)) * mm] * n_cols
+            table = Table(table_data, colWidths=col_widths, repeatRows=1, hAlign="LEFT")
+            table.setStyle(_zebra_table_style(n_cols, len(table_data)))
             story.append(table)
             story.append(Spacer(1, 8))
 
-        # Graph
+        # Figure
         if fig is not None:
             img_bytes = fig_to_png_bytes(fig)
             if img_bytes:
@@ -175,11 +212,9 @@ def export_module_report(report_title: str, module_name: str, data_blocks: list,
             bullets = "<br/>".join([f"• {b}" for b in wrapped])
             story.append(Paragraph(bullets, BODY_STYLE))
             summary_insights.append([title, " ; ".join(wrapped)])
-
-        # Ensure one page per section
         story.append(PageBreak())
 
-    # Summary page
+    # --- Summary Page ---
     story.append(Paragraph("Executive Summary", H2_STYLE))
     if not summary_insights:
         summary_insights = [["—", "No insights recorded."]]
@@ -188,7 +223,7 @@ def export_module_report(report_title: str, module_name: str, data_blocks: list,
     summary_table.setStyle(_zebra_table_style(2, len(summary_table_rows)))
     story.append(summary_table)
 
-    # Footer & page numbers via canvas callback (draw on build)
+    # --- Footer Page Numbers ---
     def _add_page_number(canvas, doc):
         page_num = canvas.getPageNumber()
         text = f"Page {page_num}"
