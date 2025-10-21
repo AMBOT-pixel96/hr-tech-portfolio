@@ -1,5 +1,5 @@
 # ============================================
-# modules/attrition_module.py — v2.0 | Enhanced Metrics + Executive PDF Export
+# modules/attrition_module.py — v2.1 | Enhanced Metrics + Centralized Upload + PDF Export
 # ============================================
 
 import streamlit as st
@@ -7,6 +7,7 @@ import pandas as pd
 import plotly.express as px
 from utils.template_helper import render_download_template
 from utils.pdf_auto_exporter import export_module_report
+from utils.uploader_helper import upload_data   # ✅ Centralized universal uploader
 
 
 def run_attrition_module():
@@ -39,30 +40,16 @@ def run_attrition_module():
         "ExitReason": ["Better Pay", "", "Relocation"],
         "CTC": [600000, 1200000, 450000]
     })
-
     render_download_template("Attrition Data Template", sample_data, "Attrition_Template.csv")
 
     # =========================
-    # 📤 Step 2 — Upload Data
+    # 📤 Step 2 — Upload Data (via centralized helper)
     # =========================
     st.subheader("📤 Step 2 — Upload Attrition Dataset")
-    uploaded = from utils.uploader_helper import upload_data
-df = upload_data("Upload Data File")
-if df is None:
-    return
 
-    if not uploaded:
+    df = upload_data("Upload Attrition Data (CSV, Excel, or Text)")
+    if df is None:
         st.info("Please upload your attrition dataset to continue.")
-        return
-
-    try:
-        if uploaded.name.endswith(".csv"):
-            df = pd.read_csv(uploaded)
-        else:
-            df = pd.read_excel(uploaded, engine="openpyxl")
-        st.success("✅ File uploaded successfully!")
-    except Exception as e:
-        st.error(f"Error reading file: {e}")
         return
 
     # =========================
@@ -135,7 +122,7 @@ if df is None:
     fig_tenure.update_traces(texttemplate="%{text:.1f}%", textposition="outside")
     st.plotly_chart(fig_tenure, use_container_width=True)
 
-    # Exit Reasons (if available)
+    # Exit Reasons
     if "ExitReason" in df.columns:
         reason_counts = df[df["AttritionFlag"] == "Yes"]["ExitReason"].value_counts().reset_index()
         reason_counts.columns = ["ExitReason", "Count"]
