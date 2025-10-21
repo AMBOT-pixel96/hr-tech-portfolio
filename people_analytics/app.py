@@ -1,14 +1,14 @@
 # ============================================
-# app.py — People Analytics Dashboard (v1.2 Executive Redesign)
+# app.py — People Analytics Dashboard (v1.3 Executive Edition)
 # ============================================
 
 import streamlit as st
 import os
 import json
-import datetime
+from datetime import datetime
 
 # ---------------------------
-# Global Config
+# 🧠 Global Config
 # ---------------------------
 st.set_page_config(
     page_title="People Analytics Dashboard",
@@ -17,7 +17,7 @@ st.set_page_config(
 )
 
 # ---------------------------
-# Sidebar Styling (Executive Theme + Glow Band)
+# 🎨 Sidebar Styling (Executive Theme)
 # ---------------------------
 st.markdown("""
 <style>
@@ -27,59 +27,45 @@ st.markdown("""
     padding-top: 1rem;
     border-right: 1px solid #1E293B;
 }
-
-/* --- Sidebar Title Band --- */
 [data-testid="stSidebarNav"]::before {
     content: "📊 People Analytics Dashboard";
     margin-left: 20px;
     font-weight: 700;
     font-size: 18px;
     color: #FACC15;
-    border-bottom: 2px solid #FACC15;
-    padding-bottom: 6px;
-    display: block;
-    margin-bottom: 14px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
-
-/* --- Sidebar Links --- */
 [data-testid="stSidebarNav"] a {
     color: #E2E8F0 !important;
-    font-weight: 600;
+    font-weight: 500;
     border-radius: 8px;
     padding: 10px 15px;
-    transition: all 0.25s ease-in-out;
+    transition: all 0.2s ease-in-out;
     text-transform: capitalize;
-    font-size: 15px;
-    letter-spacing: 0.3px;
-    text-decoration: none !important;
 }
 [data-testid="stSidebarNav"] a:hover {
     background: rgba(255,255,255,0.1);
     transform: scale(1.03);
-    text-shadow: 0 0 6px rgba(96,165,250,0.5);
 }
-[data-testid="stSidebarNav"] a[data-testid="stSidebarNavLinkActive"] {
-    background: linear-gradient(90deg,#1D4ED8,#2563EB);
-    color: white !important;
-    font-weight: 700;
-    box-shadow: 0 0 10px rgba(37,99,235,0.4);
-}
-
-/* --- Icons --- */
 [data-testid="stSidebarNav"] a span::before { margin-right: 8px; }
+
 a[href*="performance"] span::before { content: "🏆 "; }
 a[href*="engagement"] span::before { content: "💬 "; }
 a[href*="compensation"] span::before { content: "💰 "; }
 a[href*="attrition"] span::before { content: "📉 "; }
 a[href*="workforce"] span::before { content: "🏢 "; }
 a[href*="app"] span::before { content: "🏠 "; }
+
+[data-testid="stSidebarNav"] a[data-testid="stSidebarNavLinkActive"] {
+    background: #1D4ED8;
+    color: white !important;
+    font-weight: 700;
+}
 </style>
 """, unsafe_allow_html=True)
 
 # ---------------------------
-# Session Persistence Setup
+# 🧩 Session Persistence Setup
 # ---------------------------
 SESSION_DIR = os.path.join(os.getcwd(), "session_data")
 os.makedirs(SESSION_DIR, exist_ok=True)
@@ -104,17 +90,16 @@ def auto_save_session_state(filename=SESSION_FILE):
     """Auto-save session variables."""
     try:
         data = {k: v for k, v in st.session_state.items() if not k.startswith("_")}
-        data["last_saved"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        data["last_saved"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         with open(filename, "w") as f:
             json.dump(data, f, indent=2)
     except Exception as e:
         st.warning(f"⚠️ Auto-save skipped: {e}")
 
-# Load session early
 preload_session_state()
 
 # ---------------------------
-# Global Styling
+# 🌑 Global Styling (Dark Mode)
 # ---------------------------
 st.markdown("""
 <style>
@@ -132,101 +117,107 @@ h1, h2, h3, h4 {
     transition: transform 0.2s ease-in-out;
     border: 1px solid #1F2937;
     background: linear-gradient(180deg,#1E293B 0%,#0F172A 100%);
+    box-shadow: 0px 4px 8px rgba(0,0,0,0.2);
 }
 .tile:hover {
     transform: scale(1.03);
     border-color: #3B82F6;
+    box-shadow: 0px 0px 15px rgba(59,130,246,0.3);
 }
 .tile h3 {
     color: #FACC15;
+    margin-bottom: 10px;
 }
-.metric-box {
-    font-size: 22px;
-    font-weight: bold;
-    color: #93C5FD;
-    animation: pulse 2.5s infinite;
+.tile p {
+    color: #CBD5E1;
+    font-size: 14px;
 }
-@keyframes pulse {
-  0% { color: #60A5FA; }
-  50% { color: #93C5FD; }
-  100% { color: #60A5FA; }
+.launch-btn {
+    background: linear-gradient(90deg, #2563EB, #3B82F6);
+    color: white !important;
+    padding: 8px 18px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+.launch-btn:hover {
+    background: linear-gradient(90deg, #3B82F6, #60A5FA);
+    transform: scale(1.05);
 }
 </style>
 """, unsafe_allow_html=True)
 
 # ---------------------------
-# Header
+# 🏠 Header
 # ---------------------------
 st.markdown("""
 <div style='text-align:center; margin-top:20px;'>
     <h1>📊 People Analytics Dashboard</h1>
-    <p style='color:#9CA3AF;'>A unified suite for HR insights across performance, engagement, pay, and workforce strategy.</p>
+    <p style='color:#9CA3AF;'>A unified suite for HR insights across Performance, Engagement, Compensation, Attrition, and Workforce Strategy.</p>
 </div>
 """, unsafe_allow_html=True)
 
 # ---------------------------
-# Welcome Section
-# ---------------------------
-current_time = datetime.datetime.now().strftime("%A, %d %B %Y | %I:%M %p")
-
-st.markdown(f"""
-<div style="text-align:center; margin-top:20px; margin-bottom:20px;">
-    <p style="font-size:16px; color:#A5B4FC;">🕒 {current_time}</p>
-    <h3 style="color:#FACC15;">Welcome back, Amlan 👋</h3>
-    <p style="color:#9CA3AF;">Choose a module below to begin analyzing your HR data.</p>
-</div>
-""", unsafe_allow_html=True)
-
-# ---------------------------
-# 💡 Quick Start Tips
-# ---------------------------
-with st.expander("💡 Quick Start Guide — How to Use This App", expanded=False):
-    st.markdown("""
-    **Step 1:** Download the sample data template from any module.  
-    **Step 2:** Upload your HR dataset (CSV or Excel).  
-    **Step 3:** Explore insights, metrics, and visuals interactively.  
-    **Step 4:** Export an **Executive PDF Report** for leadership review.  
-
-    🧠 *Pro Tip:* Each module supports smart summaries — your data drives real-time insights.  
-    """)
-
-# ---------------------------
-# Navigation Tiles
+# 🧭 Analytics Modules Grid (Replaces Scorecards)
 # ---------------------------
 st.markdown("---")
-st.markdown("### 🧭 Explore Analytics Modules")
+st.markdown("### ⚡ Explore Analytics Modules")
 
-tile_cols = st.columns(5)
 tiles = [
-    ("🏆 Performance", "Analyze rating distribution, pay vs performance, skill correlation.", "pages/performance.py"),
-    ("💬 Engagement", "Upload survey data, measure engagement, identify hot-zones.", "pages/engagement.py"),
-    ("💰 Compensation", "Analyze pay fairness, bonus distribution, and market benchmarking.", "pages/compensation.py"),
-    ("📉 Attrition", "Explore exit trends, tenure analysis, and attrition hotspots.", "pages/attrition.py"),
-    ("🏢 Workforce & Talent", "Assess structure, spans, and skill inventory analytics.", "pages/workforce.py")
+    {
+        "icon": "🏆",
+        "title": "Performance Analytics",
+        "desc": "Understand how performance scores drive pay and progression.",
+        "path": "pages/performance.py"
+    },
+    {
+        "icon": "💬",
+        "title": "Engagement Analytics",
+        "desc": "Decode employee sentiment and engagement trends across departments.",
+        "path": "pages/engagement.py"
+    },
+    {
+        "icon": "💰",
+        "title": "Compensation Analytics",
+        "desc": "Compare internal pay vs market and identify gender gaps.",
+        "path": "pages/compensation.py"
+    },
+    {
+        "icon": "📉",
+        "title": "Attrition Analytics",
+        "desc": "Explore turnover rates, tenure curves, and attrition hotspots.",
+        "path": "pages/attrition.py"
+    },
+    {
+        "icon": "🏢",
+        "title": "Workforce Analytics",
+        "desc": "Visualize spans, hierarchies, and skill distribution across roles.",
+        "path": "pages/workforce.py"
+    }
 ]
 
-for idx, (title, desc, path) in enumerate(tiles):
-    with tile_cols[idx]:
+cols = st.columns(5)
+for idx, tile in enumerate(tiles):
+    with cols[idx]:
         st.markdown(f"""
-        <div class='tile'>
-            <h3>{title}</h3>
-            <p style='font-size:13px; color:#9CA3AF;'>{desc}</p>
-            <form action='/{path}' target='_self'>
-                <button style="
-                    background: linear-gradient(90deg,#1E3A8A,#3B82F6);
-                    border:none; border-radius:8px;
-                    color:white; font-weight:600; padding:8px 16px;
-                    cursor:pointer; transition:all 0.2s ease-in-out;
-                " onmouseover="this.style.transform='scale(1.05)';"
-                   onmouseout="this.style.transform='scale(1.00)';">
-                    Launch
-                </button>
-            </form>
+        <div class="tile">
+            <h3>{tile['icon']} {tile['title']}</h3>
+            <p>{tile['desc']}</p>
+            <button class="launch-btn" onclick="window.location.href='?page={tile['path']}'">Launch</button>
         </div>
         """, unsafe_allow_html=True)
 
+# Fallback navigation logic for Streamlit reruns
+if "page" in st.experimental_get_query_params():
+    path = st.experimental_get_query_params()["page"][0]
+    st.session_state["active_module"] = path
+    st.experimental_set_query_params()  # clear after use
+    st.switch_page(path)
+
 # ---------------------------
-# Footer
+# ⚙️ Footer
 # ---------------------------
 st.markdown("---")
 st.markdown("""
