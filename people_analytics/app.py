@@ -1,5 +1,5 @@
 # ============================================
-# app.py — People Analytics Dashboard (v1.4 Final Executive Edition)
+# app.py — People Analytics Dashboard (v2.0 Executive Edition)
 # ============================================
 
 import streamlit as st
@@ -65,17 +65,16 @@ a[href*="app"] span::before { content: "🏠 "; }
 """, unsafe_allow_html=True)
 
 # ---------------------------
-# 🧩 Session Persistence Setup
+# 🧭 Session persistence
 # ---------------------------
 SESSION_DIR = os.path.join(os.getcwd(), "session_data")
 os.makedirs(SESSION_DIR, exist_ok=True)
 SESSION_FILE = os.path.join(SESSION_DIR, "people_analytics_state.json")
 
-def preload_session_state(filename=SESSION_FILE):
-    """Restore previously saved session variables."""
+def preload_session_state():
     try:
-        if os.path.exists(filename):
-            with open(filename, "r") as f:
+        if os.path.exists(SESSION_FILE):
+            with open(SESSION_FILE, "r") as f:
                 data = json.load(f)
             for k, v in data.items():
                 if k not in st.session_state:
@@ -84,14 +83,13 @@ def preload_session_state(filename=SESSION_FILE):
         else:
             st.caption("🚀 Fresh session started.")
     except Exception as e:
-        st.warning(f"⚠️ Could not restore session: {e}")
+        st.warning(f"⚠️ Session restore skipped: {e}")
 
-def auto_save_session_state(filename=SESSION_FILE):
-    """Auto-save session variables."""
+def auto_save_session_state():
     try:
         data = {k: v for k, v in st.session_state.items() if not k.startswith("_")}
         data["last_saved"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        with open(filename, "w") as f:
+        with open(SESSION_FILE, "w") as f:
             json.dump(data, f, indent=2)
     except Exception as e:
         st.warning(f"⚠️ Auto-save skipped: {e}")
@@ -99,53 +97,24 @@ def auto_save_session_state(filename=SESSION_FILE):
 preload_session_state()
 
 # ---------------------------
-# 🌑 Global Styling (Dark Mode)
+# 🌑 Global Styling
 # ---------------------------
 st.markdown("""
 <style>
-body {
-    background-color: #0E1117;
-    color: white;
-}
-h1, h2, h3, h4 {
-    color: #F9FAFB;
-}
+body { background-color: #0E1117; color: white; }
+h1, h2, h3, h4 { color: #F9FAFB; }
 .tile {
-    padding: 25px;
-    border-radius: 15px;
-    text-align: center;
+    padding: 25px; border-radius: 15px; text-align: center;
     transition: transform 0.2s ease-in-out;
     border: 1px solid #1F2937;
     background: linear-gradient(180deg,#1E293B 0%,#0F172A 100%);
     box-shadow: 0px 4px 8px rgba(0,0,0,0.2);
 }
-.tile:hover {
-    transform: scale(1.03);
-    border-color: #3B82F6;
+.tile:hover { transform: scale(1.03); border-color: #3B82F6;
     box-shadow: 0px 0px 15px rgba(59,130,246,0.3);
 }
-.tile h3 {
-    color: #FACC15;
-    margin-bottom: 10px;
-}
-.tile p {
-    color: #CBD5E1;
-    font-size: 14px;
-}
-.launch-btn {
-    background: linear-gradient(90deg, #2563EB, #3B82F6);
-    color: white !important;
-    padding: 8px 18px;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease-in-out;
-}
-.launch-btn:hover {
-    background: linear-gradient(90deg, #3B82F6, #60A5FA);
-    transform: scale(1.05);
-}
+.tile h3 { color: #FACC15; margin-bottom: 10px; }
+.tile p { color: #CBD5E1; font-size: 14px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -155,22 +124,22 @@ h1, h2, h3, h4 {
 st.markdown("""
 <div style='text-align:center; margin-top:20px;'>
     <h1>📊 People Analytics Dashboard</h1>
-    <p style='color:#9CA3AF;'>A unified suite for HR insights across Performance, Engagement, Compensation, Attrition, and Workforce Strategy.</p>
+    <p style='color:#9CA3AF;'>Unified HR suite for analytics across Performance, Engagement, Compensation, Attrition, and Workforce Strategy.</p>
 </div>
 """, unsafe_allow_html=True)
 
 # ---------------------------
-# 🧭 Analytics Modules Grid (Replaces Scorecards)
+# ⚡ Navigation Tiles
 # ---------------------------
 st.markdown("---")
 st.markdown("### ⚡ Explore Analytics Modules")
 
 tiles = [
     {"icon": "🏆", "title": "Performance Analytics", "desc": "Understand how performance scores drive pay and progression.", "path": "pages/performance.py"},
-    {"icon": "💬", "title": "Engagement Analytics", "desc": "Decode employee sentiment and engagement trends across departments.", "path": "pages/engagement.py"},
-    {"icon": "💰", "title": "Compensation Analytics", "desc": "Compare internal pay vs market and identify gender gaps.", "path": "pages/compensation.py"},
-    {"icon": "📉", "title": "Attrition Analytics", "desc": "Explore turnover rates, tenure curves, and attrition hotspots.", "path": "pages/attrition.py"},
-    {"icon": "🏢", "title": "Workforce Analytics", "desc": "Visualize spans, hierarchies, and skill distribution across roles.", "path": "pages/workforce.py"}
+    {"icon": "💬", "title": "Engagement Analytics", "desc": "Decode engagement and sentiment trends.", "path": "pages/engagement.py"},
+    {"icon": "💰", "title": "Compensation Analytics", "desc": "Compare pay vs market and identify gender gaps.", "path": "pages/compensation.py"},
+    {"icon": "📉", "title": "Attrition Analytics", "desc": "Explore turnover rates and tenure patterns.", "path": "pages/attrition.py"},
+    {"icon": "🏢", "title": "Workforce Analytics", "desc": "Visualize headcount and structure.", "path": "pages/workforce.py"}
 ]
 
 cols = st.columns(5)
@@ -182,13 +151,14 @@ for i, t in enumerate(tiles):
             <p>{t['desc']}</p>
         </div>
         """, unsafe_allow_html=True)
-        if st.button(f"{t['icon']} {t['title']}", key=f"tile_{i}", use_container_width=True):
+        if st.button(f"{t['icon']} Open", key=f"tile_{i}", use_container_width=True):
             st.session_state["nav_target"] = t["path"]
 
-# ✅ Safe navigation after widgets have been processed
+# ✅ Navigation
 if "nav_target" in st.session_state and st.session_state["nav_target"]:
     st.switch_page(st.session_state["nav_target"])
     st.session_state["nav_target"] = None
+
 # ---------------------------
 # ⚙️ Footer
 # ---------------------------
