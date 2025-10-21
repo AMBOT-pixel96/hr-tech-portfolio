@@ -1,7 +1,4 @@
-# ============================================
-# modules/attrition_module.py — v2.2 | Fixed Export + Stable Navigation
-# ============================================
-
+# modules/attrition_module.py — v2.6
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -10,95 +7,102 @@ from utils.uploader_helper import upload_data
 from utils.pdf_helper import render_pdf_download_button
 
 def run_attrition_module():
-    # Header
     st.markdown("""
-    <div style="padding:20px; border-radius:12px;
-                background:linear-gradient(90deg,#7F1D1D,#DC2626);
-                color:white; text-align:center; margin-bottom:20px;">
-        <h2 style="margin:0;">📉 Attrition Analytics</h2>
-        <p style="font-size:14px; margin-top:6px;">
-            Analyze turnover, tenure trends, and exit patterns.
-        </p>
+    <div style="padding:18px;border-radius:10px;background:linear-gradient(90deg,#7F1D1D,#DC2626);color:white;">
+      <h2 style="margin:0">📉 Attrition Analytics</h2>
+      <p style="margin:4px 0 0 0;">Turnover, tenure cohorts & exit drivers.</p>
     </div>
     """, unsafe_allow_html=True)
 
-    # Step 1: Download Template
+    # sample template download
     sample = pd.DataFrame({
-        "EmployeeID": ["E1001", "E1002"],
-        "Department": ["Finance", "IT"],
-        "JobLevel": ["Analyst", "Manager"],
-        "Gender": ["Male", "Female"],
-        "TenureMonths": [24, 60],
-        "AttritionFlag": ["Yes", "No"],
-        "ExitReason": ["Better Pay", ""],
-        "CTC": [600000, 1200000]
+        "EmployeeID":["E001","E002"],
+        "Department":["Finance","IT"],
+        "JobLevel":["Analyst","Manager"],
+        "Gender":["Male","Female"],
+        "TenureYears":[2,5],
+        "AttritionFlag":["Yes","No"],
+        "ExitReason":["Better Pay",""]
     })
     render_download_template("Attrition Data Template", sample, "Attrition_Template.csv")
 
-    # Step 2: Upload
-    df = upload_data("Upload Attrition Data (CSV/Excel)")
+    df = upload_data("Upload Attrition Data (CSV/XLSX)")
     if df is None:
-        st.info("Upload dataset to continue.")
         return
 
-    # Validation
-    required = ["EmployeeID", "Department", "JobLevel", "Gender", "TenureMonths", "AttritionFlag"]
+    # Support TenureYears -> TenureMonths conversion from HR_DataForge
+    if "TenureMonths" not in df.columns and "TenureYears" in df.columns:
+        try:
+            df["TenureMonths"] = (pd.to_numeric(df["TenureYears"], errors="coerce") * 12).round().fillna(0).astype(int)
+        except Exception:
+            df["TenureMonths"] = 0
+
+    required = ["EmployeeID","Department","JobLevel","Gender","TenureMonths","AttritionFlag"]
     missing = [c for c in required if c not in df.columns]
     if missing:
         st.error(f"Missing columns: {', '.join(missing)}")
         return
 
-    df["AttritionFlag"] = df["AttritionFlag"].astype(str).str.lower().map(
-        {"yes": "Yes", "y": "Yes", "1": "Yes", "no": "No", "n": "No", "0": "No"}
-    )
-    st.dataframe(df.head(), use_container_width=True)
+    # Normalize AttritionFlag
+    df["AttritionFlag"] = df["AttritionFlag"].astype(str).str.strip().str.lower().map({
+        "yes":"Yes","y":"Yes","1":"Yes","true":"Yes","no":"No","n":"No","0":"No","false":"No"
+    }).fillna("No")
 
-    # Metrics
+    # Tenure cohorts and safe string cast (avoid categorical setitem)
+    df["TenureMonths"] = pd.to_numeric(df["TenureMonths"], errors="coerce").fillna(0)
+    df["TenureCohort"] = pd.cut(df["TenureMonths"], bins=[-1,12,36,60,120],
+                                labels=["<1 yr","1–3 yrs","3–5 yrs","5+ yrs"], include_lowest=True)
+    df["TenureCohort"] = df["TenureCohort"].astype(str)
+
+    # KPIs
     total = len(df)
-    left = (df["AttritionFlag"] == "Yes").sum()
-    rate = (left / total * 100) if total else 0
-    avg_tenure = df["TenureMonths"].mean()
+    left = int((df["AttritionFlag"]=="Yes").sum())
+    rate = round(left/total*100,1) if total else 0.0
+    avg_tenure = round(df["TenureMonths"].mean(),1) if total else 0.0
 
-    st.metric("Overall Attrition Rate", f"{rate:.1f}%")
-    st.metric("Average Tenure (months)", f"{avg_tenure:.1f}")
+    c1,c2,c3 = st.columns(3)
+    c1.metric("Overall Attrition %", f"{rate}%")
+    c2.metric("Avg Tenure (months)", f"{avg_tenure}")
+    c3.metric("Total Left", f"{left} of {total}")
 
-    # Department Trends
-    dept_summary = df.groupby("Department", observed=True)["AttritionFlag"].apply(lambda x: (x == "Yes").mean() * 100).reset_index(name="AttritionRate")
-    fig1 = px.bar(dept_summary, x="Department", y="AttritionRate", text="AttritionRate",
-                  color="Department", title="Attrition % by Department")
-    fig1.update_traces(texttemplate="%{text:.1f}%", textposition="outside")
-    st.plotly_chart(fig1, use_container_width=True)
+    # Dept / Job / Tenure charts
+    dept_summary = (df.groupby("Department", observed=True)["AttritionFlag"]
+                      .apply(lambda x: (x=="Yes").mean()*100).reset_index(name="Rate"))
+    job_summary = (df.groupby("JobLevel", observed=True)["AttritionFlag"]
+                     .apply(lambda x: (x=="Yes").mean()*100).reset_index(name="Rate"))
+    tenure_summary = (df.groupby("TenureCohort", observed=True)["AttritionFlag"]
+                        .apply(lambda x: (x=="Yes").mean()*100).reset_index(name="Rate"))
 
-    # Tenure Cohort
-    df["TenureCohort"] = pd.cut(df["TenureMonths"], bins=[0, 12, 36, 60, 120],
-                                labels=["<1yr", "1–3yrs", "3–5yrs", "5+yrs"])
-    cohort = df.groupby("TenureCohort", observed=True)["AttritionFlag"].apply(lambda x: (x == "Yes").mean() * 100).reset_index(name="AttritionRate")
-    fig2 = px.bar(cohort, x="TenureCohort", y="AttritionRate", text="AttritionRate",
-                  color="TenureCohort", title="Attrition by Tenure Cohort")
-    fig2.update_traces(texttemplate="%{text:.1f}%", textposition="outside")
-    st.plotly_chart(fig2, use_container_width=True)
+    fig_dept = px.bar(dept_summary, x="Department", y="Rate", text="Rate", title="Attrition % by Department", color="Department")
+    fig_dept.update_traces(texttemplate="%{text:.1f}%", textposition="outside")
+    fig_job = px.bar(job_summary, x="JobLevel", y="Rate", text="Rate", title="Attrition % by Job Level", color="JobLevel")
+    fig_job.update_traces(texttemplate="%{text:.1f}%", textposition="outside")
+    fig_tenure = px.bar(tenure_summary, x="TenureCohort", y="Rate", text="Rate", title="Attrition by Tenure Cohort", color="TenureCohort")
+    fig_tenure.update_traces(texttemplate="%{text:.1f}%", textposition="outside")
 
-    # Exit Reasons
-    if "ExitReason" in df.columns:
-        rc = df[df["AttritionFlag"] == "Yes"]["ExitReason"].value_counts().reset_index()
-        rc.columns = ["Reason", "Count"]
-        fig3 = px.pie(rc, values="Count", names="Reason", title="Top Exit Reasons")
-        st.plotly_chart(fig3, use_container_width=True)
+    st.plotly_chart(fig_dept, use_container_width=True)
+    st.plotly_chart(fig_job, use_container_width=True)
+    st.plotly_chart(fig_tenure, use_container_width=True)
 
-    # Export Report
+    # Exit reasons pie
+    if "ExitReason" in df.columns and not df[df["AttritionFlag"]=="Yes"]["ExitReason"].dropna().empty:
+        reasons = (df[df["AttritionFlag"]=="Yes"]["ExitReason"].value_counts().reset_index())
+        reasons.columns = ["ExitReason","Count"]
+        fig_reason = px.pie(reasons, names="ExitReason", values="Count", title="Top Exit Reasons")
+        st.plotly_chart(fig_reason, use_container_width=True)
+    else:
+        st.info("No ExitReason data available for pie chart.")
+
+    # Build PDF data_blocks (include figs)
     st.markdown("---")
     st.subheader("📄 Step 5 — Export Executive Report")
-
     data_blocks = [
-        {"title": "Attrition Overview", "desc": "Turnover metrics by department and tenure.", "df": dept_summary,
-         "insights": [f"Overall rate: {rate:.1f}%", f"Avg tenure: {avg_tenure:.1f} months", f"Total left: {left}/{total}"]},
-        {"title": "Tenure Cohorts", "desc": "Attrition rates by tenure band.", "df": cohort,
-         "insights": ["Shorter tenure = higher turnover tendency."]}
+        {"title":"Department Attrition","desc":"Attrition rates by department","df":dept_summary,"fig":fig_dept,
+         "insights":[f"Overall attrition: {rate}%",f"Avg tenure: {avg_tenure} months"]},
+        {"title":"Job Level Attrition","desc":"Attrition by job level","df":job_summary,"fig":fig_job,"insights":[]},
+        {"title":"Tenure Cohorts","desc":"Attrition by tenure band","df":tenure_summary,"fig":fig_tenure,"insights":[]}
     ]
+    if "fig_reason" in locals():
+        data_blocks.append({"title":"Exit Reasons","desc":"Why employees left","df":reasons,"fig":fig_reason,"insights":[]})
 
-    render_pdf_download_button(
-        report_title="Attrition Analytics Executive Report",
-        module_name="Attrition",
-        data_blocks=data_blocks,
-        filename_prefix="Attrition"
-    )
+    render_pdf_download_button("Attrition Analytics Executive Report","Attrition",data_blocks,"Attrition")
