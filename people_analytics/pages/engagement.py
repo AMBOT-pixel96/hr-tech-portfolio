@@ -1,16 +1,13 @@
 # ============================================
-# pages/engagement.py — Engagement Analytics
+# pages/engagement.py — v2.0
 # ============================================
 
 import streamlit as st
-from modules.engagement_module import run_engagement_module
-from utils.ui_styling import apply_sidebar_theme
-
-# ⚙️ Page config MUST come before any Streamlit output
 st.set_page_config(page_title="Engagement Analytics", layout="wide")
 
-# 🎨 Apply Executive Sidebar Theme (no need to duplicate CSS below)
-apply_sidebar_theme()
+from utils.ui_styling import apply_sidebar_theme
+from modules.engagement_module import run_engagement_module
 
-# 🧩 Run the module
+# 🎨 Apply theme and launch module
+apply_sidebar_theme()
 run_engagement_module()
