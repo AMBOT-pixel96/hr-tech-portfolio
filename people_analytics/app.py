@@ -1,11 +1,11 @@
 # ============================================
-# app.py — People Analytics Dashboard (v1.1 Executive Edition)
+# app.py — People Analytics Dashboard (v1.2 Executive Redesign)
 # ============================================
 
 import streamlit as st
 import os
 import json
-from datetime import datetime
+import datetime
 
 # ---------------------------
 # Global Config
@@ -17,7 +17,7 @@ st.set_page_config(
 )
 
 # ---------------------------
-# Sidebar Styling (Executive Theme)
+# Sidebar Styling (Executive Theme + Glow Band)
 # ---------------------------
 st.markdown("""
 <style>
@@ -28,49 +28,53 @@ st.markdown("""
     border-right: 1px solid #1E293B;
 }
 
+/* --- Sidebar Title Band --- */
 [data-testid="stSidebarNav"]::before {
     content: "📊 People Analytics Dashboard";
     margin-left: 20px;
     font-weight: 700;
     font-size: 18px;
     color: #FACC15;
+    border-bottom: 2px solid #FACC15;
+    padding-bottom: 6px;
+    display: block;
+    margin-bottom: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
+/* --- Sidebar Links --- */
 [data-testid="stSidebarNav"] a {
     color: #E2E8F0 !important;
-    font-weight: 500;
+    font-weight: 600;
     border-radius: 8px;
     padding: 10px 15px;
-    transition: all 0.2s ease-in-out;
+    transition: all 0.25s ease-in-out;
+    text-transform: capitalize;
+    font-size: 15px;
+    letter-spacing: 0.3px;
+    text-decoration: none !important;
 }
-
 [data-testid="stSidebarNav"] a:hover {
     background: rgba(255,255,255,0.1);
     transform: scale(1.03);
+    text-shadow: 0 0 6px rgba(96,165,250,0.5);
+}
+[data-testid="stSidebarNav"] a[data-testid="stSidebarNavLinkActive"] {
+    background: linear-gradient(90deg,#1D4ED8,#2563EB);
+    color: white !important;
+    font-weight: 700;
+    box-shadow: 0 0 10px rgba(37,99,235,0.4);
 }
 
-[data-testid="stSidebarNav"] a span::before {
-    margin-right: 8px;
-}
-
-/* Module icons */
+/* --- Icons --- */
+[data-testid="stSidebarNav"] a span::before { margin-right: 8px; }
 a[href*="performance"] span::before { content: "🏆 "; }
 a[href*="engagement"] span::before { content: "💬 "; }
 a[href*="compensation"] span::before { content: "💰 "; }
 a[href*="attrition"] span::before { content: "📉 "; }
 a[href*="workforce"] span::before { content: "🏢 "; }
 a[href*="app"] span::before { content: "🏠 "; }
-
-[data-testid="stSidebarNav"] a[data-testid="stSidebarNavLinkActive"] {
-    background: #1D4ED8;
-    color: white !important;
-    font-weight: 700;
-}
-
-[data-testid="stSidebarNav"]::before:hover {
-    text-shadow: 0px 0px 8px #FACC15;
-    transition: 0.3s ease-in-out;
-}
 </style>
 """, unsafe_allow_html=True)
 
@@ -100,7 +104,7 @@ def auto_save_session_state(filename=SESSION_FILE):
     """Auto-save session variables."""
     try:
         data = {k: v for k, v in st.session_state.items() if not k.startswith("_")}
-        data["last_saved"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        data["last_saved"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         with open(filename, "w") as f:
             json.dump(data, f, indent=2)
     except Exception as e:
@@ -122,7 +126,7 @@ h1, h2, h3, h4 {
     color: #F9FAFB;
 }
 .tile {
-    padding: 30px;
+    padding: 25px;
     border-radius: 15px;
     text-align: center;
     transition: transform 0.2s ease-in-out;
@@ -161,27 +165,30 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ---------------------------
-# Executive Summary
+# Welcome Section
 # ---------------------------
-st.markdown("### 🔎 Executive Summary — Key Metrics Overview")
+current_time = datetime.datetime.now().strftime("%A, %d %B %Y | %I:%M %p")
 
-cols = st.columns(5)
-scorecards = {
-    "Performance Index": "78%",
-    "Engagement Index": "4.2 / 5",
-    "Compensation Fairness": "+3.4% gender gap",
-    "Attrition Rate": "12.7%",
-    "Workforce Balance": "1:6 span ratio"
-}
+st.markdown(f"""
+<div style="text-align:center; margin-top:20px; margin-bottom:20px;">
+    <p style="font-size:16px; color:#A5B4FC;">🕒 {current_time}</p>
+    <h3 style="color:#FACC15;">Welcome back, Amlan 👋</h3>
+    <p style="color:#9CA3AF;">Choose a module below to begin analyzing your HR data.</p>
+</div>
+""", unsafe_allow_html=True)
 
-for idx, (metric, value) in enumerate(scorecards.items()):
-    with cols[idx]:
-        st.markdown(f"""
-        <div class='tile'>
-            <h3>{metric}</h3>
-            <div class='metric-box'>{value}</div>
-        </div>
-        """, unsafe_allow_html=True)
+# ---------------------------
+# 💡 Quick Start Tips
+# ---------------------------
+with st.expander("💡 Quick Start Guide — How to Use This App", expanded=False):
+    st.markdown("""
+    **Step 1:** Download the sample data template from any module.  
+    **Step 2:** Upload your HR dataset (CSV or Excel).  
+    **Step 3:** Explore insights, metrics, and visuals interactively.  
+    **Step 4:** Export an **Executive PDF Report** for leadership review.  
+
+    🧠 *Pro Tip:* Each module supports smart summaries — your data drives real-time insights.  
+    """)
 
 # ---------------------------
 # Navigation Tiles
@@ -191,7 +198,7 @@ st.markdown("### 🧭 Explore Analytics Modules")
 
 tile_cols = st.columns(5)
 tiles = [
-    ("📈 Performance", "Analyze rating distribution, pay vs performance, skill correlation.", "pages/performance.py"),
+    ("🏆 Performance", "Analyze rating distribution, pay vs performance, skill correlation.", "pages/performance.py"),
     ("💬 Engagement", "Upload survey data, measure engagement, identify hot-zones.", "pages/engagement.py"),
     ("💰 Compensation", "Analyze pay fairness, bonus distribution, and market benchmarking.", "pages/compensation.py"),
     ("📉 Attrition", "Explore exit trends, tenure analysis, and attrition hotspots.", "pages/attrition.py"),
@@ -200,12 +207,23 @@ tiles = [
 
 for idx, (title, desc, path) in enumerate(tiles):
     with tile_cols[idx]:
-        if st.button(title, use_container_width=True):
-            st.session_state["active_module"] = path
-            st.session_state["last_clicked"] = title
-            auto_save_session_state()
-            st.switch_page(path)
-        st.caption(desc)
+        st.markdown(f"""
+        <div class='tile'>
+            <h3>{title}</h3>
+            <p style='font-size:13px; color:#9CA3AF;'>{desc}</p>
+            <form action='/{path}' target='_self'>
+                <button style="
+                    background: linear-gradient(90deg,#1E3A8A,#3B82F6);
+                    border:none; border-radius:8px;
+                    color:white; font-weight:600; padding:8px 16px;
+                    cursor:pointer; transition:all 0.2s ease-in-out;
+                " onmouseover="this.style.transform='scale(1.05)';"
+                   onmouseout="this.style.transform='scale(1.00)';">
+                    Launch
+                </button>
+            </form>
+        </div>
+        """, unsafe_allow_html=True)
 
 # ---------------------------
 # Footer
