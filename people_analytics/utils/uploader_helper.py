@@ -1,5 +1,5 @@
 # ============================================
-# utils/uploader_helper.py — v1.1 | Universal Upload (CSV/XLSX/TXT)
+# utils/uploader_helper.py — v1.2 | Fully Mobile-Compatible Universal Uploader
 # ============================================
 
 import streamlit as st
@@ -7,13 +7,14 @@ import pandas as pd
 
 def upload_data(label: str = "Upload your file", help_text: str = None):
     """
-    Universal file uploader allowing CSV, XLS, XLSX, and TXT files.
-    ✅ Fixes mobile issue where only recent/xlsx files were visible.
-    ✅ Gracefully handles CSV or Excel load errors.
+    Universal file uploader.
+    ✅ Works on mobile (Android/iOS)
+    ✅ Accepts any file extension; checks content internally
+    ✅ Handles CSV, XLSX, XLS, TXT gracefully
     """
     uploaded_file = st.file_uploader(
         label,
-        type=["csv", "xls", "xlsx", "txt"],   # all supported formats
+        type=None,  # ← allows all file types; OS won't grey out CSVs
         accept_multiple_files=False,
         help=help_text,
         key=f"upload_{label.replace(' ', '_')}"
@@ -23,11 +24,17 @@ def upload_data(label: str = "Upload your file", help_text: str = None):
         return None
 
     try:
-        filename = uploaded_file.name.lower()
-        if filename.endswith(".csv") or filename.endswith(".txt"):
+        name = uploaded_file.name.lower()
+        if name.endswith((".csv", ".txt")):
             df = pd.read_csv(uploaded_file)
-        else:
+        elif name.endswith((".xls", ".xlsx")):
             df = pd.read_excel(uploaded_file, engine="openpyxl")
+        else:
+            # fallback: try reading as CSV first
+            try:
+                df = pd.read_csv(uploaded_file)
+            except Exception:
+                df = pd.read_excel(uploaded_file, engine="openpyxl")
         st.success(f"✅ {uploaded_file.name} uploaded successfully!")
         return df
     except Exception as e:
