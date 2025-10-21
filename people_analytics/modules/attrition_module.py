@@ -46,10 +46,10 @@ def run_attrition_module():
     # 📤 Step 2 — Upload Data
     # =========================
     st.subheader("📤 Step 2 — Upload Attrition Dataset")
-    uploaded = st.file_uploader(
-        "Upload Attrition Data (CSV, Excel, or Text)",
-        type=["csv", "xlsx", "text", "plain", "application/vnd.ms-excel"]
-    )
+    uploaded = from utils.uploader_helper import upload_data
+df = upload_data("Upload Data File")
+if df is None:
+    return
 
     if not uploaded:
         st.info("Please upload your attrition dataset to continue.")
