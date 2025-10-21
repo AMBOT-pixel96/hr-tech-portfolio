@@ -1,19 +1,23 @@
 # ============================================
-# modules/performance_module.py — v1.3 | Smooth Bell Curve + PDF Export
+# modules/performance_module.py — v2.0 | Bell Curve + Executive PDF Export
 # ============================================
 
 import streamlit as st
 import pandas as pd
+import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
-import numpy as np
-from datetime import datetime
 from scipy.stats import gaussian_kde
 from utils.pdf_auto_exporter import export_module_report
 
+
 def run_performance_module():
+    # =========================
+    # 🎯 Header
+    # =========================
     st.markdown("""
-    <div style="padding:20px; border-radius:12px; background:linear-gradient(90deg,#1E3A8A,#3B82F6);
+    <div style="padding:20px; border-radius:12px;
+                background:linear-gradient(90deg,#1E3A8A,#3B82F6);
                 color:white; text-align:center; margin-bottom:20px;">
         <h2 style="margin:0;">🏆 Performance Analytics</h2>
         <p style="font-size:14px; margin-top:6px;">
@@ -23,10 +27,11 @@ def run_performance_module():
     </div>
     """, unsafe_allow_html=True)
 
-    # ----------------------------
-    # Step 1 — Upload Data
-    # ----------------------------
+    # =========================
+    # 📤 Step 1 — Upload File
+    # =========================
     st.subheader("📤 Step 1 — Upload Performance Data")
+
     perf_file = st.file_uploader(
         "Upload Performance Data (CSV, Excel, or Text)",
         type=["csv", "xlsx", "text", "plain", "application/vnd.ms-excel"]
@@ -36,6 +41,9 @@ def run_performance_module():
         st.info("Please upload a dataset to continue.")
         return
 
+    # =========================
+    # 🧮 Load Data
+    # =========================
     try:
         if perf_file.name.endswith(".csv"):
             df = pd.read_csv(perf_file)
@@ -54,44 +62,44 @@ def run_performance_module():
 
     st.dataframe(df.head(), use_container_width=True)
 
-    # ----------------------------
-    # A. Performance Distribution
-    # ----------------------------
+    # =========================
+    # 📊 A. Distribution Insights
+    # =========================
     with st.expander("📈 A. Performance Distribution Insights", expanded=True):
-        # --- Smooth Bell Curve using KDE
-        x = df["PerformanceRating"].dropna()
-        kde = gaussian_kde(x)
-        x_range = np.linspace(x.min(), x.max(), 200)
-        y_values = kde(x_range)
+        try:
+            x = df["PerformanceRating"].dropna()
+            kde = gaussian_kde(x)
+            x_range = np.linspace(x.min(), x.max(), 200)
+            y_values = kde(x_range)
 
-        bell_fig = go.Figure()
-        bell_fig.add_trace(go.Scatter(
-            x=x_range,
-            y=y_values,
-            mode="lines",
-            line=dict(color="#60A5FA", width=3),
-            fill="tozeroy",
-            fillcolor="rgba(96,165,250,0.3)",
-            name="Performance Distribution"
-        ))
-        bell_fig.update_layout(
-            title="Performance Rating Bell Curve",
-            xaxis_title="Performance Rating",
-            yaxis_title="Density",
-            template="plotly_dark",
-            showlegend=False
-        )
-        st.plotly_chart(bell_fig, use_container_width=True)
+            bell_fig = go.Figure()
+            bell_fig.add_trace(go.Scatter(
+                x=x_range, y=y_values,
+                mode="lines",
+                line=dict(color="#60A5FA", width=3),
+                fill="tozeroy",
+                fillcolor="rgba(96,165,250,0.3)",
+                name="Performance Distribution"
+            ))
+            bell_fig.update_layout(
+                title="Performance Rating Bell Curve",
+                xaxis_title="Performance Rating",
+                yaxis_title="Density",
+                template="plotly_dark",
+                showlegend=False
+            )
+            st.plotly_chart(bell_fig, use_container_width=True)
+        except Exception as e:
+            st.warning(f"Could not render bell curve: {e}")
 
-        # --- Ratings by Department & Gender
-        dept_fig = px.box(df, x="Department", y="PerformanceRating", color="Department")
+        dept_fig = px.box(df, x="Department", y="PerformanceRating", color="Department",
+                          title="Performance Ratings by Department")
         st.plotly_chart(dept_fig, use_container_width=True)
 
         gender_avg = df.groupby("Gender", observed=True)["PerformanceRating"].mean().reset_index()
         gender_fig = px.bar(
-            gender_avg,
-            x="Gender", y="PerformanceRating",
-            color="Gender", text="PerformanceRating"
+            gender_avg, x="Gender", y="PerformanceRating", color="Gender",
+            text="PerformanceRating", title="Average Performance Rating by Gender"
         )
         gender_fig.update_traces(texttemplate="%{text:.2f}", textposition="outside")
         st.plotly_chart(gender_fig, use_container_width=True)
@@ -108,11 +116,12 @@ def run_performance_module():
         </div>
         """, unsafe_allow_html=True)
 
-    # ----------------------------
-    # B. Performance vs Pay
-    # ----------------------------
+    # =========================
+    # 💰 B. Performance vs Pay
+    # =========================
     with st.expander("💰 B. Performance vs Pay", expanded=True):
-        pay_fig = px.box(df, x="PerformanceRating", y="CTC", color="PerformanceRating")
+        pay_fig = px.box(df, x="PerformanceRating", y="CTC", color="PerformanceRating",
+                         title="CTC Distribution by Performance Rating")
         st.plotly_chart(pay_fig, use_container_width=True)
 
         perf_pay_avg = df.groupby("PerformanceRating", observed=True)["CTC"].mean().reset_index()
@@ -130,22 +139,31 @@ def run_performance_module():
         </div>
         """, unsafe_allow_html=True)
 
-    # ----------------------------
-    # Export Executive Report
-    # ----------------------------
+    # =========================
+    # 📄 Export Executive Report
+    # =========================
     st.markdown("---")
     st.subheader("📄 Step 5 — Export Executive Report")
 
     data_blocks = [
         {
-            "title": "Performance Highlights",
-            "desc": "Distribution of ratings, pay correlation, and performance insights.",
-            "df": df.head(10),
+            "title": "Performance Distribution Insights",
+            "desc": "Smooth bell curve distribution and departmental spread of ratings.",
+            "df": gender_avg,
             "insights": [
                 f"Top-performing department: {dept_best}",
-                f"Gender gap: {gender_diff:.2f} points",
-                f"Highest-paying rating tier: {top_rating} ({top_ctc:.2f} LPA)"
-            ],
+                f"Gender gap in ratings: {gender_diff:.2f} points",
+                f"Average performance rating: {df['PerformanceRating'].mean():.2f}"
+            ]
+        },
+        {
+            "title": "Performance vs Pay Analysis",
+            "desc": "Relationship between performance ratings and compensation levels.",
+            "df": perf_pay_avg,
+            "insights": [
+                f"Highest-paying rating tier: {top_rating} ({top_ctc:.2f} LPA)",
+                "Higher ratings generally correlate with increased pay distribution."
+            ]
         }
     ]
 
