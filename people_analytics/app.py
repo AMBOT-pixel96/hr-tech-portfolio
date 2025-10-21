@@ -1,5 +1,5 @@
 # ============================================
-# app.py — People Analytics Dashboard (v1.3 Executive Edition)
+# app.py — People Analytics Dashboard (v1.4 Final Executive Edition)
 # ============================================
 
 import streamlit as st
@@ -166,55 +166,21 @@ st.markdown("---")
 st.markdown("### ⚡ Explore Analytics Modules")
 
 tiles = [
-    {
-        "icon": "🏆",
-        "title": "Performance Analytics",
-        "desc": "Understand how performance scores drive pay and progression.",
-        "path": "pages/performance.py"
-    },
-    {
-        "icon": "💬",
-        "title": "Engagement Analytics",
-        "desc": "Decode employee sentiment and engagement trends across departments.",
-        "path": "pages/engagement.py"
-    },
-    {
-        "icon": "💰",
-        "title": "Compensation Analytics",
-        "desc": "Compare internal pay vs market and identify gender gaps.",
-        "path": "pages/compensation.py"
-    },
-    {
-        "icon": "📉",
-        "title": "Attrition Analytics",
-        "desc": "Explore turnover rates, tenure curves, and attrition hotspots.",
-        "path": "pages/attrition.py"
-    },
-    {
-        "icon": "🏢",
-        "title": "Workforce Analytics",
-        "desc": "Visualize spans, hierarchies, and skill distribution across roles.",
-        "path": "pages/workforce.py"
-    }
+    {"icon": "🏆", "title": "Performance Analytics", "desc": "Understand how performance scores drive pay and progression.", "path": "pages/performance.py"},
+    {"icon": "💬", "title": "Engagement Analytics", "desc": "Decode employee sentiment and engagement trends.", "path": "pages/engagement.py"},
+    {"icon": "💰", "title": "Compensation Analytics", "desc": "Compare internal pay vs market and identify fairness gaps.", "path": "pages/compensation.py"},
+    {"icon": "📉", "title": "Attrition Analytics", "desc": "Explore turnover, tenure curves, and attrition hotspots.", "path": "pages/attrition.py"},
+    {"icon": "🏢", "title": "Workforce Analytics", "desc": "Visualize spans, hierarchies, and skill distributions.", "path": "pages/workforce.py"}
 ]
 
 cols = st.columns(5)
-for idx, tile in enumerate(tiles):
-    with cols[idx]:
-        st.markdown(f"""
-        <div class="tile">
-            <h3>{tile['icon']} {tile['title']}</h3>
-            <p>{tile['desc']}</p>
-            <button class="launch-btn" onclick="window.location.href='?page={tile['path']}'">Launch</button>
-        </div>
-        """, unsafe_allow_html=True)
-
-# Fallback navigation logic for Streamlit reruns
-if "page" in st.experimental_get_query_params():
-    path = st.experimental_get_query_params()["page"][0]
-    st.session_state["active_module"] = path
-    st.experimental_set_query_params()  # clear after use
-    st.switch_page(path)
+for i, t in enumerate(tiles):
+    with cols[i]:
+        if st.button(f"{t['icon']} {t['title']}", use_container_width=True, key=f"btn_{i}"):
+            st.session_state["active_module"] = t["path"]
+            auto_save_session_state()
+            st.switch_page(t["path"])
+        st.caption(t["desc"])
 
 # ---------------------------
 # ⚙️ Footer
