@@ -1,10 +1,12 @@
 # ============================================
-# utils/pdf_auto_exporter.py — v3.2 | Executive Board-Ready Edition
+# utils/pdf_auto_exporter.py — v3.3 | Color-Bake Edition
 # ============================================
+
 from io import BytesIO
 import os, datetime, textwrap
 import pandas as pd
 import plotly.express as px
+import plotly.io as pio
 from reportlab.platypus import (SimpleDocTemplate, Paragraph, Spacer,
                                 Image as RLImage, Table, TableStyle, PageBreak)
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -13,7 +15,6 @@ from reportlab.lib import colors
 from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-import plotly.io as pio
 
 # ---------------------------
 # 🧩 Kaleido Init
@@ -35,7 +36,7 @@ except Exception as e:
     DEFAULT_FONT_NAME = "Helvetica"
 
 # ---------------------------
-# 🎨 Global Style Presets
+# 🎨 Styles
 # ---------------------------
 styles = getSampleStyleSheet()
 BODY_STYLE = ParagraphStyle("Body", parent=styles["Normal"], fontName=DEFAULT_FONT_NAME, fontSize=10, leading=12)
@@ -49,7 +50,7 @@ H2_STYLE = ParagraphStyle("H2", parent=styles["Heading2"], fontName=DEFAULT_FONT
 DEFAULT_COLORWAY = px.colors.qualitative.Plotly
 
 def apply_bright_theme(fig):
-    """Force bright PDF-safe palette while keeping category colors."""
+    """Ensure bright PDF-safe palette and readable borders."""
     fig.update_layout(
         template="plotly_white",
         plot_bgcolor="white",
@@ -58,7 +59,6 @@ def apply_bright_theme(fig):
         colorway=DEFAULT_COLORWAY,
         margin=dict(t=60, b=40, l=40, r=40)
     )
-    # ensure borders are visible
     for tr in fig.data:
         if hasattr(tr, "marker"):
             if hasattr(tr.marker, "line"):
@@ -69,8 +69,41 @@ def apply_bright_theme(fig):
     return fig
 
 # ---------------------------
-# 🔢 Formatting Helpers
+# 🧩 Color-Bake Export (Fix for grayscale bug)
 # ---------------------------
+def fig_to_png_bytes(fig, width=900, height=520, scale=1):
+    """Convert Plotly fig to PNG with colors baked in before Kaleido export."""
+    try:
+        fig = apply_bright_theme(fig)
+
+        # 🔥 Bake color palette manually before export
+        if hasattr(fig, "data") and fig.data:
+            palette = px.colors.qualitative.Plotly
+            for i, tr in enumerate(fig.data):
+                color = palette[i % len(palette)]
+                # For bar/box markers
+                if hasattr(tr, "marker"):
+                    if not getattr(tr.marker, "color", None):
+                        tr.marker.color = color
+                    tr.marker.line = dict(color="black", width=1)
+                # For lines/scatter traces
+                if hasattr(tr, "line"):
+                    if not getattr(tr.line, "color", None):
+                        tr.line.color = color
+
+        img_bytes = fig.to_image(format="png", engine="kaleido",
+                                 width=width, height=height, scale=scale)
+        return img_bytes
+    except Exception as e:
+        print(f"⚠️ Kaleido export failed: {e}")
+        return None
+
+# ---------------------------
+# 🔢 Table Helpers
+# ---------------------------
+from reportlab.platypus import Paragraph as RLParagraph
+TABLE_PAR_STYLE = ParagraphStyle("TableCell", fontName=DEFAULT_FONT_NAME, fontSize=9, leading=11)
+
 def _format_val(v):
     try:
         if v is None:
@@ -86,16 +119,12 @@ def _format_val(v):
     except Exception:
         return str(v)
 
-from reportlab.platypus import Paragraph as RLParagraph
-TABLE_PAR_STYLE = ParagraphStyle("TableCell", fontName=DEFAULT_FONT_NAME, fontSize=9, leading=11)
-
 def _cell_val(v):
-    """Return Paragraph-wrapped and formatted value for table cell."""
     text = _format_val(v)
     return RLParagraph(str(text), TABLE_PAR_STYLE)
 
 def _df_to_table_data(df: pd.DataFrame, max_rows=20):
-    """Convert DataFrame → wrapped table rows (limited rows)."""
+    """Convert DataFrame → ReportLab table with wrapped cells."""
     if df is None or df.empty:
         return [[RLParagraph("No data available.", TABLE_PAR_STYLE)]]
     df2 = df.head(max_rows).copy()
@@ -121,19 +150,6 @@ def _zebra_table_style(n_cols, n_rows):
     style.add("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#E5E7EB"))
     style.add("VALIGN", (0, 0), (-1, -1), "MIDDLE")
     return style
-
-# ---------------------------
-# 🖼 Figure Export
-# ---------------------------
-def fig_to_png_bytes(fig, width=900, height=520, scale=1):
-    """Convert Plotly fig to PNG with enforced bright theme + colors."""
-    try:
-        fig = apply_bright_theme(fig)
-        img_bytes = fig.to_image(format="png", width=width, height=height, scale=scale)
-        return img_bytes
-    except Exception as e:
-        print(f"⚠️ Kaleido export failed: {e}")
-        return None
 
 # ---------------------------
 # 🧾 PDF Exporter
@@ -169,7 +185,7 @@ def export_module_report(report_title: str, module_name: str, data_blocks: list,
     story.append(toc_table)
     story.append(PageBreak())
 
-    # --- Main Sections ---
+    # --- Sections ---
     summary_insights = []
     for i, block in enumerate(data_blocks, 1):
         title = block.get("title", f"Section {i}")
@@ -188,8 +204,7 @@ def export_module_report(report_title: str, module_name: str, data_blocks: list,
         if df is not None:
             table_data = _df_to_table_data(df, max_rows=25)
             n_cols = len(table_data[0])
-            # adaptive column width control (prevents spill)
-            col_widths = [max(30, min(60, 500 / n_cols)) * mm] * n_cols
+            col_widths = [max(30, min(55, 500 / n_cols)) * mm] * n_cols
             table = Table(table_data, colWidths=col_widths, repeatRows=1, hAlign="LEFT")
             table.setStyle(_zebra_table_style(n_cols, len(table_data)))
             story.append(table)
