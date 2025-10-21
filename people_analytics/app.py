@@ -167,21 +167,28 @@ st.markdown("### ⚡ Explore Analytics Modules")
 
 tiles = [
     {"icon": "🏆", "title": "Performance Analytics", "desc": "Understand how performance scores drive pay and progression.", "path": "pages/performance.py"},
-    {"icon": "💬", "title": "Engagement Analytics", "desc": "Decode employee sentiment and engagement trends.", "path": "pages/engagement.py"},
-    {"icon": "💰", "title": "Compensation Analytics", "desc": "Compare internal pay vs market and identify fairness gaps.", "path": "pages/compensation.py"},
-    {"icon": "📉", "title": "Attrition Analytics", "desc": "Explore turnover, tenure curves, and attrition hotspots.", "path": "pages/attrition.py"},
-    {"icon": "🏢", "title": "Workforce Analytics", "desc": "Visualize spans, hierarchies, and skill distributions.", "path": "pages/workforce.py"}
+    {"icon": "💬", "title": "Engagement Analytics", "desc": "Decode employee sentiment and engagement trends across departments.", "path": "pages/engagement.py"},
+    {"icon": "💰", "title": "Compensation Analytics", "desc": "Compare internal pay vs market and identify gender gaps.", "path": "pages/compensation.py"},
+    {"icon": "📉", "title": "Attrition Analytics", "desc": "Explore turnover rates, tenure curves, and attrition hotspots.", "path": "pages/attrition.py"},
+    {"icon": "🏢", "title": "Workforce Analytics", "desc": "Visualize spans, hierarchies, and skill distribution across roles.", "path": "pages/workforce.py"}
 ]
 
 cols = st.columns(5)
 for i, t in enumerate(tiles):
     with cols[i]:
-        if st.button(f"{t['icon']} {t['title']}", use_container_width=True, key=f"btn_{i}"):
-            st.session_state["active_module"] = t["path"]
-            auto_save_session_state()
-            st.switch_page(t["path"])
-        st.caption(t["desc"])
+        st.markdown(f"""
+        <div class="tile">
+            <h3>{t['icon']} {t['title']}</h3>
+            <p>{t['desc']}</p>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button(f"{t['icon']} {t['title']}", key=f"tile_{i}", use_container_width=True):
+            st.session_state["nav_target"] = t["path"]
 
+# ✅ Safe navigation after widgets have been processed
+if "nav_target" in st.session_state and st.session_state["nav_target"]:
+    st.switch_page(st.session_state["nav_target"])
+    st.session_state["nav_target"] = None
 # ---------------------------
 # ⚙️ Footer
 # ---------------------------
