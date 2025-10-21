@@ -1,5 +1,5 @@
 # ============================================
-# modules/performance_module.py — v1.2 | PDF Export + Insight Summaries
+# modules/performance_module.py — v1.2 | PDF Export + Insight Summaries (Fixed)
 # ============================================
 
 import streamlit as st
@@ -13,7 +13,10 @@ def run_performance_module():
     <div style="padding:20px; border-radius:12px; background:linear-gradient(90deg,#1E3A8A,#3B82F6);
                 color:white; text-align:center; margin-bottom:20px;">
         <h2 style="margin:0;">🏆 Performance Analytics</h2>
-        <p style="font-size:14px; margin-top:6px;">Analyze employee performance patterns, identify high-potential clusters, and understand how ratings relate to pay and skills.</p>
+        <p style="font-size:14px; margin-top:6px;">
+            Analyze employee performance patterns, identify high-potential clusters,
+            and understand how ratings relate to pay and skills.
+        </p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -89,28 +92,28 @@ def run_performance_module():
         </div>
         """, unsafe_allow_html=True)
 
-# ==================================
-# 📄 Export Executive Report
-# ==================================
-st.markdown("---")
-st.subheader("📄 Step 5 — Export Executive Report")
+    # ==================================
+    # 📄 Export Executive Report (INSIDE FUNCTION)
+    # ==================================
+    st.markdown("---")
+    st.subheader("📄 Step 5 — Export Executive Report")
 
-data_blocks = [
-    {
-        "title": "Performance Highlights",
-        "desc": "Distribution of ratings, pay correlation, and performance insights.",
-        "df": df.head(10) if "df" in locals() else None,
-        "insights": [
-            "Top-performing department and gender distribution insights included.",
-            "Performance–pay relationship summarized across rating levels."
-        ],
-    }
-]
+    data_blocks = [
+        {
+            "title": "Performance Highlights",
+            "desc": "Distribution of ratings, pay correlation, and performance insights.",
+            "df": df.head(10),
+            "insights": [
+                f"Top-performing department: {dept_best}",
+                f"Gender gap: {gender_diff:.2f} points",
+                f"Highest-paying rating tier: {top_rating} ({top_ctc:.2f} LPA)"
+            ],
+        }
+    ]
 
-from utils.pdf_auto_exporter import export_module_report
-export_module_report(
-    report_title="Performance Analytics Executive Report",
-    module_name="Performance",
-    data_blocks=data_blocks,
-    filename_prefix="Performance"
-)
+    export_module_report(
+        report_title="Performance Analytics Executive Report",
+        module_name="Performance",
+        data_blocks=data_blocks,
+        filename_prefix="Performance"
+    )
