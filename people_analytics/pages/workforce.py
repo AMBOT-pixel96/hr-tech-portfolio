@@ -1,16 +1,13 @@
 # ============================================
-# pages/workforce.py — Workforce & Talent Analytics
+# pages/workforce.py — v2.0
 # ============================================
 
 import streamlit as st
-from modules.workforce_module import run_workforce_module
+st.set_page_config(page_title="Workforce Analytics", layout="wide")
+
 from utils.ui_styling import apply_sidebar_theme
+from modules.workforce_module import run_workforce_module
 
-# ⚙️ Page config MUST come before any Streamlit output
-st.set_page_config(page_title="Workforce & Talent Analytics", layout="wide")
-
-# 🎨 Apply Executive Sidebar Theme (no need to duplicate CSS below)
+# 🎨 Apply theme and launch module
 apply_sidebar_theme()
-
-# 🧩 Run the module
 run_workforce_module()
