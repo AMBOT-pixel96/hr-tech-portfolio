@@ -12,7 +12,22 @@ from reportlab.lib import colors
 from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-
+# ---------------------------
+# 🧩 Initialize Kaleido for Plotly static image exports
+# ---------------------------
+import plotly.io as pio
+try:
+    # Force-enable Kaleido as the image export engine
+    pio.renderers.default = "kaleido"
+    # Optional tuning for image resolution (safe defaults)
+    if hasattr(pio, "kaleido") and hasattr(pio.kaleido, "scope"):
+        pio.kaleido.scope.default_format = "png"
+        pio.kaleido.scope.default_width = 1000
+        pio.kaleido.scope.default_height = 600
+        pio.kaleido.scope.default_scale = 1
+    print("✅ Kaleido engine initialized for Plotly export.")
+except Exception as e:
+    print(f"⚠️ Kaleido initialization failed: {e}")
 # ---------------------------
 # 🔤 Font Setup
 # ---------------------------
