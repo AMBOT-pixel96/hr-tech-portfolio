@@ -156,9 +156,9 @@ for i, t in enumerate(tiles):
 
 # ✅ Navigation
 if "nav_target" in st.session_state and st.session_state["nav_target"]:
-    st.switch_page(st.session_state["nav_target"])
-    st.session_state["nav_target"] = None
-
+    target = st.session_state["nav_target"]
+    st.session_state["nav_target"] = None  # clear first to avoid redirect bug
+    st.switch_page(target)
 # ---------------------------
 # ⚙️ Footer
 # ---------------------------
