@@ -184,7 +184,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 if st.button("📘 Open Consolidated HR Deck", use_container_width=True, key="deck_btn"):
-    st.switch_page("/Consolidated")
+    st.switch_page("pages/consolidated.py")
 
 # ---------------------------
 # ⚙️ Footer
