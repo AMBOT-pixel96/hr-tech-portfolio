@@ -88,21 +88,51 @@ else:
 # -------------------------------------------------------
 # MODULE 2: COMPENSATION
 # -------------------------------------------------------
+bench_df = None
+st.markdown("#### 📊 (Optional) Upload Market Benchmark Data for Compensation")
+bench_file = st.file_uploader("Upload Benchmark Data (Optional)", type=["csv", "xlsx"], key="bench_upload")
+if bench_file:
+    try:
+        if bench_file.name.endswith(".csv"):
+            bench_df = pd.read_csv(bench_file)
+        else:
+            bench_df = pd.read_excel(bench_file, engine="openpyxl")
+        st.success(f"✅ {bench_file.name} uploaded successfully (Benchmark Data)")
+    except Exception as e:
+        st.warning(f"⚠️ Failed to load benchmark data: {e}")
+
 if "CTC" in comp_df.columns:
     comp_df["CTC"] = pd.to_numeric(comp_df["CTC"], errors="coerce")
     comp_df["Bonus"] = pd.to_numeric(comp_df.get("Bonus", 0), errors="coerce")
     comp_df["BonusPct"] = (comp_df["Bonus"] / comp_df["CTC"].replace(0, None)) * 100
     ctc = comp_df.groupby("JobLevel", observed=True)["CTC"].mean().reset_index(name="AvgCTC")
     bonus = comp_df.groupby("JobLevel", observed=True)["BonusPct"].mean().reset_index(name="AvgBonusPct")
+
     fig_ctc = px.bar(ctc, x="JobLevel", y="AvgCTC", color="JobLevel", title="Avg CTC by Job Level")
     fig_bonus = px.bar(bonus, x="JobLevel", y="AvgBonusPct", color="JobLevel", title="Bonus % by Job Level")
+
     comp_blocks = [
-        {"title": "Compensation Overview", "desc": "Average pay & bonuses across levels", "df": _round_df(ctc), "fig": fig_ctc, "insights": []},
-        {"title": "Bonus Distribution", "desc": "Bonus % by level", "df": _round_df(bonus), "fig": fig_bonus, "insights": []},
+        {"title": "CTC by Job Level", "desc": "Average internal pay per level", "df": _round_df(ctc), "fig": fig_ctc, "insights": []},
+        {"title": "Bonus by Job Level", "desc": "Average bonus % per level", "df": _round_df(bonus), "fig": fig_bonus, "insights": []},
     ]
+
+    # Optional benchmark comparison
+    if bench_df is not None and {"JobLevel", "MarketMedianCTC"}.issubset(set(bench_df.columns)):
+        try:
+            bench_df["MarketMedianCTC"] = pd.to_numeric(bench_df["MarketMedianCTC"], errors="coerce")
+            merged = comp_df.merge(bench_df[["JobLevel", "MarketMedianCTC"]].drop_duplicates(), on="JobLevel", how="left")
+            merged["DiffPct"] = ((merged["CTC"] - merged["MarketMedianCTC"]) / merged["MarketMedianCTC"].replace(0, None)) * 100
+            market_summary = merged.groupby("JobLevel", observed=True)[["CTC", "MarketMedianCTC", "DiffPct"]].mean().reset_index()
+            market_summary = _round_df(market_summary)
+            fig_market = px.bar(market_summary.melt(id_vars="JobLevel", value_vars=["CTC", "MarketMedianCTC"],
+                            var_name="Type", value_name="Value"), x="JobLevel", y="Value", color="Type",
+                            barmode="group", title="Internal vs Market Median by Level")
+            comp_blocks.append({"title": "Market Benchmark Comparison", "desc": "Internal pay vs market medians",
+                                "df": market_summary, "fig": fig_market, "insights": []})
+        except Exception as e:
+            st.warning(f"⚠️ Benchmark comparison skipped: {e}")
 else:
     comp_blocks = []
-
 # -------------------------------------------------------
 # MODULE 3: PERFORMANCE
 # -------------------------------------------------------
