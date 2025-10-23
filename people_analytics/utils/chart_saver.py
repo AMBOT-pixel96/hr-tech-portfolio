@@ -1,222 +1,159 @@
 # ============================================
-# utils/chart_saver.py — v3.1.0 | Kaleido-forced + Safe-Restore
+# utils/chart_saver.py — v3.1.0 | Dual-Theme + Sync Save (stable)
 # ============================================
+"""
+Robust chart saver for Plotly figures used in PDF exports.
+
+Usage:
+    from utils.chart_saver import save_chart_image, ensure_chart_saved, safe_categorical
+
+Notes:
+- Produces PNGs with a white background and black text (good for PDFs).
+- Works with kaleido (plotly engine). Waits and fsyncs to ensure file is fully written.
+- Operates on a deep-copy of the figure to avoid mutating the figure shown in the Streamlit app.
+"""
 import os
 import time
-import logging
-from typing import Optional, Callable
+import json
+import tempfile
+import hashlib
+from pathlib import Path
 
-import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go
+import plotly.io as pio
+from plotly.graph_objs import Figure
+import streamlit as st
 
-# configure simple logger for debug (will show in Streamlit logs)
-logger = logging.getLogger("chart_saver")
-if not logger.handlers:
-    handler = logging.StreamHandler()
-    handler.setFormatter(logging.Formatter("%(asctime)s — %(levelname)s — %(message)s"))
-    logger.addHandler(handler)
-logger.setLevel(logging.INFO)
+TMP_DIR = "temp_charts"
+os.makedirs(TMP_DIR, exist_ok=True)
 
 
-def _ensure_tmp_dir(tmp_dir: str = "temp_charts") -> str:
-    os.makedirs(tmp_dir, exist_ok=True)
-    return tmp_dir
+def _sanitize_filename(title: str) -> str:
+    """Create safe filename from title (keeps it short & unique)."""
+    if not title:
+        title = "chart"
+    # basic sanitization
+    safe = "".join(c if c.isalnum() or c in "-_. " else "_" for c in title).strip()
+    # shorten and append hash for uniqueness
+    h = hashlib.sha1(title.encode("utf-8")).hexdigest()[:8]
+    name = f"{safe[:60].strip().replace(' ', '_')}_{h}.png"
+    return name
 
 
-def _safe_filename(title: str) -> str:
-    # simple filename sanitization
-    name = "".join(c if (c.isalnum() or c in (" ", "-", "_")) else "_" for c in title).strip()
-    return name.replace(" ", "_")[:180]
-
-
-def save_chart_image(
-    title: str,
-    fig,
-    tmp_dir: str = "temp_charts",
-    width: int = 1200,
-    height: int = 700,
-    scale: int = 2,
-    wait_secs: float = 0.25,
-    engine: str = "kaleido"
-) -> Optional[str]:
+def _write_bytes_atomic(path: str, data: bytes, attempts: int = 3, wait: float = 0.12):
     """
-    Save a Plotly figure to PNG with robust theme handling and synchronous file checks.
+    Write bytes to file atomically and fsync to ensure disk flush.
+    Retries a few times if the file is incomplete.
+    """
+    for attempt in range(attempts):
+        tmp = f"{path}.tmp"
+        try:
+            with open(tmp, "wb") as f:
+                f.write(data)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(tmp, path)
+            # final check
+            if os.path.exists(path) and os.path.getsize(path) > 64:
+                return True
+        except Exception:
+            # best-effort cleanup
+            try:
+                if os.path.exists(tmp):
+                    os.remove(tmp)
+            except Exception:
+                pass
+        time.sleep(wait * (attempt + 1))
+    return False
 
-    Key behaviours:
-      • Temporarily enforce a white background + black text for the saved image
-        so colors and axis labels are preserved in exported PDFs.
-      • Restore only the small set of properties we change (so we don't lose user
-        custom layout other code may set).
-      • Force Kaleido as the engine and verify file existence before returning.
-      • Returns absolute path to saved PNG or None if save failed.
 
-    Usage:
-        path = save_chart_image("Avg CTC by Level", fig)
+def save_chart_image(title: str, fig: Figure, width: int = 1200, height: int = 700, scale: int = 2) -> str | None:
+    """
+    Save a Plotly figure to PNG suitable for embedding into PDFs.
+
+    - Does not mutate the original figure shown in the Streamlit UI.
+    - Forces a light template for the exported image so colors remain visible in PDFs.
+    - Ensures the saved file is fully written (fsync + validation).
+
+    Returns the path to the saved PNG or None on failure.
     """
     try:
-        tmp_dir = _ensure_tmp_dir(tmp_dir)
-        fname = f"{_safe_filename(title)}.png"
-        img_path = os.path.join(tmp_dir, fname)
+        if fig is None:
+            raise ValueError("No figure provided")
 
-        # Save snapshot of only the properties we will modify so we can restore them.
-        prev_template = getattr(fig.layout, "template", None)
-        prev_paper_bg = getattr(fig.layout, "paper_bgcolor", None)
-        prev_plot_bg = getattr(fig.layout, "plot_bgcolor", None)
-        prev_font = getattr(fig.layout, "font", None)
-        prev_xaxis = fig.layout.to_plotly_json().get("xaxis", None)  # keep axis definitions safe
-        prev_yaxis = fig.layout.to_plotly_json().get("yaxis", None)
+        # create copy of figure via JSON roundtrip to avoid mutating original
+        fig_json = fig.to_plotly_json()
+        # Apply light-mode overrides for PDF export on the copied JSON
+        layout = fig_json.get("layout", {})
+        # Set white background and black text for PDF-friendly output
+        layout_updates = {
+            "template": "plotly_white",
+            "paper_bgcolor": "#FFFFFF",
+            "plot_bgcolor": "#FFFFFF",
+            "font": {"color": "#000000"},
+        }
+        # Merge without destroying other layout keys
+        layout.update(layout_updates)
+        fig_json["layout"] = layout
 
-        # --- Apply minimal PDF-friendly layout overrides ---
-        # Use plotly_white template + explicit white paper/plot background + black font
-        try:
-            fig.update_layout(
-                template="plotly_white",
-                paper_bgcolor="#FFFFFF",
-                plot_bgcolor="#FFFFFF",
-                font=dict(color="#000000"),
-            )
-        except Exception as e:
-            # not fatal — continue but warn
-            logger.warning("Could not set layout overrides: %s", e)
+        # Convert back to a figure object for writing
+        fig_for_pdf = pio.from_json(json.dumps(fig_json))
 
-        # minor trace touches to ensure outline visibility (helpful for stacked bars)
-        try:
-            for tr in fig.data:
-                # handle markers (bars, scatter) and lines to ensure contrasts remain visible
-                if hasattr(tr, "marker") and tr.marker is not None:
-                    # do not overwrite color — only ensure a thin line for definition
-                    if getattr(tr.marker, "line", None) is None:
-                        tr.marker.line = dict(width=0.6, color="#DDDDDD")
-                if hasattr(tr, "line") and tr.line is not None:
-                    # ensure lines have at least some width for visibility
-                    if getattr(tr.line, "width", None) in (None, 0):
-                        tr.line.width = getattr(tr.line, "width", 1)
-        except Exception as e:
-            logger.debug("Trace adjustments skipped: %s", e)
+        filename = _sanitize_filename(title)
+        img_path = os.path.join(TMP_DIR, filename)
 
-        # --- Write image using kaleido engine explicitly ---
-        # Use engine param to make sure we don't fall back to or use other renderers.
-        try:
-            fig.write_image(img_path, width=width, height=height, scale=scale, engine=engine)
-        except TypeError:
-            # older versions of plotly may not accept engine param — fallback
-            fig.write_image(img_path, width=width, height=height, scale=scale)
-        except Exception as e:
-            logger.exception("Failed to write image using kaleido: %s", e)
-            st.warning(f"⚠️ Could not export chart image for '{title}': {e}")
-            # Attempt to restore layout before returning
-            try:
-                _restore_layout(fig, prev_template, prev_paper_bg, prev_plot_bg, prev_font, prev_xaxis, prev_yaxis)
-            except Exception:
-                pass
-            return None
+        # Use plotly.io.to_image to get bytes first (so we can atomic-write)
+        img_bytes = pio.to_image(fig_for_pdf, format="png", width=width, height=height, scale=scale, validate=True)
 
-        # small synchronous buffer to ensure disk is flushed
-        time.sleep(wait_secs)
+        ok = _write_bytes_atomic(img_path, img_bytes)
+        if not ok:
+            raise IOError("Failed to write image atomically")
 
-        # verify
+        # final safety pause & verify
+        timeout = 2.0
+        start = time.time()
+        while (not os.path.exists(img_path) or os.path.getsize(img_path) == 0) and time.time() - start < timeout:
+            time.sleep(0.05)
+
         if not os.path.exists(img_path) or os.path.getsize(img_path) == 0:
-            logger.error("Saved image missing or empty: %s", img_path)
-            st.warning(f"⚠️ Chart file was created but is empty for '{title}'.")
-            try:
-                _restore_layout(fig, prev_template, prev_paper_bg, prev_plot_bg, prev_font, prev_xaxis, prev_yaxis)
-            except Exception:
-                pass
-            return None
+            raise IOError("File save incomplete or empty after final verification")
 
-        # Restore original layout (only the pieces we changed)
-        try:
-            _restore_layout(fig, prev_template, prev_paper_bg, prev_plot_bg, prev_font, prev_xaxis, prev_yaxis)
-        except Exception as e:
-            logger.warning("Could not restore full layout for '%s': %s", title, e)
-
-        # All good
-        logger.info("Saved chart '%s' → %s", title, img_path)
         return img_path
 
     except Exception as e:
-        logger.exception("Unexpected error in save_chart_image: %s", e)
-        st.warning(f"⚠️ Could not save chart '{title}': {e}")
+        # Streamlit warning is useful in dev — keep message concise
+        st.warning(f"⚠️ Could not save chart '{title}': {str(e)}")
         return None
 
 
-def _restore_layout(fig, template, paper_bg, plot_bg, font, xaxis_json, yaxis_json):
+def ensure_chart_saved(fig: Figure, title: str, saver_func=save_chart_image, retries: int = 2) -> str | None:
     """
-    Restore the handful of layout properties we changed.
-    We avoid blindly replacing the entire layout object to preserve user customizations
-    that other parts of the app may rely on.
+    Wrapper that guarantees the saver returns a usable path, with a retry fallback.
+    Returns the saved path or None on failure.
     """
-    try:
-        # template
-        if template is not None:
-            try:
-                fig.layout.template = template
-            except Exception:
-                # as a fallback, update template property if settable
-                try:
-                    fig.update_layout(template=template)
-                except Exception:
-                    pass
-
-        # paper / plot bg
-        if paper_bg is not None:
-            try:
-                fig.update_layout(paper_bgcolor=paper_bg)
-            except Exception:
-                pass
-        if plot_bg is not None:
-            try:
-                fig.update_layout(plot_bgcolor=plot_bg)
-            except Exception:
-                pass
-
-        # font
-        if font is not None:
-            try:
-                fig.update_layout(font=font)
-            except Exception:
-                pass
-
-        # restore axis minimal json if present (keeps ticks/labels)
-        if xaxis_json:
-            try:
-                fig.update_xaxes(**xaxis_json)
-            except Exception:
-                # JSON may contain nested props — ignore if can't set
-                pass
-        if yaxis_json:
-            try:
-                fig.update_yaxes(**yaxis_json)
-            except Exception:
-                pass
-
-    except Exception as e:
-        logger.debug("Layout restore encountered non-fatal issue: %s", e)
-        # don't rethrow; restore is best effort
-
-
-def ensure_chart_saved(fig, title: str, saver_func: Callable = save_chart_image, **kwargs) -> Optional[str]:
-    """
-    Convenience wrapper that tries to save and retries once on failure.
-    Returns path or None.
-    """
-    path = saver_func(title, fig, **kwargs)
-    if path:
-        return path
-
-    # one retry with a small backoff — often helps with transient kaleido hiccups
-    time.sleep(0.35)
-    return saver_func(title, fig, **kwargs)
+    last = None
+    for attempt in range(retries + 1):
+        path = saver_func(title, fig)
+        if path and os.path.exists(path) and os.path.getsize(path) > 64:
+            return path
+        last = path
+        time.sleep(0.15 * (attempt + 1))
+    # final attempt result (could be None)
+    return last
 
 
 def safe_categorical(df: pd.DataFrame, col: str) -> pd.DataFrame:
     """
-    Convert a pandas categorical column to string before PDF serialization or before setitem
-    operations that may raise 'Cannot setitem on a Categorical with a new category'.
-    Use this in the PDF pipeline just before passing dataframes to ReportLab.
+    Ensure categorical dtypes don't cause errors during PDF rendering or when
+    converting dataframes to string. If the column is categorical, convert to str.
+    Returns the dataframe (modified copy).
     """
-    if col in df.columns and pd.api.types.is_categorical_dtype(df[col]):
-        df = df.copy()
-        df[col] = df[col].astype(str)
-    return df
+    df2 = df.copy()
+    if col in df2.columns:
+        try:
+            if pd.api.types.is_categorical_dtype(df2[col]):
+                df2[col] = df2[col].astype(str)
+        except Exception:
+            # be defensive: coerce to string anyway
+            df2[col] = df2[col].astype(str)
+    return df2
