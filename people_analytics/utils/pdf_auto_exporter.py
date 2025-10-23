@@ -1,5 +1,5 @@
 # ============================================
-# utils/pdf_auto_exporter.py — v3.3 | Color-Bake Edition
+# utils/pdf_auto_exporter.py — v3.4 | Color-Baked Board Edition
 # ============================================
 
 from io import BytesIO
@@ -36,7 +36,7 @@ except Exception as e:
     DEFAULT_FONT_NAME = "Helvetica"
 
 # ---------------------------
-# 🎨 Styles
+# 🎨 Text Styles
 # ---------------------------
 styles = getSampleStyleSheet()
 BODY_STYLE = ParagraphStyle("Body", parent=styles["Normal"], fontName=DEFAULT_FONT_NAME, fontSize=10, leading=12)
@@ -61,45 +61,52 @@ def apply_bright_theme(fig):
     )
     for tr in fig.data:
         if hasattr(tr, "marker"):
-            if hasattr(tr.marker, "line"):
-                tr.marker.line.color = "black"
-                tr.marker.line.width = 1
-            else:
-                tr.marker.line = dict(color="black", width=1)
+            tr.marker.line = dict(color="black", width=1)
     return fig
 
 # ---------------------------
-# 🧩 Color-Bake Export (Fix for grayscale bug)
+# 🧩 Color-Baked Export (Fix for grayscale bug)
 # ---------------------------
 def fig_to_png_bytes(fig, width=900, height=520, scale=1):
-    """Convert Plotly fig to PNG with colors baked in before Kaleido export."""
+    """Convert Plotly fig to PNG with colors fully baked in before Kaleido export."""
     try:
+        # Always rebuild color theme before export
         fig = apply_bright_theme(fig)
 
         # 🔥 Bake color palette manually before export
-        if hasattr(fig, "data") and fig.data:
-            palette = px.colors.qualitative.Plotly
-            for i, tr in enumerate(fig.data):
-                color = palette[i % len(palette)]
-                # For bar/box markers
-                if hasattr(tr, "marker"):
-                    if not getattr(tr.marker, "color", None):
-                        tr.marker.color = color
-                    tr.marker.line = dict(color="black", width=1)
-                # For lines/scatter traces
-                if hasattr(tr, "line"):
-                    if not getattr(tr.line, "color", None):
-                        tr.line.color = color
+        palette = px.colors.qualitative.Plotly
+        for i, tr in enumerate(fig.data):
+            base_color = palette[i % len(palette)]
+            # For bar/box/scatter
+            if hasattr(tr, "marker"):
+                if not getattr(tr.marker, "color", None):
+                    tr.marker.color = base_color
+                tr.marker.line = dict(color="black", width=1)
+            # For line/scatter traces
+            if hasattr(tr, "line"):
+                if not getattr(tr.line, "color", None):
+                    tr.line.color = base_color
+                tr.line.width = getattr(tr.line, "width", 2)
+
+        # Enforce PDF-safe export context
+        fig.update_layout(
+            template="plotly_white",
+            plot_bgcolor="white",
+            paper_bgcolor="white",
+            font_color="black",
+            showlegend=True
+        )
 
         img_bytes = fig.to_image(format="png", engine="kaleido",
                                  width=width, height=height, scale=scale)
+        print("🎨 Exported colored figure successfully.")
         return img_bytes
     except Exception as e:
         print(f"⚠️ Kaleido export failed: {e}")
         return None
 
 # ---------------------------
-# 🔢 Table Helpers
+# 🧾 Table Helpers
 # ---------------------------
 from reportlab.platypus import Paragraph as RLParagraph
 TABLE_PAR_STYLE = ParagraphStyle("TableCell", fontName=DEFAULT_FONT_NAME, fontSize=9, leading=11)
