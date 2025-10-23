@@ -9,7 +9,7 @@ from plotly.io import to_html
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
-TMP_DIR = "temp_charts"
+TMP_DIR = os.path.join("/tmp", "temp_charts")
 os.makedirs(TMP_DIR, exist_ok=True)
 PALETTE = px.colors.qualitative.Vivid
 
@@ -61,3 +61,18 @@ def save_chart_image(title, fig, filename_safe=None):
     except Exception as e:
         st.error(f"⚠️ Chart render failed for '{title}': {e}")
         return None
+
+
+# --------------------------------------------
+# 🔁 Retry Wrapper
+# --------------------------------------------
+def ensure_chart_saved(title: str, fig, attempts: int = 3, wait: float = 0.25):
+    """Retry chart export multiple times if Selenium render misbehaves."""
+    last_err = None
+    for i in range(attempts):
+        path = save_chart_image(title, fig)
+        if path and os.path.exists(path) and os.path.getsize(path) > 0:
+            return path
+        last_err = path
+        time.sleep(wait * (i + 1))
+    return None
