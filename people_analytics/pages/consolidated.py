@@ -1,9 +1,9 @@
 # ============================================
-# pages/consolidated.py — Main Consolidated HR Deck Page
+# pages/consolidated.py — Main Consolidated HR Deck Page (Fixed)
 # ============================================
 
 import streamlit as st
-from modules import consolidated_module
+import modules.consolidated_module  # Import auto-runs the module’s Streamlit logic
 
 # -------------------------------------------------------
 # 🧭 Page Configuration
@@ -15,7 +15,7 @@ st.set_page_config(
 )
 
 # -------------------------------------------------------
-# 🎨 Unified Styling
+# 🎨 Unified Styling (for consistency only)
 # -------------------------------------------------------
 st.markdown("""
 <style>
@@ -52,8 +52,3 @@ div.stButton > button:first-child:hover {
 }
 </style>
 """, unsafe_allow_html=True)
-
-# -------------------------------------------------------
-# 🧩 Load the actual module (renders full upload + PDF logic)
-# -------------------------------------------------------
-consolidated_module
