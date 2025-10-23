@@ -1,5 +1,5 @@
 # ============================================
-# modules/consolidated_module.py — v5.4 | HR Leadership Deck Generator (Final Stable)
+# modules/consolidated_module.py — v5.4 | HR Leadership Deck Generator (Stable Build)
 # ============================================
 import streamlit as st
 import pandas as pd
@@ -10,16 +10,45 @@ from utils_consolidated.chart_consolidated_saver import ensure_chart_saved
 from utils_consolidated.uploader_consolidated_helper import upload_data
 
 # -------------------------------------------------------
-# 🧭 Page Configuration
+# 🧭 Page Setup
 # -------------------------------------------------------
-st.set_page_config(
-    page_title="Consolidated HR Leadership Deck",
-    page_icon="📘",
-    layout="wide"
-)
+st.set_page_config(page_title="📘 Consolidated HR Leadership Deck", layout="wide")
 
 # -------------------------------------------------------
-# 🎨 HEADER + THEME FIX
+# 🎨 Global Theme (inherits Executive Sidebar look)
+# -------------------------------------------------------
+st.markdown("""
+<style>
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #0F172A 0%, #1E3A8A 100%);
+    color: white;
+    padding-top: 1rem;
+    border-right: 1px solid #1E293B;
+}
+[data-testid="stSidebarNav"]::before {
+    content: "📘 CONSOLIDATED HR LEADERSHIP DECK";
+    margin-left: 20px;
+    font-weight: 800;
+    font-size: 16px;
+    color: #FACC15;
+    text-transform: uppercase;
+}
+[data-testid="stSidebarNav"] a {
+    color: #E2E8F0 !important;
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 10px 15px;
+    transition: all 0.2s ease-in-out;
+}
+[data-testid="stSidebarNav"] a:hover {
+    background: rgba(255,255,255,0.1);
+    transform: scale(1.03);
+}
+</style>
+""", unsafe_allow_html=True)
+
+# -------------------------------------------------------
+# 🎨 Header
 # -------------------------------------------------------
 st.markdown("""
 <div style="padding:18px;border-radius:10px;background:linear-gradient(90deg,#0F172A,#1E3A8A);color:white;">
@@ -28,32 +57,12 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-st.markdown("""
-<style>
-div[data-testid*="stFileUploader"], div[data-testid*="stFileUploaderDropzone"], div[data-testid*="stFileUploaderRoot"] {
-    background: linear-gradient(180deg, #1E293B, #0F172A) !important;
-    border: 1px solid #1E3A8A !important;
-    border-radius: 14px !important;
-    color: #E5E7EB !important;
-    box-shadow: 0px 3px 8px rgba(0,0,0,0.35) !important;
-    transition: all 0.25s ease-in-out !important;
-}
-div[data-testid*="stFileUploader"]:hover {
-    border-color: #3B82F6 !important;
-    box-shadow: 0px 0px 12px rgba(59,130,246,0.35) !important;
-}
-div[data-testid*="stFileUploader"] label, div[data-testid*="stFileUploader"] p {
-    color: #E5E7EB !important;
-}
-</style>
-""", unsafe_allow_html=True)
-
+# -------------------------------------------------------
+# 📤 Upload Datasets (5 Modules)
+# -------------------------------------------------------
 st.markdown("### 🧩 Upload All Module Datasets")
 st.caption("Upload the same data files used in the individual modules — this deck will consolidate all metrics automatically.")
 
-# -------------------------------------------------------
-# 📤 UPLOAD DATASETS (with helper)
-# -------------------------------------------------------
 c1, c2, c3 = st.columns(3)
 attr_df = upload_data("📉 Attrition Data", key="attrition")
 comp_df = upload_data("💰 Compensation Data", key="comp")
@@ -63,13 +72,13 @@ c4, c5 = st.columns(2)
 eng_df = upload_data("💬 Engagement Data", key="eng")
 work_df = upload_data("🏢 Workforce Data", key="work")
 
-# ✅ SAFER UPLOAD GUARD (prevents blank screen)
-if not all([attr_df, comp_df, perf_df, eng_df, work_df]):
+# ✅ FIX: Avoid ValueError from Pandas (bool ambiguity)
+if not all(df is not None for df in [attr_df, comp_df, perf_df, eng_df, work_df]):
     st.info("📥 Please upload all five datasets to proceed.")
-    st.experimental_rerun()
+    st.stop()
 
 # -------------------------------------------------------
-# 🧮 BASIC HELPERS
+# 🧮 Helper
 # -------------------------------------------------------
 def _round_df(df, decimals=2):
     df2 = df.copy()
@@ -120,20 +129,13 @@ if "CTC" in comp_df.columns:
     if bench_df is not None and {"JobLevel", "MarketMedianCTC"}.issubset(bench_df.columns):
         bench_df["MarketMedianCTC"] = pd.to_numeric(bench_df["MarketMedianCTC"], errors="coerce")
         merged = comp_df.merge(bench_df[["JobLevel", "MarketMedianCTC"]].drop_duplicates(), on="JobLevel", how="left")
-        merged["DiffPct"] = ((merged["CTC"] - merged["MarketMedianCTC"]) / merged["MarketMedianCTC"].replace(0, None)) * 100
+        merged["DiffPct"] = ((merged["CTC"] - merged["MarketMedianCTC"]) / bench_df["MarketMedianCTC"].replace(0, None)) * 100
         market_summary = merged.groupby("JobLevel", observed=True)[["CTC", "MarketMedianCTC", "DiffPct"]].mean().reset_index()
-        fig_market = px.bar(
-            market_summary.melt(id_vars="JobLevel", value_vars=["CTC", "MarketMedianCTC"],
-                                var_name="Type", value_name="Value"),
-            x="JobLevel", y="Value", color="Type", barmode="group",
-            title="Internal vs Market Median by Level"
-        )
-        comp_blocks.append({
-            "title": "Market Benchmark Comparison",
-            "desc": "Internal pay vs market medians",
-            "df": _round_df(market_summary),
-            "fig": fig_market
-        })
+        fig_market = px.bar(market_summary.melt(id_vars="JobLevel", value_vars=["CTC", "MarketMedianCTC"],
+                        var_name="Type", value_name="Value"), x="JobLevel", y="Value", color="Type",
+                        barmode="group", title="Internal vs Market Median by Level")
+        comp_blocks.append({"title": "Market Benchmark Comparison", "desc": "Internal pay vs market medians",
+                            "df": _round_df(market_summary), "fig": fig_market})
 else:
     comp_blocks = []
 
@@ -184,7 +186,7 @@ else:
     work_blocks = []
 
 # -------------------------------------------------------
-# 🧩 CONSOLIDATE ALL MODULES
+# 🧩 CONSOLIDATED PAYLOAD
 # -------------------------------------------------------
 modules_payload = [
     {"module_name": "Attrition", "module_desc": "Turnover & tenure trends", "data_blocks": attr_blocks},
