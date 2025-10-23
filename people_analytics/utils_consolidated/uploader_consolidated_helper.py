@@ -1,40 +1,25 @@
 # ============================================
-# utils_consolidated/uploader_consolidated_helper.py — v5.1 | Universal Upload Fix
+# utils_consolidated/uploader_helper.py — v5.1 | Safe Multi-Format Upload
 # ============================================
 import streamlit as st
 import pandas as pd
 
-def upload_data(label: str = "Upload your file", help_text: str = None, key_suffix: str = ""):
+def upload_data(label, key=None):
     """
-    Universal file uploader allowing CSV, XLS, XLSX, and TXT.
-    ✅ Fixes mobile browser visibility issue (CSV greyed out)
-    ✅ Auto-detects delimiter for .txt and .csv
-    ✅ Graceful Excel parsing fallback
+    Robust CSV/XLSX uploader for all modules.
+    Handles gray-out issues & ensures consistent parsing.
     """
-    uploaded_file = st.file_uploader(
-        label,
-        type=["csv", "xls", "xlsx", "txt"],
-        accept_multiple_files=False,
-        help=help_text,
-        key=f"upload_{label.replace(' ', '_')}_{key_suffix}"
-    )
-
-    if not uploaded_file:
+    file = st.file_uploader(label, type=["csv", "xlsx", "xls"], key=key)
+    if not file:
         return None
 
     try:
-        filename = uploaded_file.name.lower()
-        if filename.endswith((".csv", ".txt")):
-            # Try multiple encodings and delimiters for safety
-            try:
-                df = pd.read_csv(uploaded_file)
-            except Exception:
-                uploaded_file.seek(0)
-                df = pd.read_csv(uploaded_file, sep="\t", engine="python")
+        if file.name.lower().endswith(".csv"):
+            df = pd.read_csv(file)
         else:
-            df = pd.read_excel(uploaded_file, engine="openpyxl")
-        st.success(f"✅ {uploaded_file.name} uploaded successfully!")
+            df = pd.read_excel(file, engine="openpyxl")
+        st.success(f"✅ {file.name} uploaded successfully!")
         return df
     except Exception as e:
-        st.error(f"⚠️ Error reading file: {e}")
+        st.error(f"⚠️ Failed to read {file.name}: {e}")
         return None
