@@ -1,5 +1,5 @@
 # ============================================
-# utils/pdf_auto_exporter.py — v3.5 | Kaleido Resurrection Edition
+# utils/pdf_auto_exporter.py — v3.5-Final | True Color Edition
 # ============================================
 
 from io import BytesIO
@@ -10,7 +10,8 @@ import pandas as pd
 import plotly.express as px
 import plotly.io as pio
 from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Image as RLImage, Table, TableStyle, PageBreak
+    SimpleDocTemplate, Paragraph, Spacer, Image as RLImage,
+    Table, TableStyle, PageBreak, Paragraph as RLParagraph
 )
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.pagesizes import A4
@@ -18,7 +19,6 @@ from reportlab.lib import colors
 from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.platypus import Paragraph as RLParagraph
 
 # ---------------------------
 # 🧩 Kaleido Init
@@ -50,7 +50,7 @@ H2_STYLE = ParagraphStyle("H2", parent=styles["Heading2"], fontName=DEFAULT_FONT
 TABLE_PAR_STYLE = ParagraphStyle("TableCell", fontName=DEFAULT_FONT_NAME, fontSize=9, leading=11)
 
 # ---------------------------
-# 🎨 Bright Theme + Color Enforcement
+# 🎨 Theme Helpers
 # ---------------------------
 DEFAULT_COLORWAY = px.colors.qualitative.Plotly
 
@@ -70,50 +70,55 @@ def apply_bright_theme(fig):
     return fig
 
 # ---------------------------
-# 🧩 Color-Baked Export with Retry
+# 🧩 FINAL Color-Baked Export (3x Retry + Opaque Background)
 # ---------------------------
 def fig_to_png_bytes(fig, width=900, height=520, scale=1):
-    """Convert Plotly fig to PNG with deep color bake and Kaleido retry fallback."""
+    """Convert Plotly fig → PNG with opaque white background + retry fallback."""
     try:
-        # Deep copy to prevent stale color state
         fig = deepcopy(fig)
         fig = apply_bright_theme(fig)
-
-        # Bake color palette manually
         palette = px.colors.qualitative.Plotly
+
+        # Force explicit colors for every trace
         for i, tr in enumerate(fig.data):
             base_color = palette[i % len(palette)]
-            # Bar/Box markers
             if hasattr(tr, "marker"):
-                if not getattr(tr.marker, "color", None):
-                    tr.marker.color = base_color
+                tr.marker.color = getattr(tr.marker, "color", base_color) or base_color
                 tr.marker.line = dict(color="black", width=1)
-            # Line traces
             if hasattr(tr, "line"):
-                if not getattr(tr.line, "color", None):
-                    tr.line.color = base_color
+                tr.line.color = getattr(tr.line, "color", base_color) or base_color
                 tr.line.width = getattr(tr.line, "width", 2)
 
         fig.update_layout(
             showlegend=True,
-            paper_bgcolor="white",
+            template="plotly_white",
             plot_bgcolor="white",
+            paper_bgcolor="white",
             font_color="black"
         )
 
-        # Attempt export twice (for heavy figures)
-        for attempt in range(2):
+        # Retry mechanism for Kaleido exports
+        for attempt in range(3):
             try:
-                img_bytes = fig.to_image(format="png", engine="kaleido",
-                                         width=width, height=height, scale=scale)
-                print(f"🎨 Exported colored figure (attempt {attempt + 1})")
+                img_bytes = fig.to_image(
+                    format="png",
+                    engine="kaleido",
+                    width=width,
+                    height=height,
+                    scale=scale,
+                    validate=False,
+                    background='rgba(255,255,255,1.0)'  # ✅ Opaque white background
+                )
+                print(f"🎨 Exported colored figure successfully (attempt {attempt+1})")
                 return img_bytes
             except Exception as e:
-                print(f"⚠️ Kaleido attempt {attempt + 1} failed: {e}")
+                print(f"⚠️ Kaleido attempt {attempt+1} failed: {e}")
                 sleep(1)
-                width, height, scale = 800, 480, 1  # smaller fallback
+                width = max(600, width - 150)
+                height = max(360, height - 100)
+                scale = 1
 
-        print("❌ All export attempts failed.")
+        print("❌ All Kaleido export attempts failed.")
         return None
     except Exception as e:
         print(f"🚨 Fatal Kaleido export failure: {e}")
@@ -202,7 +207,7 @@ def export_module_report(report_title: str, module_name: str, data_blocks: list,
         if len(desc) > 70:
             desc = desc[:67] + "..."
         toc_rows.append([str(i), block.get("title", f"Section {i}"), desc, str(i + 2)])
-    toc_table = Table(toc_rows, colWidths=[15*mm, 60*mm, 80*mm, 15*mm])
+    toc_table = Table(toc_rows, colWidths=[15*mm, 65*mm, 85*mm, 15*mm])  # widened for wrap fix
     toc_table.setStyle(_zebra_table_style(4, len(toc_rows)))
     story.append(Paragraph("Table of Contents", H2_STYLE))
     story.append(Spacer(1, 6))
