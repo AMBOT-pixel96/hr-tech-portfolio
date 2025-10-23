@@ -1,5 +1,5 @@
 # ============================================
-# modules/consolidated_module.py — v5.1 | HR Leadership Deck Generator
+# modules/consolidated_module.py — v5.2 | HR Leadership Deck Generator (Boardroom Edition)
 # ============================================
 import streamlit as st
 import pandas as pd
@@ -9,21 +9,81 @@ from utils_consolidated.pdf_consolidated_helper import render_consolidated_pdf
 from utils_consolidated.chart_consolidated_saver import ensure_chart_saved
 
 # -------------------------------------------------------
-# 🎨 UI HEADER
+# 🎨 HEADER UI (with branding tag)
 # -------------------------------------------------------
 st.markdown("""
-<div style="padding:18px;border-radius:10px;background:linear-gradient(90deg,#0F172A,#1E3A8A);color:white;">
-  <h2 style="margin:0">📘 Consolidated HR Leadership Deck</h2>
+<div style="position:relative;padding:18px;border-radius:10px;background:linear-gradient(90deg,#0F172A,#1E3A8A);color:white;">
+  <h2 style="margin:0;">📘 Consolidated HR Leadership Deck</h2>
   <p style="margin:4px 0 0 0;">Unified executive report across all People Analytics modules.</p>
+  <div style="position:absolute;top:18px;right:25px;font-size:13px;color:#93C5FD;font-weight:600;">
+    People Analytics | v5.2 Boardroom Edition
+  </div>
 </div>
 """, unsafe_allow_html=True)
 
-st.markdown("### 🧩 Upload All Module Datasets")
-st.caption("Upload the same data files used in the individual modules — this deck will consolidate all metrics automatically.")
+# -------------------------------------------------------
+# 💅 STYLING (Streamlit CSS Theme)
+# -------------------------------------------------------
+st.markdown("""
+<style>
+html, body, [class*="css"] {
+    font-family: 'DejaVu Sans', sans-serif;
+    color: #111827;
+}
+
+/* ===== Header Banner ===== */
+div[data-testid="stMarkdownContainer"] h2 {
+    font-size: 26px !important;
+    color: white !important;
+    text-shadow: 0px 0px 6px rgba(0,0,0,0.25);
+}
+
+/* ===== Uploaders ===== */
+div.stFileUploader, div[data-testid="stFileUploaderDropzone"] {
+    background: #F9FAFB;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: 0px 1px 3px rgba(0,0,0,0.08);
+}
+
+/* ===== Buttons ===== */
+div.stButton > button:first-child {
+    background: linear-gradient(90deg, #1E3A8A, #2563EB);
+    color: white !important;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+div.stButton > button:first-child:hover {
+    background: linear-gradient(90deg, #2563EB, #1E40AF);
+    transform: scale(1.02);
+}
+
+/* ===== Toasts & Boxes ===== */
+div[data-baseweb="toast"] {
+    font-size: 13px !important;
+    border-radius: 10px !important;
+    padding: 6px !important;
+}
+
+/* ===== PDF Button Glow ===== */
+button[kind="primary"] {
+    box-shadow: 0px 3px 8px rgba(37,99,235,0.3);
+}
+
+/* ===== Hide Streamlit Footer ===== */
+footer {visibility: hidden;}
+</style>
+""", unsafe_allow_html=True)
 
 # -------------------------------------------------------
-# 📤 UPLOADS
+# 📂 UPLOAD SECTION
 # -------------------------------------------------------
+st.markdown("### 🧩 Upload All Module Datasets")
+st.caption("Upload the same data files used in individual modules — this deck will consolidate all metrics automatically.")
+
 c1, c2, c3 = st.columns(3)
 attr_file = c1.file_uploader("📉 Attrition Data", type=["csv", "xlsx"])
 comp_file = c2.file_uploader("💰 Compensation Data", type=["csv", "xlsx"])
@@ -33,7 +93,6 @@ c4, c5 = st.columns(2)
 eng_file = c4.file_uploader("💬 Engagement Data", type=["csv", "xlsx"])
 work_file = c5.file_uploader("🏢 Workforce Data", type=["csv", "xlsx"])
 
-# Stop if not all uploaded
 if not all([attr_file, comp_file, perf_file, eng_file, work_file]):
     st.info("📥 Please upload all five datasets to proceed.")
     st.stop()
@@ -42,7 +101,7 @@ if not all([attr_file, comp_file, perf_file, eng_file, work_file]):
 # 📊 LOADER HELPER
 # -------------------------------------------------------
 def load_data(file):
-    """Safely read CSV or Excel."""
+    """Universal loader with Excel + CSV support."""
     try:
         if file.name.endswith(".csv"):
             return pd.read_csv(file)
@@ -52,7 +111,7 @@ def load_data(file):
         return pd.DataFrame()
 
 # -------------------------------------------------------
-# 🧠 LOAD ALL DATASETS
+# 🧠 LOAD DATASETS
 # -------------------------------------------------------
 attr_df = load_data(attr_file)
 comp_df = load_data(comp_file)
@@ -60,9 +119,6 @@ perf_df = load_data(perf_file)
 eng_df = load_data(eng_file)
 work_df = load_data(work_file)
 
-# -------------------------------------------------------
-# 🧮 SIMPLE METRICS (executive-level summaries)
-# -------------------------------------------------------
 def _round_df(df, decimals=2):
     df2 = df.copy()
     for c in df2.select_dtypes(include=["float", "int"]).columns:
@@ -75,11 +131,22 @@ def _round_df(df, decimals=2):
 if "AttritionFlag" in attr_df.columns:
     attr_rate = (attr_df["AttritionFlag"].astype(str).str.lower().isin(["yes","y","1","true"]).mean()) * 100
     avg_tenure = attr_df["TenureMonths"].mean() if "TenureMonths" in attr_df else None
-    dept = attr_df.groupby("Department", observed=True)["AttritionFlag"].apply(lambda x: (x.astype(str).str.lower().isin(["yes","y","1","true"])).mean() * 100).reset_index(name="AttritionRate")
+    dept = attr_df.groupby("Department", observed=True)["AttritionFlag"].apply(
+        lambda x: (x.astype(str).str.lower().isin(["yes","y","1","true"])).mean() * 100
+    ).reset_index(name="AttritionRate")
     fig_attr = px.bar(dept, x="Department", y="AttritionRate", color="Department", title="Attrition % by Department")
+
     attr_blocks = [
-        {"title": "Attrition Overview", "desc": "Overall attrition metrics", "df": pd.DataFrame({"Attrition %": [round(attr_rate,2)], "Avg Tenure (mo)": [round(avg_tenure,2) if avg_tenure else "N/A"]}),
-         "fig": None, "insights": [f"Attrition rate: {attr_rate:.1f}%", f"Avg tenure: {avg_tenure:.1f} mo" if avg_tenure else "N/A"]},
+        {
+            "title": "Attrition Overview",
+            "desc": "Overall attrition metrics",
+            "df": pd.DataFrame({
+                "Attrition %": [round(attr_rate,2)],
+                "Avg Tenure (mo)": [round(avg_tenure,2) if avg_tenure else "N/A"]
+            }),
+            "fig": None,
+            "insights": [f"Attrition rate: {attr_rate:.1f}%", f"Avg tenure: {avg_tenure:.1f} mo" if avg_tenure else "N/A"]
+        },
         {"title": "Departmental Attrition", "desc": "Attrition % by Department", "df": _round_df(dept), "fig": fig_attr, "insights": []},
     ]
 else:
@@ -93,10 +160,7 @@ st.markdown("#### 📊 (Optional) Upload Market Benchmark Data for Compensation"
 bench_file = st.file_uploader("Upload Benchmark Data (Optional)", type=["csv", "xlsx"], key="bench_upload")
 if bench_file:
     try:
-        if bench_file.name.endswith(".csv"):
-            bench_df = pd.read_csv(bench_file)
-        else:
-            bench_df = pd.read_excel(bench_file, engine="openpyxl")
+        bench_df = load_data(bench_file)
         st.success(f"✅ {bench_file.name} uploaded successfully (Benchmark Data)")
     except Exception as e:
         st.warning(f"⚠️ Failed to load benchmark data: {e}")
@@ -105,6 +169,7 @@ if "CTC" in comp_df.columns:
     comp_df["CTC"] = pd.to_numeric(comp_df["CTC"], errors="coerce")
     comp_df["Bonus"] = pd.to_numeric(comp_df.get("Bonus", 0), errors="coerce")
     comp_df["BonusPct"] = (comp_df["Bonus"] / comp_df["CTC"].replace(0, None)) * 100
+
     ctc = comp_df.groupby("JobLevel", observed=True)["CTC"].mean().reset_index(name="AvgCTC")
     bonus = comp_df.groupby("JobLevel", observed=True)["BonusPct"].mean().reset_index(name="AvgBonusPct")
 
@@ -116,23 +181,21 @@ if "CTC" in comp_df.columns:
         {"title": "Bonus by Job Level", "desc": "Average bonus % per level", "df": _round_df(bonus), "fig": fig_bonus, "insights": []},
     ]
 
-    # Optional benchmark comparison
+    # Optional benchmark
     if bench_df is not None and {"JobLevel", "MarketMedianCTC"}.issubset(set(bench_df.columns)):
-        try:
-            bench_df["MarketMedianCTC"] = pd.to_numeric(bench_df["MarketMedianCTC"], errors="coerce")
-            merged = comp_df.merge(bench_df[["JobLevel", "MarketMedianCTC"]].drop_duplicates(), on="JobLevel", how="left")
-            merged["DiffPct"] = ((merged["CTC"] - merged["MarketMedianCTC"]) / merged["MarketMedianCTC"].replace(0, None)) * 100
-            market_summary = merged.groupby("JobLevel", observed=True)[["CTC", "MarketMedianCTC", "DiffPct"]].mean().reset_index()
-            market_summary = _round_df(market_summary)
-            fig_market = px.bar(market_summary.melt(id_vars="JobLevel", value_vars=["CTC", "MarketMedianCTC"],
+        bench_df["MarketMedianCTC"] = pd.to_numeric(bench_df["MarketMedianCTC"], errors="coerce")
+        merged = comp_df.merge(bench_df[["JobLevel", "MarketMedianCTC"]].drop_duplicates(), on="JobLevel", how="left")
+        merged["DiffPct"] = ((merged["CTC"] - merged["MarketMedianCTC"]) / merged["MarketMedianCTC"].replace(0, None)) * 100
+        market_summary = merged.groupby("JobLevel", observed=True)[["CTC", "MarketMedianCTC", "DiffPct"]].mean().reset_index()
+        market_summary = _round_df(market_summary)
+        fig_market = px.bar(market_summary.melt(id_vars="JobLevel", value_vars=["CTC", "MarketMedianCTC"],
                             var_name="Type", value_name="Value"), x="JobLevel", y="Value", color="Type",
                             barmode="group", title="Internal vs Market Median by Level")
-            comp_blocks.append({"title": "Market Benchmark Comparison", "desc": "Internal pay vs market medians",
-                                "df": market_summary, "fig": fig_market, "insights": []})
-        except Exception as e:
-            st.warning(f"⚠️ Benchmark comparison skipped: {e}")
+        comp_blocks.append({"title": "Market Benchmark Comparison", "desc": "Internal pay vs market medians",
+                            "df": market_summary, "fig": fig_market, "insights": []})
 else:
     comp_blocks = []
+
 # -------------------------------------------------------
 # MODULE 3: PERFORMANCE
 # -------------------------------------------------------
@@ -191,8 +254,12 @@ modules_payload = [
     {"module_name": "Workforce", "module_desc": "Structure & diversity insights", "data_blocks": work_blocks},
 ]
 
+# -------------------------------------------------------
+# 📄 GENERATE PDF
+# -------------------------------------------------------
 st.markdown("---")
 st.header("📄 Generate Consolidated Executive Report")
 st.caption("Combines all modules into a single boardroom-ready PDF with cover, TOC, and per-module sections.")
 
-render_consolidated_pdf("People Analytics Leadership Deck", modules_payload, "People_Analytics_Deck")
+with st.spinner("🧠 Generating your HR Leadership Deck..."):
+    render_consolidated_pdf("People Analytics Leadership Deck", modules_payload, "People_Analytics_Deck")
