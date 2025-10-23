@@ -1,5 +1,5 @@
 # ============================================
-# modules/consolidated_module.py — v5.3 | HR Leadership Deck Generator (Final Stable)
+# modules/consolidated_module.py — v5.4 | HR Leadership Deck Generator (Final Stable)
 # ============================================
 import streamlit as st
 import pandas as pd
@@ -8,6 +8,15 @@ import plotly.express as px
 from utils_consolidated.pdf_consolidated_helper import render_consolidated_pdf
 from utils_consolidated.chart_consolidated_saver import ensure_chart_saved
 from utils_consolidated.uploader_consolidated_helper import upload_data
+
+# -------------------------------------------------------
+# 🧭 Page Configuration
+# -------------------------------------------------------
+st.set_page_config(
+    page_title="Consolidated HR Leadership Deck",
+    page_icon="📘",
+    layout="wide"
+)
 
 # -------------------------------------------------------
 # 🎨 HEADER + THEME FIX
@@ -54,9 +63,10 @@ c4, c5 = st.columns(2)
 eng_df = upload_data("💬 Engagement Data", key="eng")
 work_df = upload_data("🏢 Workforce Data", key="work")
 
-if not all([attr_df is not None, comp_df is not None, perf_df is not None, eng_df is not None, work_df is not None]):
+# ✅ SAFER UPLOAD GUARD (prevents blank screen)
+if not all([attr_df, comp_df, perf_df, eng_df, work_df]):
     st.info("📥 Please upload all five datasets to proceed.")
-    st.stop()
+    st.experimental_rerun()
 
 # -------------------------------------------------------
 # 🧮 BASIC HELPERS
@@ -112,11 +122,18 @@ if "CTC" in comp_df.columns:
         merged = comp_df.merge(bench_df[["JobLevel", "MarketMedianCTC"]].drop_duplicates(), on="JobLevel", how="left")
         merged["DiffPct"] = ((merged["CTC"] - merged["MarketMedianCTC"]) / merged["MarketMedianCTC"].replace(0, None)) * 100
         market_summary = merged.groupby("JobLevel", observed=True)[["CTC", "MarketMedianCTC", "DiffPct"]].mean().reset_index()
-        fig_market = px.bar(market_summary.melt(id_vars="JobLevel", value_vars=["CTC", "MarketMedianCTC"],
-                        var_name="Type", value_name="Value"), x="JobLevel", y="Value", color="Type",
-                        barmode="group", title="Internal vs Market Median by Level")
-        comp_blocks.append({"title": "Market Benchmark Comparison", "desc": "Internal pay vs market medians",
-                            "df": _round_df(market_summary), "fig": fig_market})
+        fig_market = px.bar(
+            market_summary.melt(id_vars="JobLevel", value_vars=["CTC", "MarketMedianCTC"],
+                                var_name="Type", value_name="Value"),
+            x="JobLevel", y="Value", color="Type", barmode="group",
+            title="Internal vs Market Median by Level"
+        )
+        comp_blocks.append({
+            "title": "Market Benchmark Comparison",
+            "desc": "Internal pay vs market medians",
+            "df": _round_df(market_summary),
+            "fig": fig_market
+        })
 else:
     comp_blocks = []
 
