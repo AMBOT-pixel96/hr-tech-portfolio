@@ -1,20 +1,24 @@
 # ============================================
-# utils/pdf_auto_exporter.py — v3.4 | Color-Baked Board Edition
+# utils/pdf_auto_exporter.py — v3.5 | Kaleido Resurrection Edition
 # ============================================
 
 from io import BytesIO
 import os, datetime, textwrap
+from copy import deepcopy
+from time import sleep
 import pandas as pd
 import plotly.express as px
 import plotly.io as pio
-from reportlab.platypus import (SimpleDocTemplate, Paragraph, Spacer,
-                                Image as RLImage, Table, TableStyle, PageBreak)
+from reportlab.platypus import (
+    SimpleDocTemplate, Paragraph, Spacer, Image as RLImage, Table, TableStyle, PageBreak
+)
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.platypus import Paragraph as RLParagraph
 
 # ---------------------------
 # 🧩 Kaleido Init
@@ -36,16 +40,17 @@ except Exception as e:
     DEFAULT_FONT_NAME = "Helvetica"
 
 # ---------------------------
-# 🎨 Text Styles
+# 🎨 Global Styles
 # ---------------------------
 styles = getSampleStyleSheet()
 BODY_STYLE = ParagraphStyle("Body", parent=styles["Normal"], fontName=DEFAULT_FONT_NAME, fontSize=10, leading=12)
 TITLE_STYLE = ParagraphStyle("Title", parent=styles["Title"], fontName=DEFAULT_FONT_NAME, fontSize=20, alignment=1)
 SUBTITLE_STYLE = ParagraphStyle("Subtitle", parent=styles["Normal"], fontName=DEFAULT_FONT_NAME, fontSize=11, alignment=1, textColor=colors.HexColor("#374151"))
 H2_STYLE = ParagraphStyle("H2", parent=styles["Heading2"], fontName=DEFAULT_FONT_NAME, fontSize=14, textColor=colors.HexColor("#111827"))
+TABLE_PAR_STYLE = ParagraphStyle("TableCell", fontName=DEFAULT_FONT_NAME, fontSize=9, leading=11)
 
 # ---------------------------
-# 🎨 Color & Theme Helpers
+# 🎨 Bright Theme + Color Enforcement
 # ---------------------------
 DEFAULT_COLORWAY = px.colors.qualitative.Plotly
 
@@ -65,52 +70,58 @@ def apply_bright_theme(fig):
     return fig
 
 # ---------------------------
-# 🧩 Color-Baked Export (Fix for grayscale bug)
+# 🧩 Color-Baked Export with Retry
 # ---------------------------
 def fig_to_png_bytes(fig, width=900, height=520, scale=1):
-    """Convert Plotly fig to PNG with colors fully baked in before Kaleido export."""
+    """Convert Plotly fig to PNG with deep color bake and Kaleido retry fallback."""
     try:
-        # Always rebuild color theme before export
+        # Deep copy to prevent stale color state
+        fig = deepcopy(fig)
         fig = apply_bright_theme(fig)
 
-        # 🔥 Bake color palette manually before export
+        # Bake color palette manually
         palette = px.colors.qualitative.Plotly
         for i, tr in enumerate(fig.data):
             base_color = palette[i % len(palette)]
-            # For bar/box/scatter
+            # Bar/Box markers
             if hasattr(tr, "marker"):
                 if not getattr(tr.marker, "color", None):
                     tr.marker.color = base_color
                 tr.marker.line = dict(color="black", width=1)
-            # For line/scatter traces
+            # Line traces
             if hasattr(tr, "line"):
                 if not getattr(tr.line, "color", None):
                     tr.line.color = base_color
                 tr.line.width = getattr(tr.line, "width", 2)
 
-        # Enforce PDF-safe export context
         fig.update_layout(
-            template="plotly_white",
-            plot_bgcolor="white",
+            showlegend=True,
             paper_bgcolor="white",
-            font_color="black",
-            showlegend=True
+            plot_bgcolor="white",
+            font_color="black"
         )
 
-        img_bytes = fig.to_image(format="png", engine="kaleido",
-                                 width=width, height=height, scale=scale)
-        print("🎨 Exported colored figure successfully.")
-        return img_bytes
+        # Attempt export twice (for heavy figures)
+        for attempt in range(2):
+            try:
+                img_bytes = fig.to_image(format="png", engine="kaleido",
+                                         width=width, height=height, scale=scale)
+                print(f"🎨 Exported colored figure (attempt {attempt + 1})")
+                return img_bytes
+            except Exception as e:
+                print(f"⚠️ Kaleido attempt {attempt + 1} failed: {e}")
+                sleep(1)
+                width, height, scale = 800, 480, 1  # smaller fallback
+
+        print("❌ All export attempts failed.")
+        return None
     except Exception as e:
-        print(f"⚠️ Kaleido export failed: {e}")
+        print(f"🚨 Fatal Kaleido export failure: {e}")
         return None
 
 # ---------------------------
 # 🧾 Table Helpers
 # ---------------------------
-from reportlab.platypus import Paragraph as RLParagraph
-TABLE_PAR_STYLE = ParagraphStyle("TableCell", fontName=DEFAULT_FONT_NAME, fontSize=9, leading=11)
-
 def _format_val(v):
     try:
         if v is None:
@@ -130,11 +141,16 @@ def _cell_val(v):
     text = _format_val(v)
     return RLParagraph(str(text), TABLE_PAR_STYLE)
 
-def _df_to_table_data(df: pd.DataFrame, max_rows=20):
-    """Convert DataFrame → ReportLab table with wrapped cells."""
+def _df_to_table_data(df: pd.DataFrame, max_rows=15, max_cols=6):
+    """Convert DataFrame → wrapped table, truncated for exec readability."""
     if df is None or df.empty:
         return [[RLParagraph("No data available.", TABLE_PAR_STYLE)]]
-    df2 = df.head(max_rows).copy()
+    if df.shape[1] > max_cols:
+        df = df.iloc[:, :max_cols]
+    if df.shape[0] > max_rows:
+        df = df.head(max_rows)
+
+    df2 = df.copy()
     for c in df2.select_dtypes(include=["float", "int"]).columns:
         df2[c] = df2[c].round(2)
     for c in df2.columns:
@@ -183,7 +199,8 @@ def export_module_report(report_title: str, module_name: str, data_blocks: list,
     toc_rows = [["#", "Section", "Description", "Page"]]
     for i, block in enumerate(data_blocks, 1):
         desc = block.get("desc", "")
-        if len(desc) > 70: desc = desc[:67] + "..."
+        if len(desc) > 70:
+            desc = desc[:67] + "..."
         toc_rows.append([str(i), block.get("title", f"Section {i}"), desc, str(i + 2)])
     toc_table = Table(toc_rows, colWidths=[15*mm, 60*mm, 80*mm, 15*mm])
     toc_table.setStyle(_zebra_table_style(4, len(toc_rows)))
@@ -209,7 +226,7 @@ def export_module_report(report_title: str, module_name: str, data_blocks: list,
 
         # Table
         if df is not None:
-            table_data = _df_to_table_data(df, max_rows=25)
+            table_data = _df_to_table_data(df)
             n_cols = len(table_data[0])
             col_widths = [max(30, min(55, 500 / n_cols)) * mm] * n_cols
             table = Table(table_data, colWidths=col_widths, repeatRows=1, hAlign="LEFT")
