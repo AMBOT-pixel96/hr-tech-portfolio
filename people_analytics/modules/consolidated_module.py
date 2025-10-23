@@ -1,5 +1,5 @@
-# ============================================
-# modules/consolidated_module.py — v5.4 | HR Leadership Deck Generator (Stable Build)
+# # ============================================
+# modules/consolidated_module.py — v5.4 | HR Leadership Deck Generator (Stable)
 # ============================================
 import streamlit as st
 import pandas as pd
@@ -10,10 +10,13 @@ from utils_consolidated.chart_consolidated_saver import ensure_chart_saved
 from utils_consolidated.uploader_consolidated_helper import upload_data
 
 # -------------------------------------------------------
-# 🧭 Page Setup
+# 🧭 Page Configuration
 # -------------------------------------------------------
-st.set_page_config(page_title="📘 Consolidated HR Leadership Deck", layout="wide")
-
+st.set_page_config(
+    page_title="Consolidated HR Leadership Deck",
+    page_icon="📘",
+    layout="wide"
+)
 # -------------------------------------------------------
 # 🎨 Global Theme (inherits Executive Sidebar look)
 # -------------------------------------------------------
