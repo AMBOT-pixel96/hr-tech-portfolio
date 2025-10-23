@@ -42,6 +42,12 @@ def _apply_color_fidelity_fix(fig):
         for i, trace in enumerate(fig.data):
             color = PALETTE[i % len(PALETTE)]
 
+            # Handle pies first (they break easily)
+            if trace.type == "pie":
+                trace.marker.colors = PALETTE[: len(trace.labels)]
+                trace.marker.line = dict(width=1, color="#FFFFFF")
+                continue  # ✅ skip rest to avoid invalid props
+
             # Handle bars, boxes, scatters, and lines
             if hasattr(trace, "marker"):
                 trace.marker.color = color
@@ -52,14 +58,8 @@ def _apply_color_fidelity_fix(fig):
                 if getattr(trace.line, "color", None) in [None, "#000", "black"]:
                     trace.line.color = color
 
-            # Pie charts (use plural key)
-            if trace.type == "pie":
-                trace.marker.colors = PALETTE[: len(trace.labels)]
-                trace.marker.line = dict(width=1, color="#FFFFFF")
-
     except Exception as e:
         st.warning(f"⚠️ Color fidelity patch failed: {e}")
-
 
 def _ensure_png_has_white_bg_from_bytes(b: bytes, out_path: str):
     """Composites transparent PNGs over white background (using Pillow)."""
