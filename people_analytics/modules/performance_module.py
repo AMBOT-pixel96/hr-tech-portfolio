@@ -1,3 +1,6 @@
+# ============================================
+# modules/performance_module.py — v3.0.1 | Executive Stable (Dual Theme + Sync Save)
+# ============================================
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -5,7 +8,8 @@ import plotly.express as px
 from scipy.stats import gaussian_kde
 from utils.uploader_helper import upload_data
 from utils.pdf_helper import render_pdf_download_button
-from utils.chart_saver import save_chart_image  # ✅ new
+from utils.chart_saver import save_chart_image
+from utils.fix_helper import ensure_chart_saved
 
 MODULE_COLOR = "#2563EB"
 
@@ -36,7 +40,6 @@ def run_performance_module():
     df["PerformanceRating"] = pd.to_numeric(df["PerformanceRating"], errors="coerce")
     df["CTC"] = pd.to_numeric(df["CTC"], errors="coerce")
 
-    # KPIs
     avg_rating = float(df["PerformanceRating"].mean())
     rating_std = float(df["PerformanceRating"].std())
     avg_ctc = float(df["CTC"].mean())
@@ -50,57 +53,51 @@ def run_performance_module():
     c4.metric("Top Performers (≥4)", f"{top_perf_share:.1f}%")
     c5.metric("Low Performers (≤2)", f"{low_perf_share:.1f}%")
 
-    dept_summary = _round_df(df.groupby("Department", observed=True)["PerformanceRating"]
-                             .agg(["mean","median","count","std"]).reset_index()
-                             .rename(columns={"mean":"MeanRating","median":"MedianRating","count":"Count","std":"StdDev"}))
-    job_summary = _round_df(df.groupby("JobLevel", observed=True)["PerformanceRating"]
-                            .agg(["mean","median","count"]).reset_index()
-                            .rename(columns={"mean":"MeanRating","median":"MedianRating","count":"Count"}))
-    gender_summary = _round_df(df.groupby("Gender", observed=True)["PerformanceRating"]
-                               .agg(["mean","count"]).reset_index()
-                               .rename(columns={"mean":"MeanRating","count":"Count"}))
+    dept_summary = df.groupby("Department", observed=True)["PerformanceRating"].agg(["mean","median","count","std"]).reset_index()
+    dept_summary.columns = ["Department","MeanRating","MedianRating","Count","StdDev"]
+    dept_summary = _round_df(dept_summary)
 
-    # Plots + saved images
-    box_dept = px.box(df, x="Department", y="PerformanceRating", color="Department", title="Performance Ratings by Department", template="plotly_white")
-    box_ctc_by_rating = px.box(df, x="PerformanceRating", y="CTC", color="PerformanceRating", title="CTC by Rating", template="plotly_white")
+    job_summary = df.groupby("JobLevel", observed=True)["PerformanceRating"].agg(["mean","median","count"]).reset_index()
+    job_summary.columns = ["JobLevel","MeanRating","MedianRating","Count"]
+    job_summary = _round_df(job_summary)
+
+    gender_summary = df.groupby("Gender", observed=True)["PerformanceRating"].agg(["mean","count"]).reset_index()
+    gender_summary.columns = ["Gender","MeanRating","Count"]
+    gender_summary = _round_df(gender_summary)
+
+    box_dept = px.box(df, x="Department", y="PerformanceRating", color="Department", title="Performance Ratings by Department")
+    box_ctc_by_rating = px.box(df, x="PerformanceRating", y="CTC", color="PerformanceRating", title="CTC distribution by Rating")
     kde_fig = None
-    kde_path = None
+
     x = df["PerformanceRating"].dropna()
     if len(x) > 3:
         kde = gaussian_kde(x)
         x_range = np.linspace(max(x.min(), 0), x.max(), 200)
-        kde_df = pd.DataFrame({"Rating": x_range, "Density": kde(x_range)})
-        kde_fig = px.line(kde_df, x="Rating", y="Density", title="Rating Distribution (KDE)", template="plotly_white")
+        y = kde(x_range)
+        kde_df = pd.DataFrame({"Rating": x_range, "Density": y})
+        kde_fig = px.line(kde_df, x="Rating", y="Density", title="Performance Rating Distribution (KDE)")
 
-    dept_path = save_chart_image("Performance by Department", box_dept)
-    pay_path = save_chart_image("Performance vs Pay", box_ctc_by_rating)
-    if kde_fig:
-        kde_path = save_chart_image("Performance Distribution", kde_fig)
-
-    # Display
     st.subheader("Department Performance Summary")
     st.dataframe(dept_summary, use_container_width=True)
     st.plotly_chart(box_dept, use_container_width=True)
+
     st.subheader("Performance vs Pay")
     st.dataframe(job_summary, use_container_width=True)
     st.plotly_chart(box_ctc_by_rating, use_container_width=True)
+
+    st.subheader("Rating Distribution")
     if kde_fig:
-        st.subheader("Rating Distribution")
         st.plotly_chart(kde_fig, use_container_width=True)
 
     data_blocks = [
-        {"title": "Performance Distribution", "desc": "Average & std-based performance spread.",
-         "df": dept_summary, "fig_path": kde_path,
-         "insights": [f"Avg Rating: {avg_rating:.2f}", f"StdDev: {rating_std:.2f}", f"Top performers ≥4: {top_perf_share:.1f}%"]},
-        {"title": "Department Ratings", "desc": "Department-level performance analysis.",
-         "df": dept_summary, "fig_path": dept_path,
-         "insights": [f"Top dept: {dept_summary.sort_values('MeanRating', ascending=False).iloc[0]['Department'] if not dept_summary.empty else 'N/A'}"]},
-        {"title": "Performance vs Pay", "desc": "CTC distribution across rating levels.",
-         "df": job_summary, "fig_path": pay_path,
-         "insights": [f"Avg CTC: ₹{avg_ctc:,.0f}"]},
-        {"title": "Gender Performance", "desc": "Average performance by gender.",
-         "df": gender_summary, "fig_path": None,
-         "insights": [f"Top gender: {gender_summary.sort_values('MeanRating', ascending=False).iloc[0]['Gender'] if not gender_summary.empty else 'N/A'}"]}
+        {"title":"Performance Distribution","desc":"KDE & distribution","df":dept_summary,"fig":kde_fig,
+         "insights":[f"Avg rating {avg_rating:.2f}",f"Top ≥4: {top_perf_share:.1f}%"]},
+        {"title":"Department Ratings","desc":"Boxplot by department","df":dept_summary,"fig":box_dept,
+         "insights":[f"Top dept: {dept_summary.sort_values('MeanRating', ascending=False).iloc[0]['Department']}"]},
+        {"title":"Performance vs Pay","desc":"CTC vs rating","df":job_summary,"fig":box_ctc_by_rating,
+         "insights":[f"Avg CTC: ₹{avg_ctc:,.0f}"]},
+        {"title":"Gender Performance","desc":"Mean ratings by gender","df":gender_summary,"fig":None,
+         "insights":[f"Top gender: {gender_summary.sort_values('MeanRating', ascending=False).iloc[0]['Gender']}"]}
     ]
 
     st.markdown("---")
