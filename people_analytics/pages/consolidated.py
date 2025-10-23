@@ -1,57 +1,59 @@
 # ============================================
-# pages/consolidated.py — v5.0 | Unified HR Leadership Deck Entry
+# pages/consolidated.py — Main Consolidated HR Deck Page
 # ============================================
-"""
-Streamlit Page Entry for the Consolidated HR Executive Deck.
-This page imports and runs the consolidated module that
-combines all functional datasets into one branded PDF report.
-"""
 
 import streamlit as st
-from modules.consolidated_module import run_consolidated_module
+from modules import consolidated_module
 
+# -------------------------------------------------------
+# 🧭 Page Configuration
+# -------------------------------------------------------
+st.set_page_config(
+    page_title="Consolidated HR Leadership Deck",
+    page_icon="📘",
+    layout="wide"
+)
 
-def main():
-    # === Header Banner ===
-    st.markdown("""
-    <div style="
-        padding:18px;
-        border-radius:10px;
-        background:linear-gradient(90deg,#111827,#0F172A);
-        color:white;">
-        <h2 style="margin:0;">🏢 Consolidated HR Leadership Deck</h2>
-        <p style="margin:4px 0 0 0;font-size:15px;">
-            One unified report bringing together insights across Attrition, Compensation, Workforce, Engagement, and Performance.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+# -------------------------------------------------------
+# 🎨 Unified Styling
+# -------------------------------------------------------
+st.markdown("""
+<style>
+/* Sidebar theme consistency */
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #0F172A 0%, #1E3A8A 100%);
+    color: white;
+}
 
-    st.markdown("### 🔍 Overview")
-    st.write("""
-    The **Consolidated HR Leadership Deck** merges all individual HR analytics modules into
-    a single, boardroom-ready executive report.  
-    You can upload datasets from each functional area (Attrition, Compensation, Workforce, Engagement, Performance)
-    and generate a unified PDF containing:
-    
-    - 📘 Cover Page & TOC  
-    - 📊 Department-wise Metrics & Charts  
-    - 🧩 Sectional Summaries for Each Function  
-    - 🧾 Executive Summary (Key Insights)
-    
-    ---
-    """)
+/* File upload card styling */
+div[data-testid="stFileUploader"] {
+    background: linear-gradient(180deg, #1E293B, #0F172A) !important;
+    border: 1px solid #1E3A8A !important;
+    border-radius: 14px !important;
+    padding: 18px !important;
+    color: #E5E7EB !important;
+}
+div[data-testid="stFileUploader"]:hover {
+    border-color: #3B82F6 !important;
+}
 
-    # === Launch consolidated module ===
-    run_consolidated_module()
+/* Buttons */
+div.stButton > button:first-child {
+    background: linear-gradient(90deg, #1E3A8A, #2563EB);
+    color: white !important;
+    font-weight: 600;
+    border-radius: 10px;
+    border: none;
+    transition: all 0.3s ease;
+}
+div.stButton > button:first-child:hover {
+    background: linear-gradient(90deg, #2563EB, #1E40AF);
+    transform: scale(1.02);
+}
+</style>
+""", unsafe_allow_html=True)
 
-    # === Footer ===
-    st.markdown("---")
-    st.markdown("""
-    <div style="text-align:center;color:#6B7280;font-size:13px;margin-top:8px;">
-        Built with ❤️ using Streamlit, Plotly, and ReportLab · © 2025 People Analytics Project
-    </div>
-    """, unsafe_allow_html=True)
-
-
-if __name__ == "__main__":
-    main()
+# -------------------------------------------------------
+# 🧩 Load the actual module (renders full upload + PDF logic)
+# -------------------------------------------------------
+consolidated_module
