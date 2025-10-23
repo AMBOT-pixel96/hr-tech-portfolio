@@ -1,5 +1,5 @@
 # ============================================
-# utils/chart_saver.py — v4.1 | Full Fidelity Color + Atomic Export
+# utils/chart_saver.py — v4.2 | Color Chakra Lock-In Jutsu (Final)
 # ============================================
 import os
 import time
@@ -22,9 +22,13 @@ except Exception:
 TMP_DIR = "temp_charts"
 os.makedirs(TMP_DIR, exist_ok=True)
 
-# Default bright color palette
+# Default vivid color palette
 PALETTE = px.colors.qualitative.Vivid
 
+
+# --------------------------------------------
+# 🧩 Utility: Atomic Write
+# --------------------------------------------
 def _write_bytes_to_file(b: bytes, path: str):
     """Atomic write helper for bytes -> file."""
     tmp = f"{path}.tmp"
@@ -37,6 +41,9 @@ def _write_bytes_to_file(b: bytes, path: str):
     return path
 
 
+# --------------------------------------------
+# 🧩 Utility: White Background Compositing
+# --------------------------------------------
 def _ensure_png_has_white_bg_from_bytes(b: bytes, out_path: str):
     """Composites transparent PNGs over white background."""
     if Image is None:
@@ -69,55 +76,66 @@ def _ensure_png_has_white_bg_from_bytes(b: bytes, out_path: str):
             return None
 
 
-def _apply_color_fidelity_fix(fig):
-    """
-    Ensures vivid categorical colors and strong contrast for Kaleido rendering.
-    Fixes greyscale/black artifacts for bar, scatter, AND pie charts.
-    """
+# --------------------------------------------
+# 🎨 Force Assign Colors to All Traces
+# --------------------------------------------
+def _force_assign_trace_colors(fig):
+    """Hard-assigns vivid RGB colors for all trace types."""
     try:
-        # Force bright layout
+        for i, trace in enumerate(fig.data):
+            color_idx = i % len(PALETTE)
+
+            if trace.type in ("bar", "box", "scatter", "line"):
+                if hasattr(trace, "marker"):
+                    trace.marker.color = PALETTE[color_idx]
+                    trace.marker.line = dict(width=0.8, color="#333333")
+                if hasattr(trace, "line"):
+                    trace.line.color = PALETTE[color_idx]
+
+            elif trace.type == "pie":
+                trace.marker.colors = PALETTE[: len(getattr(trace, "labels", []))]
+                trace.marker.line = dict(width=1, color="#FFFFFF")
+
+    except Exception as e:
+        st.warning(f"⚠️ Color assignment error: {e}")
+
+
+# --------------------------------------------
+# 🎨 Apply Layout & Font Color Fidelity
+# --------------------------------------------
+def _apply_color_fidelity_fix(fig):
+    """Ensures consistent contrast and theme before export."""
+    try:
         fig.update_layout(
             template="plotly_white",
             paper_bgcolor="#FFFFFF",
             plot_bgcolor="#FFFFFF",
             font=dict(color="#000000"),
         )
-
-        for i, trace in enumerate(fig.data):
-            color_idx = i % len(PALETTE)
-
-            # Bar / Scatter / Line traces
-            if hasattr(trace, "marker") and hasattr(trace.marker, "color"):
-                if getattr(trace.marker, "color", None) in [None, "#000", "black"]:
-                    trace.marker.color = PALETTE[color_idx]
-                trace.marker.line = dict(width=0.8, color="#333333")
-
-            # Pie traces → use marker.colors (plural)
-            if trace.type == "pie":
-                trace.marker.colors = PALETTE[: len(trace.labels)]
-                trace.marker.line = dict(width=1, color="#FFFFFF")
-
-            # Line traces
-            if hasattr(trace, "line") and hasattr(trace.line, "color"):
-                if getattr(trace.line, "color", None) in [None, "#000", "black"]:
-                    trace.line.color = PALETTE[color_idx]
-
+        # Ensure all axis & legend text is visible
+        fig.update_xaxes(showgrid=True, gridcolor="#E5E7EB", zeroline=False)
+        fig.update_yaxes(showgrid=True, gridcolor="#E5E7EB", zeroline=False)
+        if "legend" in fig.layout:
+            fig.update_layout(legend=dict(bgcolor="#FFFFFF", bordercolor="#E5E7EB"))
     except Exception as e:
         st.warning(f"⚠️ Color fidelity patch failed: {e}")
 
 
-def save_chart_image(title: str, fig, filename_safe: str = None, width: int = 1200, height: int = 700, scale: int = 2):
-    """
-    Export a Plotly figure to PNG with full color retention and atomic write.
-    """
+# --------------------------------------------
+# 💾 Main Export Function
+# --------------------------------------------
+def save_chart_image(title: str, fig, filename_safe: str = None,
+                     width: int = 1200, height: int = 700, scale: int = 2):
+    """Export Plotly figure to PNG with full color retention."""
     try:
         safe_name = (filename_safe or title).replace(" ", "_").replace("/", "_")
         out_path = os.path.join(TMP_DIR, f"{safe_name}.png")
 
-        # 🧠 Apply color correction
+        # Apply the twin color corrections
+        _force_assign_trace_colors(fig)
         _apply_color_fidelity_fix(fig)
 
-        # ---- 1) In-memory image export (Kaleido) ----
+        # ---- In-memory image export ----
         image_bytes = None
         try:
             if pio is None:
@@ -137,7 +155,7 @@ def save_chart_image(title: str, fig, filename_safe: str = None, width: int = 12
             st.warning(f"⚠️ Could not generate PNG bytes for '{title}' (Kaleido likely failing).")
             return None
 
-        # ---- 2) Post-process with Pillow for white background ----
+        # ---- Post-process white background ----
         final_path = _ensure_png_has_white_bg_from_bytes(image_bytes, out_path)
         if final_path is None or not os.path.exists(final_path) or os.path.getsize(final_path) == 0:
             st.warning(f"⚠️ Saving PNG for '{title}' failed or file empty.")
@@ -155,6 +173,9 @@ def save_chart_image(title: str, fig, filename_safe: str = None, width: int = 12
         return None
 
 
+# --------------------------------------------
+# 🔁 Retry Wrapper
+# --------------------------------------------
 def ensure_chart_saved(title: str, fig, attempts: int = 3, wait: float = 0.25):
     """Retry chart export multiple times if Kaleido misbehaves."""
     last_err = None
