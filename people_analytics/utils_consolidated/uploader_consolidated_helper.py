@@ -1,6 +1,6 @@
 # ============================================
 # utils_consolidated/uploader_consolidated_helper.py
-# v1.1 — Robust multi-format uploader (mobile & CSV friendly)
+# v1.2 — Robust multi-format uploader (mobile & CSV friendly)
 # ============================================
 import streamlit as st
 import pandas as pd
@@ -10,7 +10,7 @@ def upload_data(label: str, key: str | None = None):
     Unified CSV / XLS / XLSX uploader for the consolidated workflow.
     - Accepts csv, xls, xlsx
     - Returns a pandas.DataFrame or None on cancel/error
-    - Shows friendly success / error messages in-app
+    - Handles mobile browser quirks
     """
     file = st.file_uploader(
         label,
