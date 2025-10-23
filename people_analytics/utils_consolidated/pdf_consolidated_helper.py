@@ -1,7 +1,7 @@
 # ============================================
-# utils_consolidated/pdf_consolidated_helper.py — v5.1 | Boardroom Edition (Final Stable)
+# utils_consolidated/pdf_consolidated_helper.py — v5.2 | Boardroom Edition (Final Clean)
 # ============================================
-import os, io, time
+import os, io
 import streamlit as st
 from datetime import datetime
 from reportlab.platypus import (
@@ -17,66 +17,13 @@ from reportlab.pdfbase.ttfonts import TTFont
 
 from utils_consolidated.chart_consolidated_saver import ensure_chart_saved
 
-# Inject dark theme styling for uploader boxes
-st.markdown("""
-<style>
-/* ===== Uploader Card Styling ===== */
-div[data-testid="stFileUploader"] {
-    background: linear-gradient(180deg, #1E293B, #0F172A) !important;
-    border: 1px solid #1E3A8A !important;
-    border-radius: 14px !important;
-    padding: 18px !important;
-    box-shadow: 0px 4px 8px rgba(0,0,0,0.35) !important;
-    color: #E5E7EB !important;
-    transition: all 0.25s ease-in-out !important;
-}
-div[data-testid="stFileUploader"]:hover {
-    border-color: #3B82F6 !important;
-    box-shadow: 0px 0px 12px rgba(59,130,246,0.35) !important;
-    transform: scale(1.01);
-}
-
-/* ===== Inner Texts ===== */
-div[data-testid="stFileUploader"] label {
-    color: #E5E7EB !important;
-    font-weight: 500 !important;
-}
-div[data-testid="stFileUploaderDropzone"] {
-    background: rgba(30,41,59,0.75) !important;
-    border: 1px dashed rgba(148,163,184,0.4) !important;
-    color: #CBD5E1 !important;
-}
-div[data-testid="stFileUploaderDropzone"]:hover {
-    border-color: #60A5FA !important;
-    background: rgba(37,99,235,0.1) !important;
-}
-
-/* ===== Button Styling ===== */
-button[kind="secondary"] {
-    background: linear-gradient(90deg,#1E3A8A,#2563EB) !important;
-    color: #FFFFFF !important;
-    font-weight: 600 !important;
-    border-radius: 10px !important;
-    border: none !important;
-    transition: all 0.3s ease !important;
-}
-button[kind="secondary"]:hover {
-    background: linear-gradient(90deg,#2563EB,#1D4ED8) !important;
-    transform: scale(1.03);
-}
-
-/* ===== File Upload Text Fix ===== */
-div[data-testid="stFileUploader"] p {
-    color: #9CA3AF !important;
-    font-size: 13px !important;
-}
-</style>
-""", unsafe_allow_html=True)
 # -----------------------------------------------------------
 # 🧩 Font Setup (for ₹, %, etc.)
 # -----------------------------------------------------------
 try:
-    pdfmetrics.registerFont(TTFont("DejaVuSans", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"))
+    pdfmetrics.registerFont(
+        TTFont("DejaVuSans", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")
+    )
     FONT_NAME = "DejaVuSans"
 except:
     FONT_NAME = "Helvetica"
@@ -90,7 +37,6 @@ HEADER_COLOR = colors.HexColor("#0F172A")
 TABLE_HEADER_BG = colors.HexColor("#E5E7EB")
 TABLE_HEADER_TEXT = colors.black
 BODY_TEXT = colors.HexColor("#111827")
-GOLD = colors.HexColor("#FACC15")
 
 # -----------------------------------------------------------
 # 📄 Add Footer to every page
@@ -130,11 +76,41 @@ def render_consolidated_pdf(report_title: str, modules_payload: list, filename_p
         )
 
         styles = getSampleStyleSheet()
-        title_style = ParagraphStyle("Title", fontName=FONT_NAME, fontSize=22, alignment=1, textColor=HEADER_COLOR, leading=26)
-        subtitle_style = ParagraphStyle("Subtitle", fontName=FONT_NAME, fontSize=13, alignment=1, textColor=colors.HexColor("#374151"))
-        small_grey = ParagraphStyle("SmallGrey", fontName=FONT_NAME, fontSize=9, textColor=colors.HexColor("#6B7280"))
-        heading = ParagraphStyle("Heading", fontName=FONT_NAME, fontSize=14, textColor=PRIMARY_COLOR, spaceAfter=6)
-        body = ParagraphStyle("Body", fontName=FONT_NAME, fontSize=10, textColor=BODY_TEXT, leading=13)
+        title_style = ParagraphStyle(
+            "Title",
+            fontName=FONT_NAME,
+            fontSize=22,
+            alignment=1,
+            textColor=HEADER_COLOR,
+            leading=26,
+        )
+        subtitle_style = ParagraphStyle(
+            "Subtitle",
+            fontName=FONT_NAME,
+            fontSize=13,
+            alignment=1,
+            textColor=colors.HexColor("#374151"),
+        )
+        small_grey = ParagraphStyle(
+            "SmallGrey",
+            fontName=FONT_NAME,
+            fontSize=9,
+            textColor=colors.HexColor("#6B7280"),
+        )
+        heading = ParagraphStyle(
+            "Heading",
+            fontName=FONT_NAME,
+            fontSize=14,
+            textColor=PRIMARY_COLOR,
+            spaceAfter=6,
+        )
+        body = ParagraphStyle(
+            "Body",
+            fontName=FONT_NAME,
+            fontSize=10,
+            textColor=BODY_TEXT,
+            leading=13,
+        )
 
         story = []
 
@@ -146,9 +122,15 @@ def render_consolidated_pdf(report_title: str, modules_payload: list, filename_p
         story.append(Spacer(1, 12))
         story.append(Paragraph("People Analytics — Leadership Insights Deck", subtitle_style))
         story.append(Spacer(1, 40))
-        story.append(Paragraph(f"<font size=10>Generated on {datetime.now().strftime('%d %b %Y, %H:%M %p')}</font>", subtitle_style))
+        story.append(Paragraph(
+            f"<font size=10>Generated on {datetime.now().strftime('%d %b %Y, %H:%M %p')}</font>",
+            subtitle_style,
+        ))
         story.append(Spacer(1, 60))
-        story.append(Paragraph("<para align=center><font size=9 color='#6B7280'>© 2025 People Analytics Project | Confidential</font></para>", small_grey))
+        story.append(Paragraph(
+            "<para align=center><font size=9 color='#6B7280'>© 2025 People Analytics Project | Confidential</font></para>",
+            small_grey,
+        ))
         story.append(PageBreak())
 
         # ---------------------------------------------------
@@ -188,7 +170,10 @@ def render_consolidated_pdf(report_title: str, modules_payload: list, filename_p
                 ParagraphStyle("Divider", backColor=PRIMARY_COLOR, alignment=1, spaceBefore=40, spaceAfter=40, leading=24)
             ))
             story.append(Spacer(1, 20))
-            story.append(Paragraph(f"<para align=center><font size=10 color='#6B7280'>{module_desc}</font></para>", small_grey))
+            story.append(Paragraph(
+                f"<para align=center><font size=10 color='#6B7280'>{module_desc}</font></para>",
+                small_grey,
+            ))
             story.append(PageBreak())
 
             # Per-Section Data
@@ -207,7 +192,10 @@ def render_consolidated_pdf(report_title: str, modules_payload: list, filename_p
                 if df is not None and not df.empty:
                     df = df.round(2).astype(str)
                     table_data = [list(df.columns)] + df.values.tolist()
-                    table = Table(table_data, colWidths=[(A4[0] - 40) / len(df.columns)] * len(df.columns))
+                    table = Table(
+                        table_data,
+                        colWidths=[(A4[0] - 40) / len(df.columns)] * len(df.columns),
+                    )
                     table.setStyle(TableStyle([
                         ("GRID", (0, 0), (-1, -1), 0.25, colors.black),
                         ("BACKGROUND", (0, 0), (-1, 0), TABLE_HEADER_BG),
