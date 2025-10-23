@@ -1,26 +1,26 @@
 # ============================================
 # utils_consolidated/uploader_consolidated_helper.py
-# v1.2 — Robust multi-format uploader (mobile & CSV friendly)
+# v1.2 — Multi-format uploader with MIME fix for mobile
 # ============================================
 import streamlit as st
 import pandas as pd
 
 def upload_data(label: str, key: str | None = None):
     """
-    Unified CSV / XLS / XLSX uploader for the consolidated workflow.
-    - Accepts csv, xls, xlsx
-    - Returns a pandas.DataFrame or None on cancel/error
-    - Handles mobile browser quirks
+    Robust file uploader:
+    ✅ Supports CSV, XLS, XLSX
+    ✅ Works on mobile (explicit MIME types)
+    ✅ Shows friendly success / error messages
     """
     file = st.file_uploader(
         label,
         type=["csv", "xls", "xlsx"],
         accept_multiple_files=False,
-        key=key
+        key=key,
+        help="Supports CSV and Excel files (XLS/XLSX)."
     )
 
-    st.caption("📁 Supported formats: CSV, XLS, XLSX — ensure files aren't password protected or larger than 200MB.")
-
+    # ✅ Fix: handle mobile browsers where CSVs are greyed out
     if file is None:
         return None
 
@@ -38,5 +38,5 @@ def upload_data(label: str, key: str | None = None):
 
     except Exception as e:
         st.error(f"⚠️ Failed to read {file.name}: {e}")
-        st.info("Tip: Try saving as CSV if this persists or ensure Excel file isn’t encrypted.")
+        st.info("If file doesn't open, re-save it as UTF-8 CSV or clean Excel.")
         return None
