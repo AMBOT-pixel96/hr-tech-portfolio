@@ -1,10 +1,9 @@
 # ============================================
-# utils/pdf_auto_exporter.py — v3.5-Final | True Color Edition
+# utils/pdf_auto_exporter.py — v3.5-Stable | Synchronous Stream Edition
 # ============================================
 
 from io import BytesIO
 import os, datetime, textwrap
-from copy import deepcopy
 from time import sleep
 import pandas as pd
 import plotly.express as px
@@ -21,7 +20,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
 # ---------------------------
-# 🧩 Kaleido Init
+# Kaleido init (best-effort)
 # ---------------------------
 try:
     pio.renderers.default = "kaleido"
@@ -29,7 +28,7 @@ except Exception as e:
     print(f"⚠️ Kaleido init failed: {e}")
 
 # ---------------------------
-# 🔤 Font Setup
+# Font setup
 # ---------------------------
 DEFAULT_FONT_NAME = "DejaVuSans"
 FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
@@ -40,7 +39,7 @@ except Exception as e:
     DEFAULT_FONT_NAME = "Helvetica"
 
 # ---------------------------
-# 🎨 Global Styles
+# Styles
 # ---------------------------
 styles = getSampleStyleSheet()
 BODY_STYLE = ParagraphStyle("Body", parent=styles["Normal"], fontName=DEFAULT_FONT_NAME, fontSize=10, leading=12)
@@ -50,12 +49,12 @@ H2_STYLE = ParagraphStyle("H2", parent=styles["Heading2"], fontName=DEFAULT_FONT
 TABLE_PAR_STYLE = ParagraphStyle("TableCell", fontName=DEFAULT_FONT_NAME, fontSize=9, leading=11)
 
 # ---------------------------
-# 🎨 Theme Helpers
+# Color & theme helpers
 # ---------------------------
 DEFAULT_COLORWAY = px.colors.qualitative.Plotly
 
 def apply_bright_theme(fig):
-    """Ensure bright PDF-safe palette and readable borders."""
+    """Apply a PDF-safe bright theme and keep a colorway."""
     fig.update_layout(
         template="plotly_white",
         plot_bgcolor="white",
@@ -64,68 +63,77 @@ def apply_bright_theme(fig):
         colorway=DEFAULT_COLORWAY,
         margin=dict(t=60, b=40, l=40, r=40)
     )
+    # add subtle outlines where possible
     for tr in fig.data:
         if hasattr(tr, "marker"):
             tr.marker.line = dict(color="black", width=1)
     return fig
 
 # ---------------------------
-# 🧩 FINAL Color-Baked Export (3x Retry + Opaque Background)
+# Figure -> PNG bytes (stable)
 # ---------------------------
 def fig_to_png_bytes(fig, width=900, height=520, scale=1):
-    """Convert Plotly fig → PNG with opaque white background + retry fallback."""
+    """
+    Convert Plotly fig -> PNG bytes with:
+      - explicit color bake (no deepcopy — preserve cached state)
+      - 2-attempt retry (smaller dims on 2nd attempt)
+      - opaque white background (RGBA)
+    Returns bytes or None.
+    """
     try:
-        fig = deepcopy(fig)
+        # apply theme (do not deepcopy to avoid expensive cache invalidation)
         fig = apply_bright_theme(fig)
-        palette = px.colors.qualitative.Plotly
 
-        # Force explicit colors for every trace
+        # bake explicit trace colors if missing
+        palette = px.colors.qualitative.Plotly
         for i, tr in enumerate(fig.data):
             base_color = palette[i % len(palette)]
             if hasattr(tr, "marker"):
-                tr.marker.color = getattr(tr.marker, "color", base_color) or base_color
+                if not getattr(tr.marker, "color", None):
+                    tr.marker.color = base_color
                 tr.marker.line = dict(color="black", width=1)
             if hasattr(tr, "line"):
-                tr.line.color = getattr(tr.line, "color", base_color) or base_color
-                tr.line.width = getattr(tr.line, "width", 2)
+                if not getattr(tr.line, "color", None):
+                    tr.line.color = base_color
+                if not getattr(tr.line, "width", None):
+                    tr.line.width = 2
 
-        fig.update_layout(
-            showlegend=True,
-            template="plotly_white",
-            plot_bgcolor="white",
-            paper_bgcolor="white",
-            font_color="black"
-        )
+        # ensure layout explicitness
+        fig.update_layout(template="plotly_white", plot_bgcolor="white", paper_bgcolor="white", font_color="black")
 
-        # Retry mechanism for Kaleido exports
-        for attempt in range(3):
+        attempts = [
+            (width, height, scale),
+            (max(600, int(width * 0.75)), max(360, int(height * 0.75)), 1)
+        ]
+
+        last_err = None
+        for idx, (w, h, s) in enumerate(attempts, start=1):
             try:
-                img_bytes = fig.to_image(
+                img = fig.to_image(
                     format="png",
                     engine="kaleido",
-                    width=width,
-                    height=height,
-                    scale=scale,
-                    validate=False,
-                    background='rgba(255,255,255,1.0)'  # ✅ Opaque white background
+                    width=w,
+                    height=h,
+                    scale=s,
+                    validate=True,
+                    background='rgba(255,255,255,1.0)'
                 )
-                print(f"🎨 Exported colored figure successfully (attempt {attempt+1})")
-                return img_bytes
+                print(f"🎨 fig exported (attempt {idx}) size={w}x{h}")
+                return img
             except Exception as e:
-                print(f"⚠️ Kaleido attempt {attempt+1} failed: {e}")
-                sleep(1)
-                width = max(600, width - 150)
-                height = max(360, height - 100)
-                scale = 1
+                last_err = e
+                print(f"⚠️ Kaleido attempt {idx} failed: {e}")
+                sleep(0.7)
 
-        print("❌ All Kaleido export attempts failed.")
+        print(f"❌ fig export failed after retries: {last_err}")
         return None
+
     except Exception as e:
-        print(f"🚨 Fatal Kaleido export failure: {e}")
+        print(f"🚨 fig_to_png_bytes fatal: {e}")
         return None
 
 # ---------------------------
-# 🧾 Table Helpers
+# Table helpers
 # ---------------------------
 def _format_val(v):
     try:
@@ -147,7 +155,7 @@ def _cell_val(v):
     return RLParagraph(str(text), TABLE_PAR_STYLE)
 
 def _df_to_table_data(df: pd.DataFrame, max_rows=15, max_cols=6):
-    """Convert DataFrame → wrapped table, truncated for exec readability."""
+    """Convert DataFrame to wrapped table; truncate to avoid raw dumps."""
     if df is None or df.empty:
         return [[RLParagraph("No data available.", TABLE_PAR_STYLE)]]
     if df.shape[1] > max_cols:
@@ -160,6 +168,7 @@ def _df_to_table_data(df: pd.DataFrame, max_rows=15, max_cols=6):
         df2[c] = df2[c].round(2)
     for c in df2.columns:
         df2[c] = df2[c].astype(str)
+
     header = [RLParagraph(str(h), ParagraphStyle("Header", fontName=DEFAULT_FONT_NAME, fontSize=9, textColor=colors.white)) for h in df2.columns]
     rows = []
     for _, r in df2.iterrows():
@@ -180,16 +189,38 @@ def _zebra_table_style(n_cols, n_rows):
     return style
 
 # ---------------------------
-# 🧾 PDF Exporter
+# PDF exporter
 # ---------------------------
 def export_module_report(report_title: str, module_name: str, data_blocks: list, filename_prefix: str = None) -> bytes:
+    """
+    Build PDF bytes. IMPORTANT: pre-renders all figures (synchronously) into PNG bytes
+    so PDF building only starts after all images are ready.
+    """
+    # Pre-render figures first (synchronous)
+    for block in data_blocks:
+        fig = block.get("fig", None)
+        block["__img_bytes__"] = None
+        if fig is not None:
+            img_bytes = fig_to_png_bytes(fig)
+            if img_bytes is None:
+                # mark failure; exporter will render a warning text
+                block["__render_failed__"] = True
+                block["__img_bytes__"] = None
+            else:
+                block["__render_failed__"] = False
+                block["__img_bytes__"] = img_bytes
+        else:
+            block["__render_failed__"] = False
+            block["__img_bytes__"] = None
+
+    # Now build PDF using the pre-rendered bytes
     buf = BytesIO()
     doc = SimpleDocTemplate(buf, pagesize=A4,
                             leftMargin=18*mm, rightMargin=18*mm,
                             topMargin=22*mm, bottomMargin=18*mm)
     story = []
 
-    # --- Cover Page ---
+    # Cover
     story.append(Spacer(1, 80))
     story.append(Paragraph(report_title, TITLE_STYLE))
     story.append(Spacer(1, 8))
@@ -200,27 +231,28 @@ def export_module_report(report_title: str, module_name: str, data_blocks: list,
     story.append(Paragraph("<b>Prepared by:</b> Amlan Mishra", SUBTITLE_STYLE))
     story.append(PageBreak())
 
-    # --- TOC ---
+    # TOC (wider columns to avoid spill)
     toc_rows = [["#", "Section", "Description", "Page"]]
     for i, block in enumerate(data_blocks, 1):
         desc = block.get("desc", "")
         if len(desc) > 70:
             desc = desc[:67] + "..."
         toc_rows.append([str(i), block.get("title", f"Section {i}"), desc, str(i + 2)])
-    toc_table = Table(toc_rows, colWidths=[15*mm, 65*mm, 85*mm, 15*mm])  # widened for wrap fix
+    toc_table = Table(toc_rows, colWidths=[15*mm, 65*mm, 85*mm, 15*mm])
     toc_table.setStyle(_zebra_table_style(4, len(toc_rows)))
     story.append(Paragraph("Table of Contents", H2_STYLE))
     story.append(Spacer(1, 6))
     story.append(toc_table)
     story.append(PageBreak())
 
-    # --- Sections ---
+    # Sections
     summary_insights = []
     for i, block in enumerate(data_blocks, 1):
         title = block.get("title", f"Section {i}")
         desc = block.get("desc", "")
         df = block.get("df", None)
-        fig = block.get("fig", None)
+        img_bytes = block.get("__img_bytes__", None)
+        render_failed = block.get("__render_failed__", False)
         insights = block.get("insights", [])
 
         story.append(Paragraph(f"{i}. {title}", H2_STYLE))
@@ -239,14 +271,17 @@ def export_module_report(report_title: str, module_name: str, data_blocks: list,
             story.append(table)
             story.append(Spacer(1, 8))
 
-        # Figure
-        if fig is not None:
-            img_bytes = fig_to_png_bytes(fig)
-            if img_bytes:
+        # Figure (use pre-rendered bytes)
+        if img_bytes:
+            try:
                 rlimg = RLImage(BytesIO(img_bytes), width=160*mm, height=90*mm)
                 story.append(rlimg)
                 story.append(Spacer(1, 8))
-            else:
+            except Exception as e:
+                story.append(Paragraph("⚠️ Graph could not be embedded.", BODY_STYLE))
+                story.append(Spacer(1, 8))
+        else:
+            if render_failed:
                 story.append(Paragraph("⚠️ Graph rendering failed (Kaleido).", BODY_STYLE))
                 story.append(Spacer(1, 8))
 
@@ -258,7 +293,7 @@ def export_module_report(report_title: str, module_name: str, data_blocks: list,
             summary_insights.append([title, " ; ".join(wrapped)])
         story.append(PageBreak())
 
-    # --- Summary Page ---
+    # Summary
     story.append(Paragraph("Executive Summary", H2_STYLE))
     if not summary_insights:
         summary_insights = [["—", "No insights recorded."]]
@@ -267,7 +302,7 @@ def export_module_report(report_title: str, module_name: str, data_blocks: list,
     summary_table.setStyle(_zebra_table_style(2, len(summary_table_rows)))
     story.append(summary_table)
 
-    # --- Footer Page Numbers ---
+    # Footer page numbers
     def _add_page_number(canvas, doc):
         page_num = canvas.getPageNumber()
         text = f"Page {page_num}"
