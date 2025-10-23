@@ -1,4 +1,3 @@
-# modules/performance_module.py — v2.9 | Executive (aligned with PDF v3.1)
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -6,8 +5,9 @@ import plotly.express as px
 from scipy.stats import gaussian_kde
 from utils.uploader_helper import upload_data
 from utils.pdf_helper import render_pdf_download_button
+from utils.chart_saver import save_chart_image  # ✅ new
 
-MODULE_COLOR = "#2563EB"  # performance blue
+MODULE_COLOR = "#2563EB"
 
 def _round_df(df, decimals=2):
     df2 = df.copy()
@@ -33,7 +33,6 @@ def run_performance_module():
         st.error(f"Missing required columns: {', '.join(missing)}")
         return
 
-    # clean types
     df["PerformanceRating"] = pd.to_numeric(df["PerformanceRating"], errors="coerce")
     df["CTC"] = pd.to_numeric(df["CTC"], errors="coerce")
 
@@ -51,100 +50,57 @@ def run_performance_module():
     c4.metric("Top Performers (≥4)", f"{top_perf_share:.1f}%")
     c5.metric("Low Performers (≤2)", f"{low_perf_share:.1f}%")
 
-    # summaries (aggregated)
-    dept_summary = df.groupby("Department", observed=True)["PerformanceRating"].agg(["mean","median","count","std"]).reset_index()
-    dept_summary.columns = ["Department","MeanRating","MedianRating","Count","StdDev"]
-    dept_summary = _round_df(dept_summary)
+    dept_summary = _round_df(df.groupby("Department", observed=True)["PerformanceRating"]
+                             .agg(["mean","median","count","std"]).reset_index()
+                             .rename(columns={"mean":"MeanRating","median":"MedianRating","count":"Count","std":"StdDev"}))
+    job_summary = _round_df(df.groupby("JobLevel", observed=True)["PerformanceRating"]
+                            .agg(["mean","median","count"]).reset_index()
+                            .rename(columns={"mean":"MeanRating","median":"MedianRating","count":"Count"}))
+    gender_summary = _round_df(df.groupby("Gender", observed=True)["PerformanceRating"]
+                               .agg(["mean","count"]).reset_index()
+                               .rename(columns={"mean":"MeanRating","count":"Count"}))
 
-    job_summary = df.groupby("JobLevel", observed=True)["PerformanceRating"].agg(["mean","median","count"]).reset_index()
-    job_summary.columns = ["JobLevel","MeanRating","MedianRating","Count"]
-    job_summary = _round_df(job_summary)
-
-    gender_summary = df.groupby("Gender", observed=True)["PerformanceRating"].agg(["mean","count"]).reset_index()
-    gender_summary.columns = ["Gender","MeanRating","Count"]
-    gender_summary = _round_df(gender_summary)
-
-    # Figures: ensure white template for PDF export (keeps palette colors)
-    # Boxplot: rating by department
-    box_dept = px.box(df, x="Department", y="PerformanceRating", title="Performance Ratings by Department", color="Department")
-    box_dept.update_layout(template="plotly_white")
-    box_dept.update_traces(marker_line_color='black', marker_line_width=1)
-
-    # Performance vs Pay: CTC distribution by rating
-    box_ctc_by_rating = px.box(df, x="PerformanceRating", y="CTC", title="CTC distribution by Performance Rating", color="PerformanceRating")
-    box_ctc_by_rating.update_layout(template="plotly_white")
-    box_ctc_by_rating.update_traces(marker_line_color='black', marker_line_width=1)
-
-    # KDE (if enough points)
+    # Plots + saved images
+    box_dept = px.box(df, x="Department", y="PerformanceRating", color="Department", title="Performance Ratings by Department", template="plotly_white")
+    box_ctc_by_rating = px.box(df, x="PerformanceRating", y="CTC", color="PerformanceRating", title="CTC by Rating", template="plotly_white")
     kde_fig = None
+    kde_path = None
     x = df["PerformanceRating"].dropna()
     if len(x) > 3:
-        try:
-            kde = gaussian_kde(x)
-            x_range = np.linspace(max(x.min(), 0), x.max(), 200)
-            y = kde(x_range)
-            kde_df = pd.DataFrame({"Rating": x_range, "Density": y})
-            kde_fig = px.line(kde_df, x="Rating", y="Density", title="Performance Rating Distribution (KDE)")
-            kde_fig.update_layout(template="plotly_white")
-        except Exception:
-            kde_fig = None
+        kde = gaussian_kde(x)
+        x_range = np.linspace(max(x.min(), 0), x.max(), 200)
+        kde_df = pd.DataFrame({"Rating": x_range, "Density": kde(x_range)})
+        kde_fig = px.line(kde_df, x="Rating", y="Density", title="Rating Distribution (KDE)", template="plotly_white")
 
-    # App display
+    dept_path = save_chart_image("Performance by Department", box_dept)
+    pay_path = save_chart_image("Performance vs Pay", box_ctc_by_rating)
+    if kde_fig:
+        kde_path = save_chart_image("Performance Distribution", kde_fig)
+
+    # Display
     st.subheader("Department Performance Summary")
     st.dataframe(dept_summary, use_container_width=True)
     st.plotly_chart(box_dept, use_container_width=True)
-
     st.subheader("Performance vs Pay")
     st.dataframe(job_summary, use_container_width=True)
     st.plotly_chart(box_ctc_by_rating, use_container_width=True)
-
-    st.subheader("Rating Distribution")
     if kde_fig:
+        st.subheader("Rating Distribution")
         st.plotly_chart(kde_fig, use_container_width=True)
-    else:
-        st.info("Not enough rating points for KDE visualization.")
 
-    # prepare data blocks for PDF (one block per metric)
     data_blocks = [
-        {
-            "title": "Performance Distribution",
-            "desc": "Distribution summary: average, std, top/low shares.",
-            "df": dept_summary,
-            "fig": kde_fig,
-            "insights": [
-                f"Average rating: {avg_rating:.2f}",
-                f"Rating StdDev: {rating_std:.2f}",
-                f"Top performers (>=4): {top_perf_share:.1f}%",
-                f"Low performers (<=2): {low_perf_share:.1f}%"
-            ]
-        },
-        {
-            "title": "Department Ratings",
-            "desc": "Mean and variation of ratings per department.",
-            "df": dept_summary,
-            "fig": box_dept,
-            "insights": [
-                f"Top department: {dept_summary.sort_values('MeanRating', ascending=False).iloc[0]['Department'] if not dept_summary.empty else 'N/A'}"
-            ]
-        },
-        {
-            "title": "Performance vs Pay",
-            "desc": "CTC distribution across rating tiers.",
-            "df": job_summary,
-            "fig": box_ctc_by_rating,
-            "insights": [
-                f"Average CTC: ₹{avg_ctc:,.0f}"
-            ]
-        },
-        {
-            "title": "Gender Performance",
-            "desc": "Mean ratings by gender.",
-            "df": gender_summary,
-            "fig": None,
-            "insights": [
-                f"Top gender by mean rating: {gender_summary.sort_values('MeanRating', ascending=False).iloc[0]['Gender'] if not gender_summary.empty else 'N/A'}"
-            ]
-        }
+        {"title": "Performance Distribution", "desc": "Average & std-based performance spread.",
+         "df": dept_summary, "fig_path": kde_path,
+         "insights": [f"Avg Rating: {avg_rating:.2f}", f"StdDev: {rating_std:.2f}", f"Top performers ≥4: {top_perf_share:.1f}%"]},
+        {"title": "Department Ratings", "desc": "Department-level performance analysis.",
+         "df": dept_summary, "fig_path": dept_path,
+         "insights": [f"Top dept: {dept_summary.sort_values('MeanRating', ascending=False).iloc[0]['Department'] if not dept_summary.empty else 'N/A'}"]},
+        {"title": "Performance vs Pay", "desc": "CTC distribution across rating levels.",
+         "df": job_summary, "fig_path": pay_path,
+         "insights": [f"Avg CTC: ₹{avg_ctc:,.0f}"]},
+        {"title": "Gender Performance", "desc": "Average performance by gender.",
+         "df": gender_summary, "fig_path": None,
+         "insights": [f"Top gender: {gender_summary.sort_values('MeanRating', ascending=False).iloc[0]['Gender'] if not gender_summary.empty else 'N/A'}"]}
     ]
 
     st.markdown("---")
