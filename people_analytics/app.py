@@ -1,5 +1,5 @@
 # ============================================
-# app.py — People Analytics Dashboard (v3.0 Command Center)
+# app.py — People Analytics Dashboard (v3.0 Executive Stable)
 # ============================================
 
 import streamlit as st
@@ -28,10 +28,10 @@ st.markdown("""
     border-right: 1px solid #1E293B;
 }
 [data-testid="stSidebarNav"]::before {
-    content: "📊 People Analytics Dashboard";
+    content: "📊 PEOPLE ANALYTICS DASHBOARD";
     margin-left: 20px;
-    font-weight: 700;
-    font-size: 18px;
+    font-weight: 800;
+    font-size: 16px;
     color: #FACC15;
     text-transform: uppercase;
 }
@@ -47,6 +47,16 @@ st.markdown("""
     background: rgba(255,255,255,0.1);
     transform: scale(1.03);
 }
+[data-testid="stSidebarNav"] a span::before { margin-right: 8px; }
+
+a[href*="performance"] span::before { content: "🏆 "; }
+a[href*="engagement"] span::before { content: "💬 "; }
+a[href*="compensation"] span::before { content: "💰 "; }
+a[href*="attrition"] span::before { content: "📉 "; }
+a[href*="workforce"] span::before { content: "🏢 "; }
+a[href*="consolidated"] span::before { content: "📘 "; }
+a[href*="app"] span::before { content: "🏠 "; }
+
 [data-testid="stSidebarNav"] a[data-testid="stSidebarNavLinkActive"] {
     background: #1D4ED8;
     color: white !important;
@@ -94,42 +104,32 @@ st.markdown("""
 <style>
 body { background-color: #0E1117; color: white; }
 h1, h2, h3, h4 { color: #F9FAFB; }
-
-/* === Tile Cards === */
 .tile {
-    padding: 25px;
-    border-radius: 15px;
-    text-align: center;
+    padding: 25px; border-radius: 15px; text-align: center;
     transition: transform 0.2s ease-in-out;
     border: 1px solid #1F2937;
     background: linear-gradient(180deg,#1E293B 0%,#0F172A 100%);
     box-shadow: 0px 4px 8px rgba(0,0,0,0.2);
 }
-.tile:hover {
-    transform: scale(1.03);
-    border-color: #3B82F6;
+.tile:hover { transform: scale(1.03); border-color: #3B82F6;
     box-shadow: 0px 0px 15px rgba(59,130,246,0.3);
 }
 .tile h3 { color: #FACC15; margin-bottom: 10px; }
 .tile p { color: #CBD5E1; font-size: 14px; }
 
-/* === Consolidated Card === */
-.consolidated-card {
-    background: linear-gradient(135deg, #FACC15, #FBBF24);
-    border-radius: 16px;
-    padding: 24px;
-    text-align: center;
-    color: #1E1E1E;
-    font-weight: 600;
-    box-shadow: 0px 4px 12px rgba(255,215,0,0.4);
-    transition: all 0.3s ease;
+/* Golden Tile (Consolidated) */
+.tile-gold {
+    border: 1px solid #FACC15;
+    background: linear-gradient(180deg,#1F2937 0%,#111827 100%);
+    box-shadow: 0px 0px 12px rgba(250,204,21,0.25);
 }
-.consolidated-card:hover {
+.tile-gold:hover {
+    border-color: #FDE047;
+    box-shadow: 0px 0px 18px rgba(250,204,21,0.35);
     transform: scale(1.03);
-    box-shadow: 0px 6px 20px rgba(255,215,0,0.5);
 }
-
-footer {visibility: hidden;}
+.tile-gold h3 { color: #FDE047; }
+.tile-gold p { color: #E5E7EB; font-size: 14px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -138,62 +138,53 @@ footer {visibility: hidden;}
 # ---------------------------
 st.markdown("""
 <div style='text-align:center; margin-top:20px;'>
-    <h1>📊 People Analytics Command Center</h1>
+    <h1>📊 People Analytics Dashboard</h1>
     <p style='color:#9CA3AF;'>Unified HR suite for analytics across Workforce, Performance, Engagement, Compensation, and Attrition.</p>
 </div>
 """, unsafe_allow_html=True)
 
 # ---------------------------
-# ⚡ Navigation Tiles (Grid Layout)
+# ⚡ Navigation Tiles
 # ---------------------------
 st.markdown("---")
 st.markdown("### ⚡ Explore Analytics Modules")
 
-# 3 on Row 1
-row1 = st.columns(3)
-modules = [
-    {"icon": "🏢", "title": "Workforce Analytics", "desc": "Headcount, span & structure", "path": "/1_Workforce"},
-    {"icon": "🏆", "title": "Performance Analytics", "desc": "Distribution, KPIs & trends", "path": "/2_Performance"},
-    {"icon": "💬", "title": "Engagement Analytics", "desc": "Sentiment & participation", "path": "/3_Engagement"},
+tiles = [
+    {"icon": "🏢", "title": "Workforce Analytics", "desc": "Headcount, span & structure", "path": "pages/workforce.py"},
+    {"icon": "🏆", "title": "Performance Analytics", "desc": "Understand how performance scores drive pay and progression.", "path": "pages/performance.py"},
+    {"icon": "💬", "title": "Engagement Analytics", "desc": "Decode engagement and sentiment trends.", "path": "pages/engagement.py"},
+    {"icon": "💰", "title": "Compensation Analytics", "desc": "Compare pay vs market and identify gender gaps.", "path": "pages/compensation.py"},
+    {"icon": "📉", "title": "Attrition Analytics", "desc": "Explore turnover rates and tenure patterns.", "path": "pages/attrition.py"}
 ]
-for i, mod in enumerate(modules):
-    with row1[i]:
-        st.markdown(f"""
-        <a href="{mod['path']}" target="_self" style="text-decoration:none;">
-            <div class="tile">
-                <h3>{mod['icon']} {mod['title']}</h3>
-                <p>{mod['desc']}</p>
-            </div>
-        </a>
-        """, unsafe_allow_html=True)
 
-# 2 on Row 2
-row2 = st.columns(2)
-modules2 = [
-    {"icon": "💰", "title": "Compensation Analytics", "desc": "Pay, bonus & equity insights", "path": "/4_Compensation"},
-    {"icon": "📉", "title": "Attrition Analytics", "desc": "Turnover & tenure trends", "path": "/5_Attrition"},
-]
-for i, mod in enumerate(modules2):
-    with row2[i]:
+cols = st.columns(5)
+for i, t in enumerate(tiles):
+    with cols[i]:
         st.markdown(f"""
-        <a href="{mod['path']}" target="_self" style="text-decoration:none;">
-            <div class="tile">
-                <h3>{mod['icon']} {mod['title']}</h3>
-                <p>{mod['desc']}</p>
-            </div>
-        </a>
+        <div class="tile">
+            <h3>{t['icon']} {t['title']}</h3>
+            <p>{t['desc']}</p>
+        </div>
         """, unsafe_allow_html=True)
+        if st.button(f"{t['icon']} Open", key=f"tile_{i}", use_container_width=True):
+            page_name = t["path"].split("/")[-1].replace(".py", "")
+            st.switch_page(f"/{page_name.capitalize()}")
 
-# Consolidated Deck (Rectangular Golden)
+# ---------------------------
+# 📘 Consolidated HR Deck
+# ---------------------------
 st.markdown("---")
+st.markdown("### 🧩 Leadership Deck")
+
 st.markdown(f"""
-<a href="/_6_Consolidated" target="_self" style="text-decoration:none;">
-    <div class="consolidated-card">
-        <h2>📘 Generate HR Leadership Deck</h2>
-        <p>Unified boardroom-ready PDF across all analytics modules</p>
-    </div>
-</a>
+<div class="tile-gold" style="margin:auto; width:80%;">
+    <h3>📘 Consolidated HR Leadership Deck</h3>
+    <p>Generate a single, boardroom-ready executive report combining all analytics modules into one golden PDF.</p>
+</div>
 """, unsafe_allow_html=True)
+
+if st.button("📘 Open Consolidated HR Deck", use_container_width=True, key="deck_btn"):
+    st.switch_page("/Consolidated")
 
 # ---------------------------
 # ⚙️ Footer
