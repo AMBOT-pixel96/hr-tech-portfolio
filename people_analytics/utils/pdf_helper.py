@@ -1,5 +1,5 @@
 # ============================================
-# utils/pdf_helper.py — v3.4 | Executive Layout (FINAL)
+# utils/pdf_helper.py — v3.6 | Executive Color Deck (FINAL)
 # ============================================
 import os
 import io
@@ -14,8 +14,16 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import mm
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 from utils.chart_saver import save_chart_image
 
+# ✅ Register Unicode Font (fixes ₹ and symbols)
+try:
+    pdfmetrics.registerFont(TTFont("DejaVuSans", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"))
+except:
+    pass
+DEFAULT_FONT = "DejaVuSans"
 
 # =====================================================
 # 🧩 Main Export Function
@@ -23,9 +31,9 @@ from utils.chart_saver import save_chart_image
 def render_pdf_download_button(report_title, module_name, data_blocks, file_prefix):
     """
     Generate a polished, full-color A4 Executive Report.
-    ✅ Fixes: missing charts, microscopic render, spacing
-    ✅ Adds: consistent page layout, proportional scaling
-    ✅ Auto-handles both Plotly figs and saved paths
+    ✅ Unicode-safe (₹ symbol)
+    ✅ Full-width charts with consistent scaling
+    ✅ Proper TOC wrapping, spacing, and color retention
     """
     if not data_blocks:
         st.warning("⚠️ No data blocks available.")
@@ -42,11 +50,12 @@ def render_pdf_download_button(report_title, module_name, data_blocks, file_pref
             bottomMargin=20 * mm,
         )
 
+        # Styles
         styles = getSampleStyleSheet()
         body = ParagraphStyle(
             "body",
             parent=styles["Normal"],
-            fontName="Helvetica",
+            fontName=DEFAULT_FONT,
             fontSize=10,
             leading=13,
             textColor=colors.black,
@@ -54,7 +63,7 @@ def render_pdf_download_button(report_title, module_name, data_blocks, file_pref
         heading = ParagraphStyle(
             "heading",
             parent=styles["Heading2"],
-            fontName="Helvetica-Bold",
+            fontName=DEFAULT_FONT,
             fontSize=13,
             textColor=colors.HexColor("#1E3A8A"),
         )
@@ -64,15 +73,18 @@ def render_pdf_download_button(report_title, module_name, data_blocks, file_pref
         # -------------------------------------------------
         # 🧠 COVER PAGE
         # -------------------------------------------------
-        story.append(Spacer(1, 60))
+        story.append(Spacer(1, 70))
         story.append(Paragraph(
-            f"<para align=center><font size=22><b>{report_title}</b></font></para>", body))
+            f"<para align=center><font size=24><b>{report_title}</b></font></para>", body))
         story.append(Spacer(1, 10))
         story.append(Paragraph(
-            f"<para align=center><font size=13 color='#374151'>{module_name} Module</font></para>", body))
-        story.append(Spacer(1, 30))
+            f"<para align=center><font size=14 color='#374151'>{module_name} Module</font></para>", body))
+        story.append(Spacer(1, 40))
         story.append(Paragraph(
-            f"<para align=center><font size=10>Generated on {datetime.now().strftime('%d %b %Y, %H:%M')}</font></para>", body))
+            f"<para align=center><font size=11>Generated on {datetime.now().strftime('%d %b %Y, %H:%M')}</font></para>", body))
+        story.append(Spacer(1, 20))
+        story.append(Paragraph(
+            "<para align=center><font size=9 color='#6B7280'>Prepared by Amlan Mishra | © 2025 HR Tech Portfolio</font></para>", body))
         story.append(PageBreak())
 
         # -------------------------------------------------
@@ -86,13 +98,14 @@ def render_pdf_download_button(report_title, module_name, data_blocks, file_pref
                 block.get("desc", ""),
                 str(i + 1)
             ])
-        toc_table = Table(toc_data, colWidths=[20, 100, 250, 30])
+        toc_table = Table(toc_data, colWidths=[20, 90, 250, 30], repeatRows=1)
+        toc_table._argW[2] = 250  # enable wrapping
         toc_table.setStyle(TableStyle([
             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E5E7EB")),
             ("GRID", (0, 0), (-1, -1), 0.25, colors.black),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTNAME", (0, 0), (-1, -1), DEFAULT_FONT),
             ("FONTSIZE", (0, 0), (-1, -1), 9),
-            ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
         ]))
         story.append(Paragraph("<b>Table of Contents</b>", heading))
         story.append(Spacer(1, 6))
@@ -128,7 +141,7 @@ def render_pdf_download_button(report_title, module_name, data_blocks, file_pref
                 table.setStyle(TableStyle([
                     ("GRID", (0, 0), (-1, -1), 0.25, colors.black),
                     ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#F3F4F6")),
-                    ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+                    ("FONTNAME", (0, 0), (-1, -1), DEFAULT_FONT),
                     ("FONTSIZE", (0, 0), (-1, -1), 9),
                     ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                     ("LEFTPADDING", (0, 0), (-1, -1), 4),
@@ -146,15 +159,15 @@ def render_pdf_download_button(report_title, module_name, data_blocks, file_pref
                     else:
                         img_path = save_chart_image(title, fig)
 
-                    # Wait until the file is fully written
+                    # Wait for file flush
                     for _ in range(5):
                         if os.path.exists(img_path) and os.path.getsize(img_path) > 0:
                             break
                         time.sleep(0.3)
 
                     if img_path and os.path.exists(img_path):
-                        story.append(RLImage(img_path, width=170 * mm, height=95 * mm))
-                        story.append(Spacer(1, 8))
+                        story.append(RLImage(img_path, width=180 * mm, height=105 * mm))
+                        story.append(Spacer(1, 10))
                     else:
                         story.append(Paragraph("⚠️ Chart could not be rendered.", body))
                 except Exception as e:
@@ -183,7 +196,7 @@ def render_pdf_download_button(report_title, module_name, data_blocks, file_pref
         summary_table.setStyle(TableStyle([
             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E5E7EB")),
             ("GRID", (0, 0), (-1, -1), 0.25, colors.black),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTNAME", (0, 0), (-1, -1), DEFAULT_FONT),
             ("FONTSIZE", (0, 0), (-1, -1), 9),
             ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
             ("LEFTPADDING", (0, 0), (-1, -1), 4),
