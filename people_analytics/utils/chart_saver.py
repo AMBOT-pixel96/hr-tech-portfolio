@@ -72,10 +72,10 @@ def _ensure_png_has_white_bg_from_bytes(b: bytes, out_path: str):
 def _apply_color_fidelity_fix(fig):
     """
     Ensures vivid categorical colors and strong contrast for Kaleido rendering.
-    This prevents greyscale/black artifacts in PDF exports.
+    Fixes greyscale/black artifacts for bar, scatter, AND pie charts.
     """
     try:
-        # Force bright background + color palette
+        # Force bright layout
         fig.update_layout(
             template="plotly_white",
             paper_bgcolor="#FFFFFF",
@@ -83,15 +83,25 @@ def _apply_color_fidelity_fix(fig):
             font=dict(color="#000000"),
         )
 
-        # Apply bright colors to all traces if not already set
         for i, trace in enumerate(fig.data):
-            if hasattr(trace, "marker"):
-                if not getattr(trace.marker, "color", None) or str(trace.marker.color).lower() in ["#000", "black"]:
-                    trace.marker.color = PALETTE[i % len(PALETTE)]
+            color_idx = i % len(PALETTE)
+
+            # Bar / Scatter / Line traces
+            if hasattr(trace, "marker") and hasattr(trace.marker, "color"):
+                if getattr(trace.marker, "color", None) in [None, "#000", "black"]:
+                    trace.marker.color = PALETTE[color_idx]
                 trace.marker.line = dict(width=0.8, color="#333333")
-            if hasattr(trace, "line"):
-                if not getattr(trace.line, "color", None) or str(trace.line.color).lower() in ["#000", "black"]:
-                    trace.line.color = PALETTE[i % len(PALETTE)]
+
+            # Pie traces → use marker.colors (plural)
+            if trace.type == "pie":
+                trace.marker.colors = PALETTE[: len(trace.labels)]
+                trace.marker.line = dict(width=1, color="#FFFFFF")
+
+            # Line traces
+            if hasattr(trace, "line") and hasattr(trace.line, "color"):
+                if getattr(trace.line, "color", None) in [None, "#000", "black"]:
+                    trace.line.color = PALETTE[color_idx]
+
     except Exception as e:
         st.warning(f"⚠️ Color fidelity patch failed: {e}")
 
