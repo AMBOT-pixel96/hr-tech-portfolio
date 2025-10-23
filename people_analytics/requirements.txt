@@ -29,3 +29,6 @@ textblob==0.18.0
 # Utility
 python-dateutil==2.9.0.post0
 requests==2.32.3
+
+selenium==4.24.0
+chromedriver-autoinstaller==0.6.4
