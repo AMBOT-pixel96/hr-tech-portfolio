@@ -17,6 +17,61 @@ from reportlab.pdfbase.ttfonts import TTFont
 
 from utils_consolidated.chart_consolidated_saver import ensure_chart_saved
 
+# Inject dark theme styling for uploader boxes
+st.markdown("""
+<style>
+/* ===== Uploader Card Styling ===== */
+div[data-testid="stFileUploader"] {
+    background: linear-gradient(180deg, #1E293B, #0F172A) !important;
+    border: 1px solid #1E3A8A !important;
+    border-radius: 14px !important;
+    padding: 18px !important;
+    box-shadow: 0px 4px 8px rgba(0,0,0,0.35) !important;
+    color: #E5E7EB !important;
+    transition: all 0.25s ease-in-out !important;
+}
+div[data-testid="stFileUploader"]:hover {
+    border-color: #3B82F6 !important;
+    box-shadow: 0px 0px 12px rgba(59,130,246,0.35) !important;
+    transform: scale(1.01);
+}
+
+/* ===== Inner Texts ===== */
+div[data-testid="stFileUploader"] label {
+    color: #E5E7EB !important;
+    font-weight: 500 !important;
+}
+div[data-testid="stFileUploaderDropzone"] {
+    background: rgba(30,41,59,0.75) !important;
+    border: 1px dashed rgba(148,163,184,0.4) !important;
+    color: #CBD5E1 !important;
+}
+div[data-testid="stFileUploaderDropzone"]:hover {
+    border-color: #60A5FA !important;
+    background: rgba(37,99,235,0.1) !important;
+}
+
+/* ===== Button Styling ===== */
+button[kind="secondary"] {
+    background: linear-gradient(90deg,#1E3A8A,#2563EB) !important;
+    color: #FFFFFF !important;
+    font-weight: 600 !important;
+    border-radius: 10px !important;
+    border: none !important;
+    transition: all 0.3s ease !important;
+}
+button[kind="secondary"]:hover {
+    background: linear-gradient(90deg,#2563EB,#1D4ED8) !important;
+    transform: scale(1.03);
+}
+
+/* ===== File Upload Text Fix ===== */
+div[data-testid="stFileUploader"] p {
+    color: #9CA3AF !important;
+    font-size: 13px !important;
+}
+</style>
+""", unsafe_allow_html=True)
 # -----------------------------------------------------------
 # 🧩 Font Setup (for ₹, %, etc.)
 # -----------------------------------------------------------
