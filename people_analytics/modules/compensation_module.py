@@ -133,3 +133,30 @@ def run_compensation_module():
     st.markdown("---")
     st.subheader("📄 Step 5 — Export Executive Report")
     render_pdf_download_button("Compensation Analytics Executive Report", "Compensation", data_blocks, "Compensation")
+# --------------------------------------------
+    # ➕ Add to Consolidated Deck (new)
+    # --------------------------------------------
+    import os, shutil
+    from utils_consolidated.pdf_merger import TMP_DIR
+
+    st.markdown("---")
+    st.subheader("🧩 Add to Consolidated Leadership Deck")
+
+    pdf_filename = "Compensation_Analytics_Executive_Report.pdf"
+    possible_paths = [
+        os.path.join("/tmp", pdf_filename),
+        os.path.join(os.getcwd(), pdf_filename)
+    ]
+
+    existing_pdf = next((p for p in possible_paths if os.path.exists(p)), None)
+
+    if existing_pdf:
+        if st.button("➕ Add Compensation Report to Consolidated Deck", use_container_width=True):
+            try:
+                dest_path = os.path.join(TMP_DIR, "Compensation.pdf")
+                shutil.copyfile(existing_pdf, dest_path)
+                st.success("✅ Compensation Report added to consolidated deck!")
+            except Exception as e:
+                st.error(f"⚠️ Failed to add report: {e}")
+    else:
+        st.info("⚙️ Generate the PDF first before adding to the consolidated deck.")
