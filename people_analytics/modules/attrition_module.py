@@ -1,5 +1,5 @@
 # ============================================
-# modules/attrition_module.py — v3.1 | Safe Categorical + Color Fidelity + Stable Export
+# modules/attrition_module.py — v3.2 | Consolidated Deck + Timestamp Integration
 # ============================================
 import streamlit as st
 import pandas as pd
@@ -170,11 +170,13 @@ def run_attrition_module():
     st.markdown("---")
     st.subheader("📄 Step 5 — Export Executive Report")
     render_pdf_download_button("Attrition Analytics Executive Report", "Attrition", data_blocks, "Attrition")
-# ============================================
+
+    # ============================================
     # ➕ Add to Consolidated Deck (new)
     # ============================================
     import os, shutil
     from utils_consolidated.pdf_merger import TMP_DIR
+    from utils_consolidated.deck_state_tracker import update_module_state
 
     st.markdown("---")
     st.subheader("🧩 Add to Consolidated Leadership Deck")
@@ -192,6 +194,7 @@ def run_attrition_module():
             try:
                 dest_path = os.path.join(TMP_DIR, "Attrition.pdf")
                 shutil.copyfile(existing_pdf, dest_path)
+                update_module_state("Attrition")  # ✅ Timestamp update
                 st.success("✅ Attrition Report added to consolidated deck!")
             except Exception as e:
                 st.error(f"⚠️ Failed to add report: {e}")
