@@ -1,5 +1,5 @@
 # ============================================
-# pages/consolidated.py — v4.0 | Executive Stable (Post-Integration)
+# pages/consolidated.py — v4.1 | Executive Stable (Final Integration)
 # ============================================
 """
 📘 Consolidated HR Leadership Deck Entry Point
@@ -17,7 +17,7 @@ Workforce, Performance, Engagement, Compensation, Attrition
 import streamlit as st
 import os
 from utils_consolidated.deck_state_tracker import get_module_state
-from utils_consolidated.pdf_merger import TMP_DIR, merge_pdfs
+from utils_consolidated.pdf_merger import TMP_DIR, merge_consolidated_pdfs
 
 # -------------------------------------------------------
 # 🧭 Page Identity
@@ -97,14 +97,13 @@ for i, mod in enumerate(modules_expected):
 # 🧾 Merge Final Deck
 # -------------------------------------------------------
 st.markdown("---")
-st.header("📄 Generate Consolidated Executive Report")
-
+st.header("📄 Finalize & Generate Executive Leadership Deck")
 st.caption("Combines all completed module PDFs into a single master HR Leadership Deck.")
 
 if st.button("🧾 Merge & Generate Consolidated PDF", use_container_width=True):
     output_path = os.path.join(TMP_DIR, "People_Analytics_Leadership_Deck.pdf")
     try:
-        success = merge_pdfs(output_path)
+        success = merge_consolidated_pdfs(output_path)
         if success and os.path.exists(output_path):
             st.success("✅ Consolidated Leadership Deck generated successfully!")
             with open(output_path, "rb") as f:
