@@ -1,65 +1,45 @@
-# ============================================
 # utils_consolidated/uploader_consolidated_helper.py
-# v1.3 — Multi-format uploader with safe read & mobile fixes
-# ============================================
+# v1.3 — uploader that is mobile-friendly and explicit about formats
 import streamlit as st
 import pandas as pd
-import io
 
-def _read_csv_bytes(file_bytes: bytes):
-    """
-    Try a robust CSV read with common fallbacks:
-      - utf-8
-      - latin1
-      - engine='python' fallback
-    """
-    for encoding in ("utf-8", "utf-8-sig", "latin1"):
-        try:
-            return pd.read_csv(io.BytesIO(file_bytes), encoding=encoding)
-        except Exception:
-            continue
-    # python engine as last resort
-    try:
-        return pd.read_csv(io.BytesIO(file_bytes), engine="python", errors="replace")
-    except Exception:
-        raise
-
-def upload_data(label: str, key: str | None = None):
+def upload_data(label: str, key: str = None):
     """
     Robust file uploader:
-      - Accepts csv, xls, xlsx
-      - Works on mobile (explicit MIME types not exposed to Streamlit, but this provides better UX)
-      - Returns pd.DataFrame or None on cancel/error
+      - Accepts CSV, XLS, XLSX
+      - Returns DataFrame or None
+      - Explicit caption helps mobile file chooser
     """
     file = st.file_uploader(
         label,
         type=["csv", "xls", "xlsx"],
         accept_multiple_files=False,
         key=key,
-        help="Supports CSV and Excel files (XLS/XLSX).",
+        help="Supported: CSV, XLS, XLSX — max ~200MB per file (Streamlit limits dependent)."
     )
 
+    # If user hasn't picked a file yet, return None (UI shows uploader)
     if file is None:
         return None
 
+    # Try to read file robustly
     try:
         name = file.name.lower()
-        # streamlit provides a file-like object; sometimes using .read() is more robust across platforms
-        raw = file.read()
-
+        # read in-memory
         if name.endswith(".csv"):
-            # prefer robust byte-based read (handles mobile/safari quirks)
-            df = _read_csv_bytes(raw)
+            # explicit encoding if user environment needs it
+            try:
+                df = pd.read_csv(file)
+            except Exception:
+                # try with utf-8-sig fallback
+                df = pd.read_csv(file, encoding="utf-8-sig")
         elif name.endswith(".xls"):
-            # pandas will pick appropriate engine for .xls
-            df = pd.read_excel(io.BytesIO(raw))
+            df = pd.read_excel(file)
         else:  # .xlsx
-            df = pd.read_excel(io.BytesIO(raw), engine="openpyxl")
-
+            df = pd.read_excel(file, engine="openpyxl")
         st.success(f"✅ {file.name} uploaded successfully!")
         return df
-
     except Exception as e:
-        st.error(f"⚠️ Failed to read {getattr(file, 'name', 'uploaded file')}: {e}")
-        st.info("Tip: If the file is large or oddly encoded, try saving as UTF-8 CSV or a clean XLSX.")
+        st.error(f"⚠️ Failed to read {getattr(file, 'name', 'file')}: {e}")
+        st.info("If the file doesn't load: try saving as CSV (UTF-8) or ensure .xlsx isn't password-protected.")
         return None
