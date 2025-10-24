@@ -1,31 +1,40 @@
 # ==========================
-# 📊 People Analytics Dashboard — Clean Requirements (v5.0)
+# 📊 People Analytics Dashboard — Executive Stable (v5.1)
 # ==========================
 
-# Core
+# ---- Core Framework ----
 streamlit==1.39.0
 pandas==2.2.3
 numpy==1.26.4
 
-# Visualization
+# ---- Visualization Stack ----
 plotly==5.24.1
 matplotlib==3.9.2
 seaborn==0.13.2
-kaleido==0.2.1
+kaleido==0.2.1     # for chart exports in individual modules
 scipy==1.14.1
 
-# Excel Handling
+# ---- Excel / Data Handling ----
 openpyxl==3.1.5
 xlsxwriter==3.2.0
 
-# PDF Generation
-reportlab==4.2.5
-Pillow==10.4.0
+# ---- PDF Generation Stack ----
+reportlab==4.2.5    # base layout engine
+Pillow==10.4.0       # image processing
+weasyprint==62.3     # modern HTML-to-PDF engine for consolidated deck
+tinycss2==1.2.1      # required by weasyprint
+cssselect2==0.7.0    # required by weasyprint
+fonttools==4.54.1    # for font embedding support
+pyphen==0.14.0       # hyphenation (text wrapping inside PDFs)
 
-# NLP (optional)
+# ---- NLP / Insights (optional) ----
 nltk==3.9.1
 textblob==0.18.0
 
-# Utility
+# ---- Utility / Date / HTTP ----
 python-dateutil==2.9.0.post0
 requests==2.32.3
+
+# ---- Stability / Deployment ----
+watchdog==5.0.3         # for smoother file change tracking
+tzdata==2024.2          # timezone fixes
