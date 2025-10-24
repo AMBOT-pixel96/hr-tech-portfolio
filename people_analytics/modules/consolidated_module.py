@@ -1,10 +1,11 @@
 # ============================================
-# modules/consolidated_module.py — v6.0 | Boardroom Assembler Edition
+# modules/consolidated_module.py — v7.0 | Timestamped Leadership Deck Builder
 # ============================================
 import os
 import streamlit as st
 from datetime import datetime
 from utils_consolidated.pdf_merger import merge_consolidated_pdfs, TMP_DIR
+from utils_consolidated.deck_state_tracker import get_module_state
 
 # -------------------------------------------------------
 # 🎨 Header Banner
@@ -22,11 +23,13 @@ st.markdown("""
 os.makedirs(TMP_DIR, exist_ok=True)
 
 # -------------------------------------------------------
-# 🧩 Deck Queue Visualizer (new)
+# 🧩 Deck Queue Visualizer (with timestamps)
 # -------------------------------------------------------
 st.markdown("### 🧾 Current Deck Queue")
 pdf_files = [f for f in os.listdir(TMP_DIR) if f.endswith(".pdf")]
 modules_expected = ["Attrition", "Compensation", "Performance", "Engagement", "Workforce"]
+
+state = get_module_state()
 
 if not pdf_files:
     st.info("No reports have been added yet. Generate and add module PDFs first.")
@@ -35,14 +38,16 @@ else:
     cols = [col1, col2, col3, col4, col5]
     for i, mod in enumerate(modules_expected):
         icon = "✅" if f"{mod}.pdf" in pdf_files else "❌"
+        last_updated = state.get(mod, "—")
         with cols[i]:
             st.markdown(f"""
             <div style="padding:12px;border-radius:10px;background:rgba(255,255,255,0.05);
                         border:1px solid #1E3A8A;text-align:center;">
               <h4 style="margin:0;color:#FACC15;">{icon} {mod}</h4>
-              <p style="margin:4px 0 0;color:#E5E7EB;font-size:13px;">
+              <p style="margin:2px 0 0;color:#E5E7EB;font-size:13px;">
                 {'Added to Deck' if icon=='✅' else 'Pending'}
               </p>
+              <p style="margin:0;color:#9CA3AF;font-size:11px;">🕒 {last_updated.split('T')[0] if last_updated!='—' else '—'}</p>
             </div>
             """, unsafe_allow_html=True)
 
