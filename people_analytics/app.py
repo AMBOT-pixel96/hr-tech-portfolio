@@ -1,5 +1,5 @@
 # ============================================
-# app.py — People Analytics Dashboard (v3.0 Executive Stable)
+# app.py — People Analytics Dashboard (v3.1 Executive Stable)
 # ============================================
 
 import streamlit as st
@@ -167,8 +167,8 @@ for i, t in enumerate(tiles):
         </div>
         """, unsafe_allow_html=True)
         if st.button(f"{t['icon']} Open", key=f"tile_{i}", use_container_width=True):
-            page_name = t["path"].split("/")[-1].replace(".py", "")
-            st.switch_page(f"/{page_name.capitalize()}")
+            # ✅ Fixed: correct relative path, not capitalized route
+            st.switch_page(t["path"])
 
 # ---------------------------
 # 📘 Consolidated HR Deck
