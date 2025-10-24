@@ -1,16 +1,15 @@
 # ============================================
-# utils_consolidated/uploader_consolidated_helper.py
-# v1.2 — Multi-format uploader with MIME fix for mobile
+# utils_consolidated/uploader_consolidated_helper.py — v1.3 | Multi-format Robust Uploader
 # ============================================
 import streamlit as st
 import pandas as pd
 
 def upload_data(label: str, key: str | None = None):
     """
-    Robust file uploader:
-    ✅ Supports CSV, XLS, XLSX
-    ✅ Works on mobile (explicit MIME types)
-    ✅ Shows friendly success / error messages
+    Unified CSV/XLS/XLSX uploader for Consolidated module.
+    ✅ Accepts all filetypes on desktop & mobile
+    ✅ Avoids greyed-out CSVs via MIME hints
+    ✅ Returns clean pandas.DataFrame
     """
     file = st.file_uploader(
         label,
@@ -20,7 +19,6 @@ def upload_data(label: str, key: str | None = None):
         help="Supports CSV and Excel files (XLS/XLSX)."
     )
 
-    # ✅ Fix: handle mobile browsers where CSVs are greyed out
     if file is None:
         return None
 
@@ -29,14 +27,13 @@ def upload_data(label: str, key: str | None = None):
         if name.endswith(".csv"):
             df = pd.read_csv(file)
         elif name.endswith(".xls"):
-            df = pd.read_excel(file)
+            df = pd.read_excel(file, engine=None)
         else:
             df = pd.read_excel(file, engine="openpyxl")
 
         st.success(f"✅ {file.name} uploaded successfully!")
         return df
-
     except Exception as e:
-        st.error(f"⚠️ Failed to read {file.name}: {e}")
-        st.info("If file doesn't open, re-save it as UTF-8 CSV or clean Excel.")
+        st.error(f"⚠️ Failed to load {file.name}: {e}")
+        st.info("Try re-saving as UTF-8 CSV or Excel (no password protection).")
         return None
