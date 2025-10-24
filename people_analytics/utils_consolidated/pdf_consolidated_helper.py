@@ -1,35 +1,16 @@
 # ============================================
-# utils_consolidated/pdf_consolidated_helper.py — v6.4 | Fail-Safe Build
+# utils_consolidated/pdf_consolidated_helper.py
+# v6.0 — WeasyPrint Streamlit Edition (No Kaleido, No /tmp)
 # ============================================
-import os, io, traceback
+
+import io
 import streamlit as st
 from datetime import datetime
-from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
-    Image as RLImage, PageBreak
-)
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import mm
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
+from weasyprint import HTML
 
-from utils_consolidated.chart_consolidated_saver import ensure_chart_saved
-
-try:
-    pdfmetrics.registerFont(TTFont("DejaVuSans", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"))
-    FONT_NAME = "DejaVuSans"
-except:
-    FONT_NAME = "Helvetica"
-
-def _add_footer(canvas, doc):
-    canvas.saveState()
-    canvas.setFont(FONT_NAME, 8)
-    canvas.setFillColor(colors.HexColor("#6B7280"))
-    canvas.drawCentredString(A4[0] / 2, 15, "Prepared with ❤️ by People Analytics Project — 2025")
-    canvas.restoreState()
-
+# ---------------------------------------------------
+# 🧾 Pure HTML → PDF builder
+# ---------------------------------------------------
 def render_consolidated_pdf(report_title: str, modules_payload: list, filename_prefix: str):
     if not modules_payload:
         st.warning("⚠️ No module data available for PDF generation.")
@@ -37,83 +18,63 @@ def render_consolidated_pdf(report_title: str, modules_payload: list, filename_p
 
     if st.button("🧾 Generate Consolidated Executive Deck", use_container_width=True):
         try:
-            st.info("🧠 Generating PDF... please wait (15–20 seconds)")
+            html_parts = [
+                f"""
+                <html><head><meta charset='utf-8'>
+                <style>
+                    body {{ font-family: 'Open Sans', sans-serif; color:#111; }}
+                    h1,h2,h3 {{ color:#1E3A8A; }}
+                    table {{ border-collapse: collapse; width:100%; margin:10px 0; }}
+                    th, td {{ border:1px solid #ccc; padding:4px 6px; font-size:10px; }}
+                    th {{ background:#E5E7EB; }}
+                    .cover {{ text-align:center; margin-top:100px; }}
+                </style></head><body>
+                <div class='cover'>
+                    <h1>{report_title}</h1>
+                    <p><b>People Analytics Leadership Deck</b></p>
+                    <p>Generated {datetime.now().strftime('%d %b %Y, %H:%M %p')}</p>
+                    <hr>
+                </div>
+                """
+            ]
 
-            buf = io.BytesIO()
-            doc = SimpleDocTemplate(
-                buf,
-                pagesize=A4,
-                rightMargin=18 * mm,
-                leftMargin=18 * mm,
-                topMargin=20 * mm,
-                bottomMargin=20 * mm,
+            # TOC
+            html_parts.append("<h2>Table of Contents</h2><ol>")
+            for i, mod in enumerate(modules_payload, 1):
+                html_parts.append(f"<li><b>{mod.get('module_name','')}</b> — {mod.get('module_desc','')}</li>")
+            html_parts.append("</ol><hr>")
+
+            # Modules
+            for mod in modules_payload:
+                html_parts.append(f"<h2>{mod.get('module_name')}</h2>")
+                html_parts.append(f"<p><i>{mod.get('module_desc')}</i></p>")
+                for block in mod.get("data_blocks", []):
+                    html_parts.append(f"<h3>{block.get('title','')}</h3>")
+                    html_parts.append(f"<p>{block.get('desc','')}</p>")
+                    df = block.get("df")
+                    if df is not None and not df.empty:
+                        html_parts.append(df.to_html(index=False, border=0))
+                    insights = block.get("insights", [])
+                    if insights:
+                        joined = " • ".join(str(i) for i in insights)
+                        html_parts.append(f"<p><b>Insights:</b> {joined}</p>")
+                    html_parts.append("<hr>")
+            
+            html_parts.append(
+                "<footer><p style='text-align:center;font-size:9px;color:#666;'>"
+                "Prepared with ❤️ by People Analytics Project — 2025</p></footer></body></html>"
             )
 
-            styles = getSampleStyleSheet()
-            heading = ParagraphStyle("Heading", fontName=FONT_NAME, fontSize=14, textColor=colors.HexColor("#1E3A8A"), spaceAfter=6)
-            body = ParagraphStyle("Body", fontName=FONT_NAME, fontSize=10, textColor=colors.HexColor("#111827"), leading=13)
+            final_html = "".join(html_parts)
+            pdf_bytes = HTML(string=final_html).write_pdf()
 
-            story = []
-            story.append(Spacer(1, 60))
-            story.append(Paragraph(f"<b>{report_title}</b>", heading))
-            story.append(Paragraph(datetime.now().strftime("%d %B %Y, %H:%M %p"), body))
-            story.append(PageBreak())
-
-            for mod in modules_payload:
-                module_name = mod.get("module_name", "Unknown Module")
-                module_desc = mod.get("module_desc", "")
-                data_blocks = mod.get("data_blocks", [])
-                story.append(Paragraph(f"<b>{module_name}</b>", heading))
-                story.append(Paragraph(module_desc, body))
-                story.append(PageBreak())
-
-                for block in data_blocks:
-                    title = block.get("title", "")
-                    df = block.get("df", None)
-                    fig = block.get("fig", None)
-                    insights = block.get("insights", [])
-                    story.append(Paragraph(f"<b>{title}</b>", heading))
-
-                    # Table safe rendering
-                    try:
-                        if df is not None and not df.empty:
-                            df = df.copy().fillna("").astype(str)
-                            table_data = [list(df.columns)] + df.values.tolist()
-                            table = Table(table_data)
-                            table.setStyle(TableStyle([
-                                ("GRID", (0, 0), (-1, -1), 0.25, colors.black),
-                                ("FONTNAME", (0, 0), (-1, -1), FONT_NAME),
-                                ("FONTSIZE", (0, 0), (-1, -1), 9)
-                            ]))
-                            story.append(table)
-                    except Exception as e:
-                        st.warning(f"⚠️ Table skipped for {title}: {e}")
-
-                    # Chart safe rendering
-                    try:
-                        if fig is not None:
-                            img_path = ensure_chart_saved(title, fig)
-                            if img_path and os.path.getsize(img_path) > 500:
-                                story.append(RLImage(img_path, width=170 * mm, height=95 * mm))
-                            else:
-                                st.warning(f"⚠️ Chart skipped for {title}")
-                    except Exception as e:
-                        st.warning(f"⚠️ Chart render failed: {e}")
-
-                    # Insights
-                    if insights:
-                        story.append(Paragraph(" • ".join(map(str, insights)), body))
-                    story.append(PageBreak())
-
-            doc.build(story, onLaterPages=_add_footer)
-            pdf_bytes = buf.getvalue()
-
-            if pdf_bytes:
-                st.success("✅ PDF generated successfully!")
-                st.download_button("⬇️ Download HR Leadership Deck (PDF)", pdf_bytes, file_name=f"{filename_prefix}_Leadership_Deck.pdf", mime="application/pdf")
-            else:
-                st.error("⚠️ Empty PDF output.")
+            st.success("✅ PDF generated successfully (WeasyPrint engine).")
+            st.download_button(
+                "⬇️ Download Consolidated Deck (PDF)",
+                pdf_bytes,
+                file_name=f"{filename_prefix}_Leadership_Deck.pdf",
+                mime="application/pdf",
+            )
 
         except Exception as e:
-            st.error("🚨 PDF generation failed:")
-            st.code(traceback.format_exc())
+            st.error(f"⚠️ PDF generation failed: {e}")
