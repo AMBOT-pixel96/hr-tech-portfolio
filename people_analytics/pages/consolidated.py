@@ -1,5 +1,5 @@
 # ============================================
-# pages/consolidated.py — v4.3 | Executive Stable (Import-Safe)
+# pages/consolidated.py — v4.4 | Executive Stable (Import-Stable)
 # ============================================
 """
 📘 Consolidated HR Leadership Deck Entry Point
@@ -20,17 +20,23 @@ Workforce, Performance, Engagement, Compensation, Attrition
 import sys, os
 import streamlit as st
 
-# Dynamically add parent dir to path if not already included
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if BASE_DIR not in sys.path:
-    sys.path.append(BASE_DIR)
+# Dynamically ensure utils_consolidated is importable
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(CURRENT_DIR)
+UTILS_DIR = os.path.join(BASE_DIR, "utils_consolidated")
+
+for path in (BASE_DIR, UTILS_DIR):
+    if path not in sys.path:
+        sys.path.append(path)
 
 try:
     from utils_consolidated.pdf_merger import TMP_DIR, merge_consolidated_pdfs
     from utils_consolidated.deck_state_tracker import get_module_state
 except ModuleNotFoundError as e:
     st.error(f"⚠️ Import error: {e}")
+    st.info("🛠️ Verify that the 'utils_consolidated' folder exists under people_analytics/")
     st.stop()
+
 # -------------------------------------------------------
 # 🧭 Page Identity
 # -------------------------------------------------------
