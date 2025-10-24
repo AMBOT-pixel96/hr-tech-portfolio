@@ -1,5 +1,5 @@
 # ============================================
-# pages/consolidated.py — v4.2 | Executive Stable (Correct Import Paths)
+# pages/consolidated.py — v4.2 | Executive Stable (Final Integration)
 # ============================================
 """
 📘 Consolidated HR Leadership Deck Entry Point
@@ -103,8 +103,8 @@ st.caption("Combines all completed module PDFs into a single master HR Leadershi
 if st.button("🧾 Merge & Generate Consolidated PDF", use_container_width=True):
     output_path = os.path.join(TMP_DIR, "People_Analytics_Leadership_Deck.pdf")
     try:
-        success = merge_consolidated_pdfs(output_path)
-        if success and os.path.exists(output_path):
+        merge_consolidated_pdfs(output_path)
+        if os.path.exists(output_path):
             st.success("✅ Consolidated Leadership Deck generated successfully!")
             with open(output_path, "rb") as f:
                 st.download_button(
