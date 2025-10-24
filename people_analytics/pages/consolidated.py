@@ -28,7 +28,8 @@ st.set_page_config(
 # 🧠 Safety Wrapper — prevents multiple reload loops
 # -------------------------------------------------------
 try:
-    import modules.consolidated_module  # The module runs Streamlit UI internally
+    # import modules.consolidated_module
+  import modules.consolidated_module_diagnostic
 except Exception as e:
     st.error("⚠️ Failed to load Consolidated HR Deck module.")
     st.exception(e)
