@@ -9,14 +9,9 @@ from utils_consolidated.pdf_consolidated_helper import render_consolidated_pdf
 from utils_consolidated.chart_consolidated_saver import ensure_chart_saved
 from utils_consolidated.uploader_consolidated_helper import upload_data
 
-# -------------------------------------------------------
-# 🧭 Page Configuration
-# -------------------------------------------------------
-st.set_page_config(page_title="Consolidated HR Leadership Deck", page_icon="📘", layout="wide")
-
-# -------------------------------------------------------
+#--------------------------------------------
 # 🎨 Sidebar & Theme — Executive Look
-# -------------------------------------------------------
+# --------------------------------------------
 st.markdown("""
 <style>
 [data-testid="stSidebar"] {
@@ -47,9 +42,9 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# -------------------------------------------------------
+# -----------------------------------------
 # 🏷️ Header
-# -------------------------------------------------------
+# -----------------------------------------
 st.markdown("""
 <div style="padding:18px;border-radius:10px;background:linear-gradient(90deg,#0F172A,#1E3A8A);color:white;">
   <h2 style="margin:0">📘 Consolidated HR Leadership Deck</h2>
@@ -57,9 +52,9 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# -------------------------------------------------------
+# ---------------------------------------
 # 📤 Upload Datasets
-# -------------------------------------------------------
+# ---------------------------------------
 st.markdown("### 🧩 Upload All Module Datasets")
 st.caption("Upload the same data files used in the individual modules — this deck will consolidate all metrics automatically.")
 
@@ -77,9 +72,9 @@ if any(df is None for df in [attr_df, comp_df, perf_df, eng_df, work_df]):
     st.info("📥 Please upload all five datasets to proceed.")
     st.stop()
 
-# -------------------------------------------------------
+# --------------------------------------
 # 🧮 Helper
-# -------------------------------------------------------
+# --------------------------------------
 def _round_df(df, decimals=2):
     df2 = df.copy()
     for c in df2.select_dtypes(include=["float", "int"]).columns:
