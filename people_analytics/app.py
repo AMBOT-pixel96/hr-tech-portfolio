@@ -1,7 +1,11 @@
 # ============================================
 # app.py — People Analytics Dashboard (v3.1 Executive Stable)
 # ============================================
-
+# ===============================
+# 🧠 Stability Patch — Disable Watchdog
+# ===============================
+import os
+os.environ["STREAMLIT_WATCHDOG"] = "false"
 import streamlit as st
 import os
 import json
