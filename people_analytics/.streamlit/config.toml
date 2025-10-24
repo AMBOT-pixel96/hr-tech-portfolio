@@ -2,6 +2,7 @@
 headless = true
 enableCORS = false
 enableXsrfProtection = false
+fileWatcherType = "none"  # 🔥 disables auto file watcher to prevent inotify crashes
 
 [theme]
 base = "dark"
