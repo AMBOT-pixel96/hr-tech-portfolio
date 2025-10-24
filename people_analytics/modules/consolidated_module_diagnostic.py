@@ -1,16 +1,27 @@
 # ============================================
-# consolidated_module_diagnostic.py — Minimal Diagnostic Build
+# consolidated_module_diagnostic.py — Minimal Diagnostic Build (No Page Config)
 # ============================================
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 from utils_consolidated.uploader_consolidated_helper import upload_data
 
-st.set_page_config(page_title="Diagnostic | HR Deck", page_icon="🧠", layout="wide")
+# -------------------------------------------------------
+# 🎨 Header Banner (so you can see this mode is active)
+# -------------------------------------------------------
+st.markdown("""
+<div style='background:linear-gradient(90deg,#0F172A,#1E3A8A);color:white;
+padding:10px;border-radius:10px;margin-bottom:10px;'>
+<b>🧠 Diagnostic Mode Active</b> — Heavy PDF export disabled for stability testing.
+</div>
+""", unsafe_allow_html=True)
 
 st.markdown("## 🧠 Diagnostic Build — Consolidated Module")
 st.caption("This mode loads all datasets but skips heavy PDF generation to isolate memory or I/O issues.")
 
+# -------------------------------------------------------
+# 📤 Upload Section
+# -------------------------------------------------------
 c1, c2, c3 = st.columns(3)
 attr_df = upload_data("📉 Attrition Data", key="attrition_diag")
 comp_df = upload_data("💰 Compensation Data", key="comp_diag")
@@ -22,10 +33,12 @@ work_df = upload_data("🏢 Workforce Data", key="work_diag")
 
 # ✅ Basic existence check
 if not all(df is not None for df in [attr_df, comp_df, perf_df, eng_df, work_df]):
-    st.warning("Please upload all datasets.")
+    st.warning("Please upload all datasets before proceeding.")
     st.stop()
 
-# ✅ Print dataset shapes
+# -------------------------------------------------------
+# 📊 Dataset Summary
+# -------------------------------------------------------
 st.markdown("### ✅ Data Loaded Successfully")
 for name, df in {
     "Attrition": attr_df,
@@ -35,8 +48,11 @@ for name, df in {
     "Workforce": work_df,
 }.items():
     st.write(f"**{name}** — {df.shape[0]} rows × {df.shape[1]} columns")
+    st.dataframe(df.head(3))
 
-# ✅ Light visual test (without saving to disk)
+# -------------------------------------------------------
+# 🔍 Visual Test (no saving to disk)
+# -------------------------------------------------------
 if "AttritionFlag" in attr_df.columns:
     dept = (
         attr_df.groupby("Department", observed=True)["AttritionFlag"]
