@@ -1,11 +1,10 @@
 # ============================================
-# utils_consolidated/pdf_merger.py — v2.0 | Executive Boardroom Edition
+# utils_consolidated/pdf_merger.py — v2.1 | Executive Boardroom Edition (Stable)
 # ============================================
 import os
 import io
 import shutil
 from datetime import datetime
-
 import streamlit as st
 from PyPDF2 import PdfReader, PdfWriter
 from reportlab.pdfgen import canvas
@@ -55,54 +54,49 @@ def _make_single_page_pdf(title: str, subtitle: str = "", color: str = "#1E3A8A"
 # -------------------------------------------------------
 # 📦 Merge PDFs into one executive deck
 # -------------------------------------------------------
-def merge_consolidated_pdfs(output_filename: str = "People_Analytics_Leadership_Deck.pdf"):
+def merge_pdfs(output_path: str = os.path.join(TMP_DIR, "People_Analytics_Leadership_Deck.pdf")) -> bool:
     """
-    Merges all PDFs from TMP_DIR into one, inserting section divider pages.
+    Merges all PDFs from TMP_DIR into one executive deck with dividers.
+    Returns True on success, False otherwise.
     """
-    st.markdown("### 🧩 Consolidation Summary")
-
     pdf_files = [f for f in os.listdir(TMP_DIR) if f.endswith(".pdf")]
     if not pdf_files:
-        st.info("⚙️ No PDFs found in consolidated queue. Add modules first.")
-        return
+        st.warning("⚙️ No PDFs found in consolidated queue. Add modules first.")
+        return False
 
-    pdf_files.sort()  # keep consistent ordering
+    pdf_files.sort()  # Consistent alphabetical order
 
-    st.write(f"Found {len(pdf_files)} reports:")
-    for f in pdf_files:
-        st.write(f"• {f}")
-
-    output_path = os.path.join(TMP_DIR, output_filename)
     writer = PdfWriter()
 
     # -------------------------------------------------------
     # 🧠 1. Cover Page
     # -------------------------------------------------------
-    st.write("📘 Adding cover page...")
-    cover_pdf = PdfReader(io.BytesIO(_make_single_page_pdf(
-        "People Analytics Leadership Deck",
-        f"Generated on {datetime.now().strftime('%d %b %Y, %I:%M %p')}",
-        "#0F172A"
-    )))
-    writer.append(cover_pdf)
+    try:
+        cover_pdf = PdfReader(io.BytesIO(_make_single_page_pdf(
+            "People Analytics Leadership Deck",
+            f"Generated on {datetime.now().strftime('%d %b %Y, %I:%M %p')}",
+            "#0F172A"
+        )))
+        writer.append(cover_pdf)
+    except Exception as e:
+        st.error(f"⚠️ Failed to add cover page: {e}")
+        return False
 
     # -------------------------------------------------------
-    # 🧩 2. Add all reports with dividers
+    # 🧩 2. Append each module report with divider
     # -------------------------------------------------------
     for f in pdf_files:
         section_name = os.path.splitext(f)[0].replace("_", " ")
-        st.write(f"📄 Adding section: {section_name}")
-
-        # Divider
-        divider_pdf = PdfReader(io.BytesIO(_make_single_page_pdf(
-            section_name.title(),
-            "Module Summary",
-            "#1E3A8A"
-        )))
-        writer.append(divider_pdf)
-
-        # Actual report
         try:
+            # Divider page
+            divider_pdf = PdfReader(io.BytesIO(_make_single_page_pdf(
+                section_name.title(),
+                "Module Summary",
+                "#1E3A8A"
+            )))
+            writer.append(divider_pdf)
+
+            # Module PDF
             reader = PdfReader(os.path.join(TMP_DIR, f))
             for page in reader.pages:
                 writer.add_page(page)
@@ -110,27 +104,25 @@ def merge_consolidated_pdfs(output_filename: str = "People_Analytics_Leadership_
             st.error(f"⚠️ Could not merge {f}: {e}")
 
     # -------------------------------------------------------
-    # 🧾 3. Write final file
+    # 🧾 3. Write final merged PDF
     # -------------------------------------------------------
-    with open(output_path, "wb") as out:
-        writer.write(out)
+    try:
+        with open(output_path, "wb") as out:
+            writer.write(out)
+        st.success("✅ Consolidated Leadership Deck created successfully!")
+        return True
+    except Exception as e:
+        st.error(f"❌ Failed to write merged PDF: {e}")
+        return False
 
-    st.success(f"✅ Consolidated Leadership Deck created: {output_filename}")
-    with open(output_path, "rb") as f:
-        st.download_button(
-            "⬇️ Download Final Consolidated Deck",
-            f,
-            file_name=output_filename,
-            mime="application/pdf"
-        )
-
-    # -------------------------------------------------------
-    # 🧹 Optional cleanup prompt
-    # -------------------------------------------------------
-    if st.button("🧹 Clear Consolidated Queue", use_container_width=True):
-        try:
-            shutil.rmtree(TMP_DIR)
-            os.makedirs(TMP_DIR, exist_ok=True)
-            st.success("✅ Consolidated queue cleared successfully.")
-        except Exception as e:
-            st.error(f"⚠️ Failed to clear queue: {e}")
+# -------------------------------------------------------
+# 🧹 Optional Cleanup Utility
+# -------------------------------------------------------
+def clear_consolidated_queue():
+    """Safely clears the consolidated temp folder."""
+    try:
+        shutil.rmtree(TMP_DIR)
+        os.makedirs(TMP_DIR, exist_ok=True)
+        st.success("✅ Consolidated queue cleared successfully.")
+    except Exception as e:
+        st.error(f"⚠️ Failed to clear queue: {e}")
