@@ -16,8 +16,8 @@ Workforce, Performance, Engagement, Compensation, Attrition
 
 import streamlit as st
 import os
-from utils_consolidated.deck_state_tracker import get_module_state
-from utils_consolidated.pdf_merger import TMP_DIR, merge_consolidated_pdfs
+from modules.utils_consolidated.pdf_merger import TMP_DIR, merge_consolidated_pdfs
+from modules.utils_consolidated.deck_state_tracker import get_module_state
 
 # -------------------------------------------------------
 # 🧭 Page Identity
