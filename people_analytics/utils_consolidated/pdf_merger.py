@@ -1,5 +1,5 @@
 # ============================================
-# utils_consolidated/pdf_merger.py — v4.5 | Executive Boardroom + Thank You Finale
+# utils_consolidated/pdf_merger.py — v4.6 | Download-Ready + Thank You Finale (Color-Safe)
 # ============================================
 import os
 import io
@@ -28,22 +28,49 @@ except Exception:
     FONT_NAME = "Helvetica"
 
 # -------------------------------------------------------
+# 🎨 Safe color converter
+# -------------------------------------------------------
+def _safe_color(color_input):
+    """Converts string color names or hex codes into a ReportLab-safe color."""
+    if isinstance(color_input, colors.Color):
+        return color_input
+    if isinstance(color_input, str):
+        try:
+            # Support named colors like "white", "black"
+            named_colors = {
+                "white": colors.white,
+                "black": colors.black,
+                "grey": colors.grey,
+                "red": colors.red,
+                "blue": colors.blue,
+                "green": colors.green,
+                "yellow": colors.yellow,
+            }
+            if color_input.lower() in named_colors:
+                return named_colors[color_input.lower()]
+            # Otherwise treat it as a hex
+            return colors.HexColor(color_input)
+        except Exception:
+            return colors.black
+    return colors.black
+
+# -------------------------------------------------------
 # 📄 Helper: generate single-page PDF (cover, divider, or thank-you)
 # -------------------------------------------------------
 def _make_single_page_pdf(title: str, subtitle: str = "", color: str = "#1E3A8A", text_color: str = "white") -> bytes:
     buf = io.BytesIO()
     c = canvas.Canvas(buf, pagesize=A4)
     width, height = A4
-    c.setFillColor(colors.HexColor(color))
+    c.setFillColor(_safe_color(color))
     c.rect(0, 0, width, height, fill=True, stroke=False)
-    c.setFillColor(colors.HexColor(text_color))
+    c.setFillColor(_safe_color(text_color))
     c.setFont(FONT_NAME, 24)
     c.drawCentredString(width / 2, height / 2 + 10 * 10, title)
     if subtitle:
         c.setFont(FONT_NAME, 14)
         c.drawCentredString(width / 2, height / 2 - 10 * 10, subtitle)
     c.setFont(FONT_NAME, 9)
-    c.setFillColor(colors.HexColor("#E5E7EB"))
+    c.setFillColor(_safe_color("#E5E7EB"))
     c.drawCentredString(width / 2, 15, "© 2025 People Analytics Project — Confidential")
     c.showPage()
     c.save()
