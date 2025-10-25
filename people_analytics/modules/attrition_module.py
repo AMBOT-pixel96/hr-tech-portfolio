@@ -172,30 +172,37 @@ def run_attrition_module():
     render_pdf_download_button("Attrition Analytics Executive Report", "Attrition", data_blocks, "Attrition")
 
     # ============================================
-    # ➕ Add to Consolidated Deck (new)
-    # ============================================
-    import os, shutil
-    from utils_consolidated.pdf_merger import TMP_DIR
-    from utils_consolidated.deck_state_tracker import update_module_state
+# ➕ Add to Consolidated Leadership Deck (Unified)
+# ============================================
+import os, shutil
+from utils_consolidated.pdf_merger import TMP_DIR
+from utils_consolidated.deck_state_tracker import update_module_state
 
-    st.markdown("---")
-    st.subheader("🧩 Add to Consolidated Leadership Deck")
+st.markdown("---")
+st.subheader("🧩 Add to Consolidated Leadership Deck")
 
-    pdf_filename = "Attrition_Analytics_Executive_Report.pdf"
-    possible_paths = [
-        os.path.join("/tmp", pdf_filename),
-        os.path.join(os.getcwd(), pdf_filename)
-    ]
+# Derive module name dynamically from file (e.g., "Workforce", "Compensation")
+module_name = __name__.split("_")[0].replace("modules.", "").capitalize()
+pdf_filename = f"{module_name}_Analytics_Executive_Report.pdf"
 
-    existing_pdf = next((p for p in possible_paths if os.path.exists(p)), None)
+possible_paths = [
+    os.path.join("/tmp", pdf_filename),
+    os.path.join(os.getcwd(), pdf_filename)
+]
 
+existing_pdf = next((p for p in possible_paths if os.path.exists(p)), None)
+dest_path = os.path.join(TMP_DIR, f"{module_name}.pdf")
+
+# --- Check if already added ---
+if os.path.exists(dest_path):
+    st.success("✅ A copy of this report has been added to the consolidated deck queue.")
+else:
     if existing_pdf:
-        if st.button("➕ Add Attrition Report to Consolidated Deck", use_container_width=True):
+        if st.button(f"➕ Add {module_name} Report to Consolidated Deck", use_container_width=True):
             try:
-                dest_path = os.path.join(TMP_DIR, "Attrition.pdf")
                 shutil.copyfile(existing_pdf, dest_path)
-                update_module_state("Attrition")  # ✅ Timestamp update
-                st.success("✅ Attrition Report added to consolidated deck!")
+                update_module_state(module_name)
+                st.success("✅ A copy of this report has been added to the consolidated deck queue.")
             except Exception as e:
                 st.error(f"⚠️ Failed to add report: {e}")
     else:
