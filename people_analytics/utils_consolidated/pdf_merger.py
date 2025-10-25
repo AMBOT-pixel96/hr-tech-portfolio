@@ -123,7 +123,7 @@ def merge_pdfs():
         # 🎬 Thank You Finale Page
         # -------------------------------------------------------
         thank_you_pdf = PdfReader(io.BytesIO(_make_single_page_pdf(
-            "Thank You 💼",
+            "Thank You !",
             "Prepared with ❤️ by Amlan Mishra | People Analytics Project — 2025",
             "#312E81",  # Deep indigo-violet
             "white"
