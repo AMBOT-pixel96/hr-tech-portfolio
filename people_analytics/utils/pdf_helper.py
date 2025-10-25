@@ -198,9 +198,9 @@ def render_pdf_download_button(report_title, module_name, data_blocks, file_pref
         story.append(summary_table)
         story.append(Spacer(1, 10))
 
-        # -------------------------------------------------
+        # -------------------------------
         # 💾 BUILD & DOWNLOAD
-        # -------------------------------------------------
+        # -------------------------------
         try:
             doc.build(story)
             pdf_data = buf.getvalue()
@@ -211,6 +211,20 @@ def render_pdf_download_button(report_title, module_name, data_blocks, file_pref
                 file_name=f"{file_prefix}_Executive_Report.pdf",
                 mime="application/pdf",
             )
+
+            # --------------------------------
+            # 🧩 Auto-save for Consolidated Deck
+            # --------------------------------
+            try:
+                from utils_consolidated.pdf_merger import TMP_DIR
+                os.makedirs(TMP_DIR, exist_ok=True)
+                pdf_save_path = os.path.join(TMP_DIR, f"{module_name}.pdf")
+                with open(pdf_save_path, "wb") as f:
+                    f.write(pdf_data)
+                st.info("🧩 A copy of this report has been added to the consolidated deck queue.")
+            except Exception as e:
+                st.warning(f"⚠️ Could not auto-save PDF for consolidation: {e}")
+
         except Exception as e:
             st.error(f"⚠️ PDF build failed: {e}")
         finally:
