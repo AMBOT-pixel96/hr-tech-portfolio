@@ -1,5 +1,5 @@
 # ============================================
-# pages/consolidated.py — v4.4 | Executive Stable (Import-Stable)
+# pages/consolidated.py — v4.5 | Executive Stable (Final Boss Down Edition)
 # ============================================
 """
 📘 Consolidated HR Leadership Deck Entry Point
@@ -12,6 +12,7 @@ Workforce, Performance, Engagement, Compensation, Attrition
 ✅ Uses deck_state_tracker timestamps
 ✅ Allows single-click final PDF merge
 ✅ Keeps global styling consistent
+✅ 100% import-safe for Streamlit Cloud
 """
 
 # -------------------------------------------------------
@@ -30,7 +31,7 @@ for path in (BASE_DIR, UTILS_DIR):
         sys.path.append(path)
 
 try:
-    from utils_consolidated.pdf_merger import TMP_DIR, merge_consolidated_pdfs
+    from utils_consolidated.pdf_merger import TMP_DIR, merge_pdfs
     from utils_consolidated.deck_state_tracker import get_module_state
 except ModuleNotFoundError as e:
     st.error(f"⚠️ Import error: {e}")
@@ -121,7 +122,7 @@ st.caption("Combines all completed module PDFs into a single master HR Leadershi
 if st.button("🧾 Merge & Generate Consolidated PDF", use_container_width=True):
     output_path = os.path.join(TMP_DIR, "People_Analytics_Leadership_Deck.pdf")
     try:
-        merge_consolidated_pdfs(output_path)
+        merge_pdfs(output_path)  # ✅ corrected name
         if os.path.exists(output_path):
             st.success("✅ Consolidated Leadership Deck generated successfully!")
             with open(output_path, "rb") as f:
