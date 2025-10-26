@@ -139,6 +139,14 @@ dest_path = os.path.join(TMP_DIR, f"{module_name}.pdf")
 # --- Check if already added ---
 if os.path.exists(dest_path):
     st.success("✅ A copy of this report has been added to the consolidated deck queue.")
+# 🔹 Auto-write metadata JSON for consolidated summary
+import json
+meta = {
+    "insights": f"Total Employees {total:,} • Female {female_pct:.1f}% • Job Levels {job_levels}",
+    "metrics_short": "Headcount, Gender %, Job Levels"
+}
+with open(os.path.join(TMP_DIR, "Workforce.json"), "w", encoding="utf-8") as f:
+    json.dump(meta, f)
 else:
     if existing_pdf:
         if st.button(f"➕ Add {module_name} Report to Consolidated Deck", use_container_width=True):
