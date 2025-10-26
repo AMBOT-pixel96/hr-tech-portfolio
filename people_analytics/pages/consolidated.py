@@ -1,5 +1,5 @@
 # ============================================
-# pages/consolidated.py — v6.0 | Executive Stable (Final Production Build)
+# pages/consolidated.py — v6.1 | Executive Stable (Merge Logic Fix)
 # ============================================
 """
 📘 Consolidated HR Leadership Deck Entry Point
@@ -8,6 +8,7 @@ Loads and displays the unified executive dashboard
 that merges module reports from:
 Workforce, Performance, Engagement, Compensation, Attrition
 
+✅ Case-insensitive PDF validation
 ✅ Reflects real-time deck status (from TMP_DIR)
 ✅ Uses deck_state_tracker timestamps
 ✅ Allows single-click final PDF merge
@@ -19,7 +20,9 @@ import sys, os
 import streamlit as st
 from datetime import datetime
 
-# Dynamically add parent dir to path if not already included
+# -------------------------------------------------------
+# 🧭 Import setup
+# -------------------------------------------------------
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
     sys.path.append(BASE_DIR)
@@ -32,7 +35,7 @@ except ModuleNotFoundError as e:
     st.stop()
 
 # -------------------------------------------------------
-# 🧭 Page Identity
+# ⚙️ Page config
 # -------------------------------------------------------
 st.set_page_config(
     page_title="Consolidated HR Leadership Deck",
@@ -106,29 +109,36 @@ for i, mod in enumerate(modules_expected):
         """, unsafe_allow_html=True)
 
 # -------------------------------------------------------
-# 🧾 Merge Final Deck
+# 🧾 Merge Final Deck (with case-insensitive validation)
 # -------------------------------------------------------
 st.markdown("---")
 st.header("📄 Finalize & Generate Executive Leadership Deck")
 st.caption("Combines all completed module PDFs into a single master HR Leadership Deck.")
 
-if st.button("🧾 Merge & Generate Consolidated Deck", use_container_width=True):
-    output_path = os.path.join(TMP_DIR, "People_Analytics_Leadership_Deck.pdf")
-    try:
-        success = merge_consolidated_pdfs(output_path)
-        if success and os.path.exists(output_path):
-            st.success("✅ Consolidated Leadership Deck generated successfully!")
-            with open(output_path, "rb") as f:
-                st.download_button(
-                    "⬇️ Download Final Consolidated Deck",
-                    f,
-                    file_name="People_Analytics_Leadership_Deck.pdf",
-                    mime="application/pdf"
-                )
-        else:
-            st.warning("⚠️ Some module PDFs are missing. Add them before merging.")
-    except Exception as e:
-        st.error(f"❌ Failed to merge PDFs: {e}")
+# Case-insensitive check
+existing_pdfs = [os.path.splitext(f)[0].lower() for f in pdf_files if f.endswith(".pdf")]
+missing = [m for m in modules_expected if m.lower() not in existing_pdfs]
+
+if missing:
+    st.warning(f"⚠️ Some module PDFs are missing: {', '.join(missing)}. Add them before merging.")
+else:
+    if st.button("🧾 Merge & Generate Consolidated Deck", use_container_width=True):
+        output_path = os.path.join(TMP_DIR, "People_Analytics_Leadership_Deck.pdf")
+        try:
+            success = merge_consolidated_pdfs(output_path)
+            if success and os.path.exists(output_path):
+                st.success("✅ Consolidated Leadership Deck generated successfully!")
+                with open(output_path, "rb") as f:
+                    st.download_button(
+                        "⬇️ Download Final Consolidated Deck",
+                        f,
+                        file_name="People_Analytics_Leadership_Deck.pdf",
+                        mime="application/pdf"
+                    )
+            else:
+                st.warning("⚠️ Some module PDFs might still be missing. Please verify.")
+        except Exception as e:
+            st.error(f"❌ Failed to merge PDFs: {e}")
 
 # -------------------------------------------------------
 # 🧹 Maintenance Tools
@@ -145,6 +155,7 @@ with col1:
             st.success("✅ Cleared all queued PDFs successfully.")
         except Exception as e:
             st.error(f"⚠️ Failed to clear: {e}")
+
 with col2:
     with st.expander("📂 Show Files in Deck Folder"):
         files = [f for f in os.listdir(TMP_DIR) if f.endswith(".pdf") or f.endswith(".json")]
