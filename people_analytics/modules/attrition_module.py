@@ -170,19 +170,17 @@ def run_attrition_module():
     st.markdown("---")
     st.subheader("📄 Step 5 — Export Executive Report")
     render_pdf_download_button("Attrition Analytics Executive Report", "Attrition", data_blocks, "Attrition")
-
-    # ============================================
-# ➕ Add to Consolidated Leadership Deck (Unified)
 # ============================================
-import os, shutil
+# ➕ Add to Consolidated Leadership Deck (Attrition)
+# ============================================
+import os, shutil, json
 from utils_consolidated.pdf_merger import TMP_DIR
 from utils_consolidated.deck_state_tracker import update_module_state
 
 st.markdown("---")
 st.subheader("🧩 Add to Consolidated Leadership Deck")
 
-# Derive module name dynamically from file (e.g., "Workforce", "Compensation")
-module_name = __name__.split("_")[0].replace("modules.", "").capitalize()
+module_name = "Attrition"
 pdf_filename = f"{module_name}_Analytics_Executive_Report.pdf"
 
 possible_paths = [
@@ -193,9 +191,10 @@ possible_paths = [
 existing_pdf = next((p for p in possible_paths if os.path.exists(p)), None)
 dest_path = os.path.join(TMP_DIR, f"{module_name}.pdf")
 
-# --- Check if already added ---
+# --- If already added ---
 if os.path.exists(dest_path):
     st.success("✅ A copy of this report has been added to the consolidated deck queue.")
+
 else:
     if existing_pdf:
         if st.button(f"➕ Add {module_name} Report to Consolidated Deck", use_container_width=True):
@@ -203,6 +202,15 @@ else:
                 shutil.copyfile(existing_pdf, dest_path)
                 update_module_state(module_name)
                 st.success("✅ A copy of this report has been added to the consolidated deck queue.")
+
+                # 🔹 Auto-write metadata JSON for consolidated summary
+                meta = {
+                    "insights": f"Attrition {rate:.1f}% • Avg Tenure {avg_tenure:.1f} mo • Top Dept {dept.iloc[0]['Department'] if not dept.empty else 'N/A'}",
+                    "metrics_short": "Attrition %, Avg Tenure, Top Department"
+                }
+                with open(os.path.join(TMP_DIR, "Attrition.json"), "w", encoding="utf-8") as f:
+                    json.dump(meta, f)
+
             except Exception as e:
                 st.error(f"⚠️ Failed to add report: {e}")
     else:
