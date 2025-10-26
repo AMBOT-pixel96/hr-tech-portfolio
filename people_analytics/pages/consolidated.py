@@ -1,26 +1,39 @@
 # ============================================
-# pages/consolidated.py — v4.4 | Executive Stable (Sidebar Fixed)
+# pages/consolidated.py — v5.0 | Executive Stable (Final Import-Safe Build)
 # ============================================
-import os
-import sys
-import streamlit as st
+"""
+📘 Consolidated HR Leadership Deck Entry Point
+------------------------------------------------
+Loads and displays the unified executive dashboard
+that merges module reports from:
+Workforce, Performance, Engagement, Compensation, Attrition
+
+✅ Reflects real-time deck status (from TMP_DIR)
+✅ Uses deck_state_tracker timestamps
+✅ Allows single-click final PDF merge
+✅ Keeps sidebar consistent across modules
+"""
 
 # -------------------------------------------------------
-# 📦 Safe Imports — Local + Cloud
+# 📦 Safe Imports — handles both local & cloud execution
 # -------------------------------------------------------
+import sys, os
+import streamlit as st
+
+# Dynamically add parent dir to path if not already included
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
     sys.path.append(BASE_DIR)
 
 try:
-    from utils_consolidated.pdf_merger import TMP_DIR, merge_pdfs
+    from utils_consolidated.pdf_merger import TMP_DIR, merge_consolidated_pdfs
     from utils_consolidated.deck_state_tracker import get_module_state
 except ModuleNotFoundError as e:
     st.error(f"⚠️ Import error: {e}")
     st.stop()
 
 # -------------------------------------------------------
-# 🧭 Page Config
+# 🧭 Page Identity
 # -------------------------------------------------------
 st.set_page_config(
     page_title="Consolidated HR Leadership Deck",
@@ -29,19 +42,16 @@ st.set_page_config(
 )
 
 # -------------------------------------------------------
-# 🎨 Styling
+# 🎨 Executive Styling (Unified Sidebar + Headings)
 # -------------------------------------------------------
 st.markdown("""
 <style>
-/* Sidebar gradient and header */
 [data-testid="stSidebar"] {
     background: linear-gradient(180deg, #0F172A 0%, #1E3A8A 100%);
     color: white;
     padding-top: 1rem;
     border-right: 1px solid #1E293B;
 }
-
-/* Sidebar Header Title */
 [data-testid="stSidebarNav"]::before {
     content: "📘 CONSOLIDATED HR LEADERSHIP DECK";
     margin-left: 20px;
@@ -50,20 +60,9 @@ st.markdown("""
     color: #FACC15;
     text-transform: uppercase;
 }
-
-/* Capitalize Sidebar Page Links */
-[data-testid="stSidebarNav"] a p {
-    text-transform: capitalize !important;
+h1, h2, h3, h4 {
+    color: #F9FAFB;
 }
-
-/* Highlight active page */
-[data-testid="stSidebarNav"] a[aria-current="page"] {
-    background: rgba(250, 204, 21, 0.15) !important;
-    color: #FACC15 !important;
-    font-weight: 700 !important;
-}
-
-/* Deck Status Cards */
 .deck-status {
     border: 1px solid #1E3A8A;
     border-radius: 10px;
@@ -112,32 +111,29 @@ for i, mod in enumerate(modules_expected):
 # -------------------------------------------------------
 st.markdown("---")
 st.header("📄 Finalize & Generate Executive Leadership Deck")
-st.caption("Combines all added module PDFs into one executive-ready leadership report.")
+st.caption("Combines all completed module PDFs into a single master HR Leadership Deck.")
 
-if st.button("🧾 Merge & Generate Consolidated Deck", use_container_width=True):
-    merge_pdfs()
-
-# -------------------------------------------------------
-# 🧹 Maintenance Options
-# -------------------------------------------------------
-st.markdown("---")
-st.header("🧹 Maintenance Options")
-
-col1, col2 = st.columns(2)
-with col1:
-    if st.button("🧹 Clear Deck Queue", use_container_width=True):
-        try:
-            for f in os.listdir(TMP_DIR):
-                os.remove(os.path.join(TMP_DIR, f))
-            st.success("✅ Cleared all queued PDFs successfully.")
-        except Exception as e:
-            st.error(f"⚠️ Failed to clear: {e}")
-
-with col2:
-    if st.button("📂 Show Files in Deck Folder", use_container_width=True):
-        files = [f for f in os.listdir(TMP_DIR) if f.endswith(".pdf")]
-        if not files:
-            st.info("No PDFs currently in the queue.")
+if st.button("🧾 Merge & Generate Consolidated PDF", use_container_width=True):
+    output_path = os.path.join(TMP_DIR, "People_Analytics_Leadership_Deck.pdf")
+    try:
+        success = merge_consolidated_pdfs(output_path)
+        if success and os.path.exists(output_path):
+            st.success("✅ Consolidated Leadership Deck generated successfully!")
+            with open(output_path, "rb") as f:
+                st.download_button(
+                    "⬇️ Download HR Leadership Deck (PDF)",
+                    f,
+                    file_name="People_Analytics_Leadership_Deck.pdf",
+                    mime="application/pdf"
+                )
         else:
-            for f in files:
-                st.write(f"📄 {f}")
+            st.warning("⚠️ Some module PDFs are missing. Add them before merging.")
+    except Exception as e:
+        st.error(f"❌ Failed to merge PDFs: {e}")
+
+# -------------------------------------------------------
+# 📁 Folder path helper (for debugging)
+# -------------------------------------------------------
+with st.expander("📂 View Consolidation Folder"):
+    st.write(f"**TMP_DIR:** `{TMP_DIR}`")
+    st.write(pdf_files)
