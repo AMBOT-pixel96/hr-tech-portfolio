@@ -1,5 +1,5 @@
 # ============================================
-# pages/consolidated.py — v5.0 | Executive Stable (Final Import-Safe Build)
+# pages/consolidated.py — v6.0 | Executive Stable (Final Production Build)
 # ============================================
 """
 📘 Consolidated HR Leadership Deck Entry Point
@@ -11,14 +11,13 @@ Workforce, Performance, Engagement, Compensation, Attrition
 ✅ Reflects real-time deck status (from TMP_DIR)
 ✅ Uses deck_state_tracker timestamps
 ✅ Allows single-click final PDF merge
-✅ Keeps sidebar consistent across modules
+✅ Includes Maintenance Panel
+✅ Uniform Sidebar Styling
 """
 
-# -------------------------------------------------------
-# 📦 Safe Imports — handles both local & cloud execution
-# -------------------------------------------------------
 import sys, os
 import streamlit as st
+from datetime import datetime
 
 # Dynamically add parent dir to path if not already included
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -42,7 +41,7 @@ st.set_page_config(
 )
 
 # -------------------------------------------------------
-# 🎨 Executive Styling (Unified Sidebar + Headings)
+# 🎨 Executive Styling
 # -------------------------------------------------------
 st.markdown("""
 <style>
@@ -113,7 +112,7 @@ st.markdown("---")
 st.header("📄 Finalize & Generate Executive Leadership Deck")
 st.caption("Combines all completed module PDFs into a single master HR Leadership Deck.")
 
-if st.button("🧾 Merge & Generate Consolidated PDF", use_container_width=True):
+if st.button("🧾 Merge & Generate Consolidated Deck", use_container_width=True):
     output_path = os.path.join(TMP_DIR, "People_Analytics_Leadership_Deck.pdf")
     try:
         success = merge_consolidated_pdfs(output_path)
@@ -121,7 +120,7 @@ if st.button("🧾 Merge & Generate Consolidated PDF", use_container_width=True)
             st.success("✅ Consolidated Leadership Deck generated successfully!")
             with open(output_path, "rb") as f:
                 st.download_button(
-                    "⬇️ Download HR Leadership Deck (PDF)",
+                    "⬇️ Download Final Consolidated Deck",
                     f,
                     file_name="People_Analytics_Leadership_Deck.pdf",
                     mime="application/pdf"
@@ -132,8 +131,27 @@ if st.button("🧾 Merge & Generate Consolidated PDF", use_container_width=True)
         st.error(f"❌ Failed to merge PDFs: {e}")
 
 # -------------------------------------------------------
-# 📁 Folder path helper (for debugging)
+# 🧹 Maintenance Tools
 # -------------------------------------------------------
-with st.expander("📂 View Consolidation Folder"):
-    st.write(f"**TMP_DIR:** `{TMP_DIR}`")
-    st.write(pdf_files)
+st.markdown("---")
+st.subheader("🧹 Maintenance Options")
+
+col1, col2 = st.columns(2)
+with col1:
+    if st.button("🧹 Clear Deck Queue", use_container_width=True):
+        try:
+            for f in os.listdir(TMP_DIR):
+                os.remove(os.path.join(TMP_DIR, f))
+            st.success("✅ Cleared all queued PDFs successfully.")
+        except Exception as e:
+            st.error(f"⚠️ Failed to clear: {e}")
+with col2:
+    with st.expander("📂 Show Files in Deck Folder"):
+        files = [f for f in os.listdir(TMP_DIR) if f.endswith(".pdf") or f.endswith(".json")]
+        if not files:
+            st.info("No files currently in the queue.")
+        else:
+            for f in files:
+                path = os.path.join(TMP_DIR, f)
+                mod_time = datetime.fromtimestamp(os.path.getmtime(path)).strftime("%b'%y %H:%M")
+                st.write(f"📄 {f} — {mod_time}")
