@@ -71,3 +71,70 @@ def render_pdf_download_button(report_title, module_name, data_blocks, file_pref
                     story.append(RLImage(img, width=175*mm, height=105*mm))
             story.append(Spacer(1, 6))
             story.append(Paragraph(" • ".join(insights), body))
+# Append section summary
+            summary_data.append([title, " • ".join(insights)])
+            story.append(PageBreak())
+
+        # Executive Summary Page
+        story.append(Paragraph("<b>Executive Summary</b>", heading))
+        story.append(Spacer(1, 8))
+        summary_table = Table(summary_data, colWidths=[70 * mm, 110 * mm], repeatRows=1)
+        summary_table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E5E7EB")),
+            ("GRID", (0, 0), (-1, -1), 0.25, colors.black),
+            ("FONTNAME", (0, 0), (-1, -1), DEFAULT_FONT),
+            ("FONTSIZE", (0, 0), (-1, -1), 9),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 6),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F9FAFB")]),
+        ]))
+        story.append(summary_table)
+        story.append(Spacer(1, 10))
+
+        # -------------------------------------------------
+        # 💾 Build PDF + Enable Download
+        # -------------------------------------------------
+        try:
+            doc.build(story)
+            pdf_data = buf.getvalue()
+            st.success("✅ Executive PDF generated successfully.")
+            st.download_button(
+                "⬇️ Download Report",
+                pdf_data,
+                file_name=f"{file_prefix}_Executive_Report.pdf",
+                mime="application/pdf",
+            )
+
+            # -------------------------------------------------
+            # 🧩 Auto-save copy for Consolidated Deck
+            # -------------------------------------------------
+            try:
+                from utils_consolidated.pdf_merger import TMP_DIR
+                os.makedirs(TMP_DIR, exist_ok=True)
+                pdf_save_path = os.path.join(TMP_DIR, f"{module_name}.pdf")
+
+                # Save both PDF and summary metadata
+                with open(pdf_save_path, "wb") as f:
+                    f.write(pdf_data)
+
+                insights_joined = " • ".join(
+                    [ins for blk in data_blocks for ins in blk.get("insights", []) if ins]
+                ) or "No summary provided."
+
+                meta = {
+                    "insights": insights_joined,
+                    "metrics_short": ", ".join([blk.get("title", "") for blk in data_blocks]),
+                }
+                with open(os.path.join(TMP_DIR, f"{module_name}.json"), "w", encoding="utf-8") as f:
+                    import json
+                    json.dump(meta, f)
+
+                st.info("🧩 A copy of this report has been added to the consolidated deck queue.")
+            except Exception as e:
+                st.warning(f"⚠️ Could not auto-save PDF for consolidation: {e}")
+
+        except Exception as e:
+            st.error(f"⚠️ PDF build failed: {e}")
+        finally:
+            buf.close()
