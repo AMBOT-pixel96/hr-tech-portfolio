@@ -117,14 +117,13 @@ def run_workforce_module():
 # ============================================
 # ➕ Add to Consolidated Leadership Deck (Unified)
 # ============================================
-import os, shutil
+import os, shutil, json
 from utils_consolidated.pdf_merger import TMP_DIR
 from utils_consolidated.deck_state_tracker import update_module_state
 
 st.markdown("---")
 st.subheader("🧩 Add to Consolidated Leadership Deck")
 
-# Derive module name dynamically from file (e.g., "Workforce", "Compensation")
 module_name = __name__.split("_")[0].replace("modules.", "").capitalize()
 pdf_filename = f"{module_name}_Analytics_Executive_Report.pdf"
 
@@ -136,17 +135,10 @@ possible_paths = [
 existing_pdf = next((p for p in possible_paths if os.path.exists(p)), None)
 dest_path = os.path.join(TMP_DIR, f"{module_name}.pdf")
 
-# --- Check if already added ---
+# --- If already added ---
 if os.path.exists(dest_path):
     st.success("✅ A copy of this report has been added to the consolidated deck queue.")
-# 🔹 Auto-write metadata JSON for consolidated summary
-import json
-meta = {
-    "insights": f"Total Employees {total:,} • Female {female_pct:.1f}% • Job Levels {job_levels}",
-    "metrics_short": "Headcount, Gender %, Job Levels"
-}
-with open(os.path.join(TMP_DIR, "Workforce.json"), "w", encoding="utf-8") as f:
-    json.dump(meta, f)
+
 else:
     if existing_pdf:
         if st.button(f"➕ Add {module_name} Report to Consolidated Deck", use_container_width=True):
@@ -154,6 +146,15 @@ else:
                 shutil.copyfile(existing_pdf, dest_path)
                 update_module_state(module_name)
                 st.success("✅ A copy of this report has been added to the consolidated deck queue.")
+
+                # 🔹 Auto-write metadata JSON for consolidated summary
+                meta = {
+                    "insights": f"Total Employees {total:,} • Female {female_pct:.1f}% • Job Levels {job_levels}",
+                    "metrics_short": "Headcount, Gender %, Job Levels"
+                }
+                with open(os.path.join(TMP_DIR, "Workforce.json"), "w", encoding="utf-8") as f:
+                    json.dump(meta, f)
+
             except Exception as e:
                 st.error(f"⚠️ Failed to add report: {e}")
     else:
