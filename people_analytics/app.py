@@ -1,32 +1,37 @@
 # ============================================
-# app.py — People Analytics Dashboard (v3.8 Executive Final Fix)
+# app.py — People Analytics Dashboard (v3.9 StableCloud Edition)
 # ============================================
 
-# --- Base imports (safe zone) ---
+# --- Base imports (no Streamlit yet) ---
 import os
 import json
 from datetime import datetime
 
-# --- Import Streamlit first, but DO NOT import custom Streamlit modules yet ---
+# --- Import Streamlit ---
 import streamlit as st
 
-# --- Page Config (MUST be the very first Streamlit call) ---
+# --- Page Config (MUST be first Streamlit command) ---
 st.set_page_config(
     page_title="People Analytics Dashboard",
     layout="wide",
     page_icon="📊"
 )
 
-# --- Environment variables / safe setup AFTER config ---
+# --- Safe system setup (AFTER config) ---
 os.environ["STREAMLIT_WATCHDOG"] = "false"
 
-# --- Delayed import: modules that themselves import Streamlit ---
-# (if we import this before st.set_page_config, it triggers early Streamlit context)
-from utils.pdf_explainer_builder import show_explainer_ui
-
+# --- Lazy import to avoid early Streamlit context ---
+import importlib.util
+spec = importlib.util.find_spec("utils.pdf_explainer_builder")
+if spec is not None:
+    pdf_explainer_builder = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(pdf_explainer_builder)
+    show_explainer_ui = pdf_explainer_builder.show_explainer_ui
+else:
+    st.error("❌ Could not load PDF explainer module.")
 
 # ============================================
-# 🎨 Sidebar Styling (Executive Theme)
+# 🎨 Sidebar Styling
 # ============================================
 st.markdown("""
 <style>
@@ -95,15 +100,6 @@ def preload_session_state():
     except Exception as e:
         st.warning(f"⚠️ Session restore skipped: {e}")
 
-def auto_save_session_state():
-    try:
-        data = {k: v for k, v in st.session_state.items() if not k.startswith("_")}
-        data["last_saved"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        with open(SESSION_FILE, "w") as f:
-            json.dump(data, f, indent=2)
-    except Exception as e:
-        st.warning(f"⚠️ Auto-save skipped: {e}")
-
 preload_session_state()
 
 # ============================================
@@ -126,7 +122,9 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-show_explainer_ui()
+if 'show_explainer_ui' in locals():
+    show_explainer_ui()
+
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ============================================
