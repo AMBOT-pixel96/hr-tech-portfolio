@@ -1,10 +1,12 @@
 # ============================================
-# utils/pdf_explainer_builder.py — v5.7 | People Analytics Explainer (Boardroom Ultra Fixed & Verified)
+# utils/pdf_explainer_builder.py — v5.8 | People Analytics Explainer (Boardroom Gold Edition)
 # ============================================
 """
-Generates the People Analytics Executive Explainer PDF
-with gradient cover, proper TOC placement, all modules,
-white table headers, wrapped cells, and confidentiality disclaimer.
+Final production version:
+✅ Clean separate cover (no TOC overlap)
+✅ White-on-indigo table headers
+✅ Non-stretched sample rows
+✅ Confidentiality disclaimer box on gradient
 """
 
 import os, io
@@ -22,9 +24,8 @@ from reportlab.platypus import (
 )
 from PyPDF2 import PdfReader, PdfWriter
 
-
 # ----------------------------
-# Font registration (with fallback)
+# Font setup
 # ----------------------------
 try:
     pdfmetrics.registerFont(TTFont("DejaVuSans", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"))
@@ -32,9 +33,8 @@ try:
 except Exception:
     DEFAULT_FONT = "Helvetica"
 
-
 # ----------------------------
-# Color palette
+# Colors
 # ----------------------------
 NAVY = colors.HexColor("#0F172A")
 INDIGO = colors.HexColor("#1E3A8A")
@@ -44,7 +44,6 @@ YELLOW_BORDER = colors.HexColor("#FACC15")
 
 PAGE_LEFT_RIGHT_MARGIN = 18 * mm
 PAGE_TOP_BOTTOM_MARGIN = 20 * mm
-
 
 # ----------------------------
 # Styles
@@ -69,42 +68,8 @@ def _get_styles():
                                  alignment=1, textColor=GRAY_TEXT)
     }
 
-
 # ----------------------------
-# Zebra Table (white header text, wrapped)
-# ----------------------------
-def make_zebra_table(data, col_widths):
-    s = _get_styles()
-    wrapped = [[Paragraph(str(c), s["body"]) for c in r] for r in data]
-    t = Table(wrapped, colWidths=col_widths, repeatRows=1)
-    t.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), INDIGO),
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-        ("FONTNAME", (0, 0), (-1, -1), DEFAULT_FONT),
-        ("FONTSIZE", (0, 0), (-1, -1), 9),
-        ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#D1D5DB")),
-        ("TOPPADDING", (0, 0), (-1, -1), 6),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-        ("WORDWRAP", (0, 0), (-1, -1), "CJK"),
-        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT_BG]),
-    ]))
-    return t
-
-
-# ----------------------------
-# Footer watermark
-# ----------------------------
-def _add_footer(c, doc):
-    c.saveState()
-    c.setFont(DEFAULT_FONT, 8)
-    c.setFillColor(GRAY_TEXT)
-    w, _ = A4
-    c.drawCentredString(w / 2, 12, "Prepared with ❤️ by People Analytics Project — Confidential")
-    c.restoreState()
-
-
-# ----------------------------
-# Gradient Background
+# Gradient background
 # ----------------------------
 def draw_gradient_background(c):
     w, h = A4
@@ -117,11 +82,44 @@ def draw_gradient_background(c):
         c.setFillColorRGB(r, g, b)
         c.rect(0, (h / steps) * i, w, h / steps, stroke=0, fill=1)
 
+# ----------------------------
+# Footer
+# ----------------------------
+def _add_footer(c, doc):
+    c.saveState()
+    c.setFont(DEFAULT_FONT, 8)
+    c.setFillColor(GRAY_TEXT)
+    w, _ = A4
+    c.drawCentredString(w / 2, 12, "Prepared with ❤️ by People Analytics Project — Confidential")
+    c.restoreState()
 
 # ----------------------------
-# Explainer Content
+# Zebra table with white header text
 # ----------------------------
-# (Keep your full EXPLAINER_CONTENT dict — unchanged from your previous file)
+def make_zebra_table(data, col_widths):
+    s = _get_styles()
+    wrapped = [[Paragraph(str(c), s["body"]) for c in r] for r in data]
+
+    # ✅ Force white text for header row
+    for j in range(len(wrapped[0])):
+        wrapped[0][j] = Paragraph(f"<font color='white'><b>{data[0][j]}</b></font>", s["body"])
+
+    t = Table(wrapped, colWidths=col_widths, repeatRows=1)
+    t.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), INDIGO),
+        ("FONTNAME", (0, 0), (-1, -1), DEFAULT_FONT),
+        ("FONTSIZE", (0, 0), (-1, -1), 9),
+        ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#D1D5DB")),
+        ("TOPPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+        ("WORDWRAP", (0, 0), (-1, -1), "CJK"),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT_BG]),
+    ]))
+    return t
+
+# ----------------------------
+# Explainer content dictionary
+# ----------------------------
 EXPLAINER_CONTENT = {
     "Attrition Analysis": {
         "blurb": "Understanding who’s leaving, how fast, and why.",
@@ -207,37 +205,34 @@ EXPLAINER_CONTENT = {
 }
 
 # ----------------------------
-# Main PDF Builder
+# Build PDF
 # ----------------------------
 def build_explainer_pdf(output_path=None) -> bytes:
-    buf = io.BytesIO()
     s = _get_styles()
 
-    # ✅ Initialize document *before* adding content
-    doc = SimpleDocTemplate(
-        buf, pagesize=A4,
+    # --- Create cover separately
+    cover_buf = io.BytesIO()
+    c = canvas.Canvas(cover_buf, pagesize=A4)
+    draw_gradient_background(c)
+    w, h = A4
+    c.setFont(DEFAULT_FONT, 26)
+    c.setFillColor(colors.white)
+    c.drawCentredString(w / 2, h / 2 + 30, "People Analytics Executive Explainer")
+    c.setFont(DEFAULT_FONT, 12)
+    c.drawCentredString(w / 2, h / 2 - 10, f"Generated on {datetime.now().strftime('%d %b %Y')}")
+    c.showPage()
+    c.save()
+
+    # --- TOC + modules ---
+    buf = io.BytesIO()
+    doc = SimpleDocTemplate(buf, pagesize=A4,
         rightMargin=PAGE_LEFT_RIGHT_MARGIN,
         leftMargin=PAGE_LEFT_RIGHT_MARGIN,
         topMargin=PAGE_TOP_BOTTOM_MARGIN,
         bottomMargin=PAGE_TOP_BOTTOM_MARGIN,
     )
     story = []
-
-    # --- Cover ---
-    def cover(canvas, doc):
-        draw_gradient_background(canvas)
-        w, h = A4
-        canvas.saveState()
-        canvas.setFont(DEFAULT_FONT, 26)
-        canvas.setFillColor(colors.white)
-        canvas.drawCentredString(w / 2, h / 2 + 30, "People Analytics Executive Explainer")
-        canvas.setFont(DEFAULT_FONT, 12)
-        canvas.drawCentredString(w / 2, h / 2 - 10, f"Generated on {datetime.now().strftime('%d %b %Y')}")
-        canvas.restoreState()
-
-    # ✅ Add some space before TOC
-    story.append(Spacer(1, 40))
-    story.append(Paragraph("📘 Table of Contents", s["heading"]))
+    story.append(Paragraph("Table of Contents", s["heading"]))
     toc = [["#", "Section", "Description"],
            ["1", "Module Overview", "Purpose & Outputs"],
            ["2", "Module Details", "Required Fields, Samples & Metrics"],
@@ -246,68 +241,58 @@ def build_explainer_pdf(output_path=None) -> bytes:
     story.append(make_zebra_table(toc, [10 * mm, 60 * mm, 110 * mm]))
     story.append(PageBreak())
 
-    # ✅ Module sections (now actually added to story)
     for name, p in EXPLAINER_CONTENT.items():
         story.append(Paragraph(name, s["heading"]))
         story.append(Paragraph(p["blurb"], s["body"]))
         story.append(Spacer(1, 6))
-
         story.append(Paragraph("Required Columns", s["subhead"]))
         story.append(Paragraph(", ".join(p["required"]), s["body"]))
         story.append(Spacer(1, 6))
-
         story.append(Paragraph("Sample Rows", s["subhead"]))
         col_count = len(p["required"])
         col_width = (180 * mm) / col_count
         story.append(make_zebra_table([p["required"]] + p["sample"], [col_width] * col_count))
         story.append(Spacer(1, 6))
-
         story.append(Paragraph("Metrics & Formulas", s["subhead"]))
-        story.append(make_zebra_table([["Metric", "Formula", "Explanation"]] + p["metrics"], [45 * mm, 50 * mm, 70 * mm]))
+        story.append(make_zebra_table([["Metric", "Formula", "Explanation"]] + p["metrics"],
+                                      [45 * mm, 50 * mm, 70 * mm]))
         story.append(PageBreak())
 
-    # ✅ Build main report body
-    doc.build(story, onFirstPage=cover, onLaterPages=_add_footer)
+    doc.build(story, onLaterPages=_add_footer)
 
-    # --- Thank You Page ---
+    # --- Thank You page ---
     packet = io.BytesIO()
-    can = canvas.Canvas(packet, pagesize=A4)
-    draw_gradient_background(can)
-    w, h = A4
-    can.setFont(DEFAULT_FONT, 28)
-    can.setFillColor(colors.white)
-    can.drawCentredString(w / 2, h / 2 + 10, "Thank You")
-
-    # Confidentiality Note
-    can.setStrokeColor(YELLOW_BORDER)
-    can.rect(50, 110, w - 100, 85, stroke=1, fill=0)
-    can.setFont(DEFAULT_FONT, 9)
-    can.setFillColor(YELLOW_BORDER)
+    tcan = canvas.Canvas(packet, pagesize=A4)
+    draw_gradient_background(tcan)
+    tcan.setFont(DEFAULT_FONT, 28)
+    tcan.setFillColor(colors.white)
+    tcan.drawCentredString(A4[0] / 2, A4[1] / 2 + 10, "Thank You")
+    tcan.setStrokeColor(YELLOW_BORDER)
+    tcan.rect(50, 110, A4[0] - 100, 85, stroke=1, fill=0)
+    tcan.setFont(DEFAULT_FONT, 9)
+    tcan.setFillColor(YELLOW_BORDER)
     y = 180
     for line in [
-        "Confidentiality Note",
+        "⚠️ Confidentiality Note",
         "• System for internal use only.",
         "• No personally identifiable data is stored or transmitted.",
         "• Reports are confidential leadership artifacts."
     ]:
-        can.drawCentredString(w / 2, y, line)
+        tcan.drawCentredString(A4[0] / 2, y, line)
         y -= 15
+    tcan.setFont(DEFAULT_FONT, 8)
+    tcan.setFillColor(GRAY_TEXT)
+    tcan.drawCentredString(A4[0] / 2, 25, "Prepared with ❤️ by People Analytics Project — Confidential")
+    tcan.showPage()
+    tcan.save()
 
-    can.setFont(DEFAULT_FONT, 8)
-    can.setFillColor(GRAY_TEXT)
-    can.drawCentredString(w / 2, 25, "Prepared with ❤️ by People Analytics Project — Confidential")
-
-    can.showPage()
-    can.save()
-
-    # ✅ Merge both parts
-    main_reader = PdfReader(io.BytesIO(buf.getvalue()))
-    thank_reader = PdfReader(io.BytesIO(packet.getvalue()))
+    # --- Merge cover + body + thank you ---
     writer = PdfWriter()
-    for page in main_reader.pages:
-        writer.add_page(page)
-    for page in thank_reader.pages:
-        writer.add_page(page)
+    for src in [cover_buf, buf, packet]:
+        src.seek(0)
+        reader = PdfReader(src)
+        for p in reader.pages:
+            writer.add_page(p)
 
     output = io.BytesIO()
     writer.write(output)
@@ -317,9 +302,7 @@ def build_explainer_pdf(output_path=None) -> bytes:
         os.makedirs(os.path.dirname(output_path) or "/tmp", exist_ok=True)
         with open(output_path, "wb") as f:
             f.write(pdf)
-
     return pdf
-
 
 # ----------------------------
 # Streamlit UI
