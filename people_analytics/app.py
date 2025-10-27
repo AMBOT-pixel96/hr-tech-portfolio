@@ -1,28 +1,33 @@
 # ============================================
-# app.py — People Analytics Dashboard (v3.1 Executive Stable)
+# app.py — People Analytics Dashboard (v3.2 Executive Stable)
 # ============================================
+
 # ===============================
 # 🧠 Stability Patch — Disable Watchdog
 # ===============================
 import os
 os.environ["STREAMLIT_WATCHDOG"] = "false"
+
+# ===============================
+# 📦 Imports
+# ===============================
 import streamlit as st
-import os
 import json
 from datetime import datetime
 from utils.pdf_explainer_builder import show_explainer_ui
-# ---------------------------
-# 🧠 Global Config
-# ---------------------------
+
+# ===============================
+# ⚙️ Streamlit Page Config (MUST be first Streamlit call)
+# ===============================
 st.set_page_config(
     page_title="People Analytics Dashboard",
     layout="wide",
     page_icon="📊"
 )
 
-# ---------------------------
+# ===============================
 # 🎨 Sidebar Styling (Executive Theme)
-# ---------------------------
+# ===============================
 st.markdown("""
 <style>
 [data-testid="stSidebar"] {
@@ -69,14 +74,15 @@ a[href*="app"] span::before { content: "🏠 "; }
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------------------
-# 🧭 Session persistence
-# ---------------------------
+# ===============================
+# 🧭 Session Persistence
+# ===============================
 SESSION_DIR = os.path.join(os.getcwd(), "session_data")
 os.makedirs(SESSION_DIR, exist_ok=True)
 SESSION_FILE = os.path.join(SESSION_DIR, "people_analytics_state.json")
 
 def preload_session_state():
+    """Restores saved Streamlit session data."""
     try:
         if os.path.exists(SESSION_FILE):
             with open(SESSION_FILE, "r") as f:
@@ -91,6 +97,7 @@ def preload_session_state():
         st.warning(f"⚠️ Session restore skipped: {e}")
 
 def auto_save_session_state():
+    """Auto-saves session to JSON."""
     try:
         data = {k: v for k, v in st.session_state.items() if not k.startswith("_")}
         data["last_saved"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -101,9 +108,9 @@ def auto_save_session_state():
 
 preload_session_state()
 
-# ---------------------------
+# ===============================
 # 🌑 Global Styling
-# ---------------------------
+# ===============================
 st.markdown("""
 <style>
 body { background-color: #0E1117; color: white; }
@@ -137,18 +144,19 @@ h1, h2, h3, h4 { color: #F9FAFB; }
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------------------
+# ===============================
 # 🏠 Header
-# ---------------------------
+# ===============================
 st.markdown("""
 <div style='text-align:center; margin-top:20px;'>
     <h1>📊 People Analytics Dashboard</h1>
     <p style='color:#9CA3AF;'>Unified HR suite for analytics across Workforce, Performance, Engagement, Compensation, and Attrition.</p>
 </div>
 """, unsafe_allow_html=True)
-# ============================================
+
+# ===============================
 # 📘 People Analytics Explainer PDF Section
-# ============================================
+# ===============================
 st.markdown("""
 <div style="padding:12px;border-radius:10px;background:linear-gradient(90deg,#0F172A,#1E3A8A);color:white;">
   <h3 style="margin:0;">📘 Executive Explainer</h3>
@@ -158,9 +166,10 @@ st.markdown("""
 
 show_explainer_ui()
 st.markdown("<br>", unsafe_allow_html=True)
-# ---------------------------
+
+# ===============================
 # ⚡ Navigation Tiles
-# ---------------------------
+# ===============================
 st.markdown("---")
 st.markdown("### ⚡ Explore Analytics Modules")
 
@@ -182,12 +191,11 @@ for i, t in enumerate(tiles):
         </div>
         """, unsafe_allow_html=True)
         if st.button(f"{t['icon']} Open", key=f"tile_{i}", use_container_width=True):
-            # ✅ Fixed: correct relative path, not capitalized route
             st.switch_page(t["path"])
 
-# ---------------------------
+# ===============================
 # 📘 Consolidated HR Deck
-# ---------------------------
+# ===============================
 st.markdown("---")
 st.markdown("### 🧩 Leadership Deck")
 
@@ -201,9 +209,9 @@ st.markdown(f"""
 if st.button("📘 Open Consolidated HR Deck", use_container_width=True, key="deck_btn"):
     st.switch_page("pages/consolidated.py")
 
-# ---------------------------
+# ===============================
 # ⚙️ Footer
-# ---------------------------
+# ===============================
 st.markdown("---")
 st.markdown("""
 <div style='text-align:center; font-size:13px; color:#9CA3AF;'>
