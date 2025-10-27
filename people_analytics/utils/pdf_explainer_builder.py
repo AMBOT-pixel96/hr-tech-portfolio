@@ -114,7 +114,7 @@ def draw_gradient_background(c):
         c.rect(0, (h/steps)*i, w, h/steps, stroke=0, fill=1)
 
 # ----------------------------
-# Minimal content (trimmed)
+# Explaier Content
 # ----------------------------
 EXPLAINER_CONTENT = {
     "Attrition Analysis": {
@@ -230,7 +230,7 @@ def build_explainer_pdf(output_path=None) -> bytes:
     def cover(canvas, doc):
         draw_gradient_background(canvas)
         canvas.saveState()
-        canvas.setFont(DEFAULT_FONT,24)
+        canvas.setFont(DEFAULT_FONT,26)
         canvas.setFillColor(colors.white)
         w,h = A4
         canvas.drawCentredString(w/2, h/2 + 30, "People Analytics Executive Explainer")
@@ -267,34 +267,40 @@ def build_explainer_pdf(output_path=None) -> bytes:
         story.append(make_zebra_table([["Metric","Formula","Explanation"]]+p["metrics"], [45*mm,50*mm,70*mm]))
         story.append(PageBreak())
 
-    # ---------------------------------------------------
-# Thank-you (final single page only, no repetition)
-# ---------------------------------------------------
-def thank_you(canvas, doc):
-    draw_gradient_background(canvas)
-    canvas.saveState()
-    canvas.setFont(DEFAULT_FONT, 28)
-    canvas.setFillColor(colors.white)
-    w, h = A4
-    canvas.drawCentredString(w / 2, h / 2, "Thank You")
-    canvas.restoreState()
+    # ------------------------------------
+    # Thank-you (final single page only, no repetition)
+    # -----------------------------------
+    def thank_you(canvas, doc):
+        draw_gradient_background(canvas)
+        canvas.saveState()
+        canvas.setFont(DEFAULT_FONT, 28)
+        canvas.setFillColor(colors.white)
+        w, h = A4
+        canvas.drawCentredString(w / 2, h / 2, "Thank You")
+        canvas.restoreState()
 
-# ---------------------------------------------------
-# Build document — Thank You page appended once, footer on all pages
-# ---------------------------------------------------
-doc.build(story, onFirstPage=cover, onLaterPages=_add_footer)
+    # -------------------------------------
+    # Build document — Thank You page appended once, footer on all pages
+    # -------------------------------------
+    doc.build(story, onFirstPage=cover, onLaterPages=_add_footer)
 
-# Append a single gradient thank-you page at the end
-buf_final = io.BytesIO()
-c = canvas.Canvas(buf_final, pagesize=A4)
-thank_you(c, None)
-_add_footer(c, None)
-c.showPage()
-c.save()
+    # Append a single gradient thank-you page at the end
+    buf_final = io.BytesIO()
+    c = canvas.Canvas(buf_final, pagesize=A4)
+    thank_you(c, None)
+    _add_footer(c, None)
+    c.showPage()
+    c.save()
 
-pdf_main = buf.getvalue()
-pdf_thank = buf_final.getvalue()
-pdf = pdf_main + pdf_thank
+    pdf_main = buf.getvalue()
+    pdf_thank = buf_final.getvalue()
+    pdf = pdf_main + pdf_thank
+
+    if output_path:
+        os.makedirs(os.path.dirname(output_path) or "/tmp", exist_ok=True)
+        with open(output_path, "wb") as f:
+            f.write(pdf)
+    return pdf
 # ----------------------------
 # Streamlit UI
 # ----------------------------
