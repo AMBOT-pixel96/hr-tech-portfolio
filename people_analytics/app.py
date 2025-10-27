@@ -1,15 +1,15 @@
 # ============================================
-# app.py — People Analytics Dashboard (v3.4 Executive Stable)
+# app.py — People Analytics Dashboard (v3.5 Executive Safe Boot)
 # ============================================
 
+import streamlit as st  # ✅ must come BEFORE st.set_page_config()
 import os
 import json
 from datetime import datetime
-import streamlit as st
 from utils.pdf_explainer_builder import show_explainer_ui
 
 # ===============================
-# ⚙️ Streamlit Page Config (MUST be first Streamlit call)
+# ⚙️ Streamlit Page Config (must be first Streamlit command)
 # ===============================
 st.set_page_config(
     page_title="People Analytics Dashboard",
