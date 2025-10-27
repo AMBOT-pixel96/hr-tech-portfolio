@@ -1,29 +1,33 @@
 # ============================================
-# app.py — People Analytics Dashboard (v3.7 Safe Boot Ultra Stable)
+# app.py — People Analytics Dashboard (v3.8 Executive Final Fix)
 # ============================================
 
+# --- Base imports (safe zone) ---
 import os
 import json
 from datetime import datetime
 
-# ⚙️ Streamlit MUST be imported *after* base imports, but before config
+# --- Import Streamlit first, but DO NOT import custom Streamlit modules yet ---
 import streamlit as st
 
-# 🧠 Page config — must be the very first Streamlit command
+# --- Page Config (MUST be the very first Streamlit call) ---
 st.set_page_config(
     page_title="People Analytics Dashboard",
     layout="wide",
     page_icon="📊"
 )
 
-# 🧩 Disable Watchdog AFTER Streamlit init
+# --- Environment variables / safe setup AFTER config ---
 os.environ["STREAMLIT_WATCHDOG"] = "false"
 
-# ✅ Only now import modules that also import Streamlit
+# --- Delayed import: modules that themselves import Streamlit ---
+# (if we import this before st.set_page_config, it triggers early Streamlit context)
 from utils.pdf_explainer_builder import show_explainer_ui
-# ===============================
+
+
+# ============================================
 # 🎨 Sidebar Styling (Executive Theme)
-# ===============================
+# ============================================
 st.markdown("""
 <style>
 [data-testid="stSidebar"] {
@@ -70,9 +74,9 @@ a[href*="app"] span::before { content: "🏠 "; }
 </style>
 """, unsafe_allow_html=True)
 
-# ===============================
+# ============================================
 # 🧭 Session Persistence
-# ===============================
+# ============================================
 SESSION_DIR = os.path.join(os.getcwd(), "session_data")
 os.makedirs(SESSION_DIR, exist_ok=True)
 SESSION_FILE = os.path.join(SESSION_DIR, "people_analytics_state.json")
@@ -102,45 +106,9 @@ def auto_save_session_state():
 
 preload_session_state()
 
-# ===============================
-# 🌑 Global Styling
-# ===============================
-st.markdown("""
-<style>
-body { background-color: #0E1117; color: white; }
-h1, h2, h3, h4 { color: #F9FAFB; }
-.tile {
-    padding: 25px; border-radius: 15px; text-align: center;
-    transition: transform 0.2s ease-in-out;
-    border: 1px solid #1F2937;
-    background: linear-gradient(180deg,#1E293B 0%,#0F172A 100%);
-    box-shadow: 0px 4px 8px rgba(0,0,0,0.2);
-}
-.tile:hover { transform: scale(1.03); border-color: #3B82F6;
-    box-shadow: 0px 0px 15px rgba(59,130,246,0.3);
-}
-.tile h3 { color: #FACC15; margin-bottom: 10px; }
-.tile p { color: #CBD5E1; font-size: 14px; }
-
-/* Golden Tile (Consolidated) */
-.tile-gold {
-    border: 1px solid #FACC15;
-    background: linear-gradient(180deg,#1F2937 0%,#111827 100%);
-    box-shadow: 0px 0px 12px rgba(250,204,21,0.25);
-}
-.tile-gold:hover {
-    border-color: #FDE047;
-    box-shadow: 0px 0px 18px rgba(250,204,21,0.35);
-    transform: scale(1.03);
-}
-.tile-gold h3 { color: #FDE047; }
-.tile-gold p { color: #E5E7EB; font-size: 14px; }
-</style>
-""", unsafe_allow_html=True)
-
-# ===============================
+# ============================================
 # 🏠 Header
-# ===============================
+# ============================================
 st.markdown("""
 <div style='text-align:center; margin-top:20px;'>
     <h1>📊 People Analytics Dashboard</h1>
@@ -148,9 +116,9 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ===============================
-# 📘 Executive Explainer Section
-# ===============================
+# ============================================
+# 📘 Executive Explainer
+# ============================================
 st.markdown("""
 <div style="padding:12px;border-radius:10px;background:linear-gradient(90deg,#0F172A,#1E3A8A);color:white;">
   <h3 style="margin:0;">📘 Executive Explainer</h3>
@@ -161,9 +129,9 @@ st.markdown("""
 show_explainer_ui()
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ===============================
+# ============================================
 # ⚡ Navigation Tiles
-# ===============================
+# ============================================
 st.markdown("---")
 st.markdown("### ⚡ Explore Analytics Modules")
 
@@ -187,9 +155,9 @@ for i, t in enumerate(tiles):
         if st.button(f"{t['icon']} Open", key=f"tile_{i}", use_container_width=True):
             st.switch_page(t["path"])
 
-# ===============================
+# ============================================
 # 📘 Consolidated HR Deck
-# ===============================
+# ============================================
 st.markdown("---")
 st.markdown("### 🧩 Leadership Deck")
 
@@ -203,9 +171,9 @@ st.markdown(f"""
 if st.button("📘 Open Consolidated HR Deck", use_container_width=True, key="deck_btn"):
     st.switch_page("pages/consolidated.py")
 
-# ===============================
+# ============================================
 # ⚙️ Footer
-# ===============================
+# ============================================
 st.markdown("---")
 st.markdown("""
 <div style='text-align:center; font-size:13px; color:#9CA3AF;'>
