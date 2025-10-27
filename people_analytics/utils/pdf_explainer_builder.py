@@ -119,21 +119,94 @@ def draw_gradient_background(c):
 EXPLAINER_CONTENT = {
     "Attrition Analysis": {
         "blurb": "Understanding who’s leaving, how fast, and why.",
-        "required": ["EmployeeID","Department","JobLevel","TenureMonths","AttritionFlag"],
-        "sample": [["E301","Finance","L2","26","Yes"],["E302","Tech","L3","40","No"]],
+        "required": ["EmployeeID", "Department", "JobLevel", "TenureMonths", "AttritionFlag"],
+        "sample": [
+            ["E301", "Finance", "L2", "26", "Yes"],
+            ["E302", "Tech", "L3", "40", "No"],
+            ["E303", "HR", "L1", "15", "Yes"]
+        ],
         "metrics": [
-            ("Attrition %","(Employees Left / Total) × 100","Workforce stability indicator."),
-            ("Average Tenure","Σ(TenureMonths)/N","Average duration of stay."),
+            ("Attrition %", "(Employees Left / Total) × 100", "Percentage of employees who left during a specific period."),
+            ("Average Tenure (months)", "Σ(TenureMonths) / N", "Average duration employees stay before leaving."),
+            ("Attrition % by Department", "(DeptLeft / DeptTotal) × 100", "Compares exit rates across teams to spot turnover hot zones."),
+            ("Attrition % by Job Level", "(LevelLeft / LevelTotal) × 100", "Reveals which hierarchy levels lose people fastest."),
+            ("Attrition % by Tenure Cohort", "Grouped Tenure Cohort % Left", "Uncovers early-leaver patterns."),
+            ("Exit Reasons (counts/share)", "Count(Reason)/TotalExits", "Breakdown of why employees left (career, comp, manager, relocation)."),
+        ],
+    },
+    "Compensation Analysis": {
+        "blurb": "Understanding pay fairness, competitiveness, and motivation levers.",
+        "required": ["EmployeeID","Department","CTC","Bonus","JobLevel","Gender"],
+        "sample": [
+            ["E201","Tech","1500000","150000","L3","Male"],
+            ["E202","Finance","900000","75000","L2","Female"],
+            ["E203","HR","700000","50000","L1","Female"]
+        ],
+        "metrics": [
+            ("Average CTC","Σ(CTC)/N","Mean total annual cost per employee."),
+            ("Average Bonus %","Mean(Bonus/CTC×100)","Average variable pay ratio."),
+            ("Bonus % by Job Level","Avg(Bonus/CTC×100) per Level","Comparison of incentive spread across hierarchy."),
+            ("Avg CTC by Job Level","Avg(CTC) by Level","Highlights pay progression across levels."),
+            ("Avg CTC by Gender","Avg(CTC) by Gender","Checks for gender pay parity."),
+            ("Internal vs Market","Compare AvgCTC vs MarketMedian","Benchmarks internal pay vs external market."),
+            ("Market Gap % by Job Level","(AvgCTC–MarketMedian)/MarketMedian×100","Percent difference vs market median."),
+        ],
+    },
+    "Engagement Analysis": {
+        "blurb": "How emotionally and mentally invested employees feel at work.",
+        "required": ["Department","Gender","Q1","Q2","Q3","Q4"],
+        "sample": [
+            ["Sales","Male","4","3","5","4"],
+            ["HR","Female","5","4","4","5"],
+            ["Tech","Male","3","4","3","4"]
+        ],
+        "metrics": [
+            ("Engagement Index (Survey Composite)","Mean(Q1..Qn)","Composite score of survey responses."),
+            ("Avg Engagement Index (Overall)","Avg(EngagementIndex)","Average engagement score across employees."),
+            ("Highly Engaged %","Count(Index>3.6)/Total×100","Proportion scoring in top tier."),
+            ("Low Engaged %","Count(Index≤2.9)/Total×100","Share of disengaged employees."),
+            ("Engagement Index by Department","Avg(Index) per Department","Highlights cultural differences across teams."),
+            ("Engagement Categories (Low/Medium/High)","Bucket Index into ranges","Shows distribution of sentiment levels."),
+            ("Engagement by Gender","Avg(Index) by Gender","Checks engagement variations across genders."),
+        ],
+    },
+    "Performance Analysis": {
+        "blurb": "How people perform and whether rewards are fair.",
+        "required": ["EmployeeID","Department","CTC","PerformanceRating"],
+        "sample": [
+            ["E101","Finance","950000","4"],
+            ["E102","Tech","1200000","5"],
+            ["E103","HR","800000","3"]
+        ],
+        "metrics": [
+            ("Average Performance Rating","Σ(PerformanceRating)/N","Mean rating across employees."),
+            ("Rating Standard Deviation","StdDev(PerformanceRating)","Measures rating spread."),
+            ("Avg Rating by Department","Avg(Rating) per Department","Performance strength by team."),
+            ("Avg Rating by Job Level","Avg(Rating) per Level","Performance distribution across hierarchy."),
+            ("Top Performers % (≥4)","Count(Rating≥4)/Total×100","Share of high performers."),
+            ("Low Performers % (≤2)","Count(Rating≤2)/Total×100","Share of low performers."),
+            ("Performance Distribution / KDE","Density of Ratings","Shows shape of performance curve."),
+            ("Performance vs Pay","Correlation(CTC, Rating)","Examines pay-for-performance alignment."),
+            ("Gender Performance","Avg(Rating) by Gender","Checks for rating bias across genders."),
         ],
     },
     "Workforce Analysis": {
-        "blurb":"Structural anatomy of your organization.",
-        "required":["EmployeeID","JobLevel","Gender"],
-        "sample":[["E001","L1","Male"],["E002","L2","Female"]],
-        "metrics":[
-            ("Total Headcount","COUNT(EmployeeID)","Total employees."),
-            ("Female %","Count(Female)/Total×100","Gender balance."),
-        ]
+        "blurb": "The structural anatomy of your organization.",
+        "required": ["EmployeeID","JobLevel","Gender"],
+        "sample": [
+            ["E001","L1","Male"],
+            ["E002","L2","Female"],
+            ["E003","L3","Male"]
+        ],
+        "metrics": [
+            ("Total Headcount","COUNT(EmployeeID)","Total number of active employees."),
+            ("Headcount by Job Level","Count(EmployeeID) per Level","Workforce distribution across hierarchy."),
+            ("Female % (Gender Composition)","Count(Female)/Total×100","Proportion of female employees."),
+            ("Number of Job Levels","Distinct(JobLevel)","Total hierarchical layers."),
+            ("Manager Span Metrics","Avg(DirectReports per Manager)","Average team size per manager."),
+            ("Top Manager Spans","Top N managers by direct reports","Highlights potential leadership overload."),
+            ("Skill Inventory / Top Skills","Tokenize & Count(Skills)","Most common and emerging skills."),
+        ],
     },
 }
 # ----------------------------
@@ -195,29 +268,33 @@ def build_explainer_pdf(output_path=None) -> bytes:
         story.append(PageBreak())
 
     # ---------------------------------------------------
-    # Thank-you (drawn via onLaterPages callback)
-    # ---------------------------------------------------
-    def thank_you(canvas, doc):
-        draw_gradient_background(canvas)
-        canvas.saveState()
-        canvas.setFont(DEFAULT_FONT,26)
-        canvas.setFillColor(colors.white)
-        w,h = A4
-        canvas.drawCentredString(w/2, h/2, "Thank You")
-        canvas.setFont(DEFAULT_FONT,9)
-        canvas.drawCentredString(
-            w/2, h/2 - 25,
-            "This document and all data are confidential and intended for internal leadership review only."
-        )
-        canvas.restoreState()
+# Thank-you (final single page only, no repetition)
+# ---------------------------------------------------
+def thank_you(canvas, doc):
+    draw_gradient_background(canvas)
+    canvas.saveState()
+    canvas.setFont(DEFAULT_FONT, 28)
+    canvas.setFillColor(colors.white)
+    w, h = A4
+    canvas.drawCentredString(w / 2, h / 2, "Thank You")
+    canvas.restoreState()
 
-    doc.build(story, onFirstPage=cover, onLaterPages=lambda c,d: (thank_you(c,d), _add_footer(c,d)))
-    pdf = buf.getvalue()
-    if output_path:
-        os.makedirs(os.path.dirname(output_path) or "/tmp", exist_ok=True)
-        with open(output_path,"wb") as f: f.write(pdf)
-    return pdf
+# ---------------------------------------------------
+# Build document — Thank You page appended once, footer on all pages
+# ---------------------------------------------------
+doc.build(story, onFirstPage=cover, onLaterPages=_add_footer)
 
+# Append a single gradient thank-you page at the end
+buf_final = io.BytesIO()
+c = canvas.Canvas(buf_final, pagesize=A4)
+thank_you(c, None)
+_add_footer(c, None)
+c.showPage()
+c.save()
+
+pdf_main = buf.getvalue()
+pdf_thank = buf_final.getvalue()
+pdf = pdf_main + pdf_thank
 # ----------------------------
 # Streamlit UI
 # ----------------------------
