@@ -10,7 +10,7 @@ import streamlit as st
 import os
 import json
 from datetime import datetime
-
+from utils.pdf_explainer_builder import show_explainer_ui
 # ---------------------------
 # 🧠 Global Config
 # ---------------------------
@@ -146,7 +146,20 @@ st.markdown("""
     <p style='color:#9CA3AF;'>Unified HR suite for analytics across Workforce, Performance, Engagement, Compensation, and Attrition.</p>
 </div>
 """, unsafe_allow_html=True)
+# ============================================
+# 📘 People Analytics Explainer PDF Section
+# ============================================
+st.markdown("""
+<div style="padding:12px;border-radius:10px;background:linear-gradient(90deg,#0F172A,#1E3A8A);color:white;">
+  <h3 style="margin:0;">📘 Executive Explainer</h3>
+  <p style="margin:4px 0 0 0;">Generate a boardroom-ready document explaining every module, metric, and logic in the system.</p>
+</div>
+""", unsafe_allow_html=True)
 
+show_explainer_ui()
+
+st.markdown("---")
+st.markdown("<br><br>", unsafe_allow_html=True)
 # ---------------------------
 # ⚡ Navigation Tiles
 # ---------------------------
