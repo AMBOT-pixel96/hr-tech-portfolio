@@ -1,10 +1,10 @@
 # ============================================
-# utils/pdf_explainer_builder.py — v5.3 | People Analytics Explainer (Boardroom Gradient Edition)
+# utils/pdf_explainer_builder.py — v5.4 | People Analytics Explainer (Boardroom Gradient Final Polished)
 # ============================================
 """
 Generates the People Analytics Executive Explainer PDF
-with clean layout, white-on-blue cover, wordwrapped tables,
-and a single gradient Thank You page with footer.
+with full gradient cover/thank-you pages, wrapped tables,
+and confidentiality disclaimer box + footer.
 """
 
 import os, io
@@ -23,7 +23,7 @@ from reportlab.platypus import (
 from PyPDF2 import PdfReader, PdfWriter
 
 # ----------------------------
-# Font setup
+# Font registration (with fallback)
 # ----------------------------
 try:
     pdfmetrics.registerFont(TTFont("DejaVuSans", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"))
@@ -32,7 +32,7 @@ except Exception:
     DEFAULT_FONT = "Helvetica"
 
 # ----------------------------
-# Colors
+# Color palette
 # ----------------------------
 NAVY = colors.HexColor("#0F172A")
 INDIGO = colors.HexColor("#1E3A8A")
@@ -49,8 +49,11 @@ def _get_styles():
     base = getSampleStyleSheet()
     return {
         "title": ParagraphStyle("title", parent=base["Title"],
-                                fontName=DEFAULT_FONT, fontSize=24,
+                                fontName=DEFAULT_FONT, fontSize=22,
                                 alignment=1, textColor=colors.white),
+        "subtitle": ParagraphStyle("subtitle", parent=base["Heading2"],
+                                   fontName=DEFAULT_FONT, fontSize=12,
+                                   alignment=1, textColor=colors.white),
         "heading": ParagraphStyle("heading", parent=base["Heading1"],
                                   fontName=DEFAULT_FONT, fontSize=14,
                                   textColor=INDIGO, spaceAfter=6),
@@ -66,32 +69,7 @@ def _get_styles():
     }
 
 # ----------------------------
-# Gradient background
-# ----------------------------
-def draw_gradient_background(c):
-    w, h = A4
-    steps = 100
-    for i in range(steps):
-        ratio = i / steps
-        r = 15/255 + (30/255 - 15/255) * ratio
-        g = 23/255 + (58/255 - 23/255) * ratio
-        b = 42/255 + (138/255 - 42/255) * ratio
-        c.setFillColorRGB(r, g, b)
-        c.rect(0, i * (h / steps), w, (h / steps), stroke=0, fill=1)
-
-# ----------------------------
-# Footer watermark
-# ----------------------------
-def _add_footer(c, doc=None):
-    c.saveState()
-    c.setFont(DEFAULT_FONT, 8)
-    c.setFillColor(GRAY_TEXT)
-    w, _ = A4
-    c.drawCentredString(w / 2, 12, "Prepared with ❤️ by People Analytics Project — Confidential")
-    c.restoreState()
-
-# ----------------------------
-# Zebra Table
+# Zebra table (wrapped + white headers)
 # ----------------------------
 def make_zebra_table(data, col_widths):
     s = _get_styles()
@@ -103,6 +81,7 @@ def make_zebra_table(data, col_widths):
         ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#D1D5DB")),
         ("FONTNAME", (0, 0), (-1, -1), DEFAULT_FONT),
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("WORDWRAP", (0, 0), (-1, -1), "CJK"),
         ("TOPPADDING", (0, 0), (-1, -1), 6),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
         ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT_BG]),
@@ -110,10 +89,32 @@ def make_zebra_table(data, col_widths):
     return t
 
 # ----------------------------
-# Module content
+# Footer watermark
 # ----------------------------
+def _add_footer(c, doc):
+    c.saveState()
+    c.setFont(DEFAULT_FONT, 8)
+    c.setFillColor(GRAY_TEXT)
+    w, _ = A4
+    c.drawCentredString(w / 2, 12, "Prepared with ❤️ by People Analytics Project — Confidential")
+    c.restoreState()
+
 # ----------------------------
-# Module content (All 5 Modules Restored)
+# Gradient background (cover / thank-you)
+# ----------------------------
+def draw_gradient_background(c):
+    w, h = A4
+    steps = 200
+    for i in range(steps):
+        ratio = i / steps
+        r = NAVY.red + (INDIGO.red - NAVY.red) * ratio
+        g = NAVY.green + (INDIGO.green - NAVY.green) * ratio
+        b = NAVY.blue + (INDIGO.blue - NAVY.blue) * ratio
+        c.setFillColorRGB(r, g, b)
+        c.rect(0, (h / steps) * i, w, h / steps, stroke=0, fill=1)
+
+# ----------------------------
+# Explainer Content (Full)
 # ----------------------------
 EXPLAINER_CONTENT = {
     "Attrition Analysis": {
@@ -133,7 +134,6 @@ EXPLAINER_CONTENT = {
             ("Exit Reasons (counts/share)", "Count(Reason)/TotalExits", "Breakdown of why employees left (career, comp, manager, relocation)."),
         ],
     },
-
     "Compensation Analysis": {
         "blurb": "Understanding pay fairness, competitiveness, and motivation levers.",
         "required": ["EmployeeID", "Department", "CTC", "Bonus", "JobLevel", "Gender"],
@@ -152,7 +152,6 @@ EXPLAINER_CONTENT = {
             ("Market Gap % by Job Level", "(AvgCTC–MarketMedian)/MarketMedian×100", "Percent difference vs market median."),
         ],
     },
-
     "Engagement Analysis": {
         "blurb": "How emotionally and mentally invested employees feel at work.",
         "required": ["Department", "Gender", "Q1", "Q2", "Q3", "Q4"],
@@ -171,7 +170,6 @@ EXPLAINER_CONTENT = {
             ("Engagement by Gender", "Avg(Index) by Gender", "Checks engagement variations across genders."),
         ],
     },
-
     "Performance Analysis": {
         "blurb": "How people perform and whether rewards are fair.",
         "required": ["EmployeeID", "Department", "CTC", "PerformanceRating"],
@@ -187,12 +185,10 @@ EXPLAINER_CONTENT = {
             ("Avg Rating by Job Level", "Avg(Rating) per Level", "Performance distribution across hierarchy."),
             ("Top Performers % (≥4)", "Count(Rating≥4)/Total×100", "Share of high performers."),
             ("Low Performers % (≤2)", "Count(Rating≤2)/Total×100", "Share of low performers."),
-            ("Performance Distribution", "Density of Ratings", "Shows shape of performance curve."),
             ("Performance vs Pay", "Correlation(CTC, Rating)", "Examines pay-for-performance alignment."),
             ("Gender Performance", "Avg(Rating) by Gender", "Checks for rating bias across genders."),
         ],
     },
-
     "Workforce Analysis": {
         "blurb": "The structural anatomy of your organization.",
         "required": ["EmployeeID", "JobLevel", "Gender"],
@@ -205,16 +201,14 @@ EXPLAINER_CONTENT = {
             ("Total Headcount", "COUNT(EmployeeID)", "Total number of active employees."),
             ("Headcount by Job Level", "Count(EmployeeID) per Level", "Workforce distribution across hierarchy."),
             ("Female % (Gender Composition)", "Count(Female)/Total×100", "Proportion of female employees."),
-            ("Number of Job Levels", "Distinct(JobLevel)", "Total hierarchical layers."),
             ("Manager Span Metrics", "Avg(DirectReports per Manager)", "Average team size per manager."),
-            ("Top Manager Spans", "Top N managers by direct reports", "Highlights potential leadership overload."),
-            ("Skill Inventory / Top Skills", "Tokenize & Count(Skills)", "Most common and emerging skills."),
+            ("Top Manager Spans", "Top N managers by direct reports", "Highlights leadership overload."),
         ],
     },
 }
 
 # ----------------------------
-# Main Builder
+# Main builder
 # ----------------------------
 def build_explainer_pdf(output_path=None) -> bytes:
     buf = io.BytesIO()
@@ -228,69 +222,92 @@ def build_explainer_pdf(output_path=None) -> bytes:
     s = _get_styles()
     story = []
 
-    # ----- Cover -----
+    # Cover Page
     def cover(c, doc):
         draw_gradient_background(c)
         c.saveState()
         c.setFont(DEFAULT_FONT, 26)
         c.setFillColor(colors.white)
         w, h = A4
-        c.drawCentredString(w/2, h/2 + 30, "People Analytics Executive Explainer")
+        c.drawCentredString(w / 2, h / 2 + 30, "People Analytics Executive Explainer")
         c.setFont(DEFAULT_FONT, 12)
-        c.drawCentredString(w/2, h/2 - 10, f"Generated on {datetime.now().strftime('%d %b %Y')}")
+        c.drawCentredString(w / 2, h / 2 - 10, f"Generated on {datetime.now().strftime('%d %b %Y')}")
         c.restoreState()
 
-    # ----- Table of Contents -----
-    story.append(PageBreak())
-    story.append(Paragraph("📚 Table of Contents", s["heading"]))
+    # Table of Contents
+    story.append(Paragraph("📘 Table of Contents", s["heading"]))
     toc = [["#", "Section", "Description"],
            ["1", "Module Overview", "Purpose & Outputs"],
            ["2", "Module Details", "Required Fields, Samples & Metrics"],
            ["3", "System Logics", "Automation & Consolidation Flow"],
            ["4", "Thank You", "Confidentiality & Closure"]]
-    story.append(make_zebra_table(toc, [10*mm, 60*mm, 110*mm]))
+    story.append(make_zebra_table(toc, [10 * mm, 60 * mm, 110 * mm]))
     story.append(PageBreak())
 
-    # ----- Modules -----
+    # Module Sections
     for name, p in EXPLAINER_CONTENT.items():
-        story.append(Paragraph(f"{name}", s["heading"]))
+        story.append(Paragraph(f"📘 {name}", s["heading"]))
         story.append(Paragraph(p["blurb"], s["body"]))
         story.append(Spacer(1, 6))
         story.append(Paragraph("<b>Required Columns</b>", s["subhead"]))
         story.append(Paragraph(", ".join(p["required"]), s["body"]))
         story.append(Spacer(1, 6))
         story.append(Paragraph("<b>Sample Rows</b>", s["subhead"]))
-        story.append(make_zebra_table([p["required"]] + p["sample"], [35*mm]*len(p["required"])))
+        story.append(make_zebra_table([p["required"]] + p["sample"], [30 * mm] * len(p["required"])))
         story.append(Spacer(1, 6))
         story.append(Paragraph("<b>Metrics & Formulas</b>", s["subhead"]))
-        story.append(make_zebra_table([["Metric", "Formula", "Explanation"]] + p["metrics"], [45*mm, 50*mm, 70*mm]))
+        story.append(make_zebra_table([["Metric", "Formula", "Explanation"]] + p["metrics"], [45 * mm, 50 * mm, 70 * mm]))
         story.append(PageBreak())
 
-    # ----- Build main doc -----
+    # Build core document (cover + footer)
     doc.build(story, onFirstPage=cover, onLaterPages=_add_footer)
 
-    # ----- Thank You Page -----
+    # Append Thank You Page
     packet = io.BytesIO()
     c = canvas.Canvas(packet, pagesize=A4)
     draw_gradient_background(c)
+    w, h = A4
     c.setFont(DEFAULT_FONT, 28)
     c.setFillColor(colors.white)
-    w, h = A4
     c.drawCentredString(w / 2, h / 2, "Thank You")
-    _add_footer(c)
+
+    # Confidentiality Box
+    c.setFillColor(colors.white)
+    c.setStrokeColor(colors.HexColor("#FACC15"))
+    c.setLineWidth(1)
+    c.rect(40, 80, w - 80, 60, stroke=1, fill=0)
+    c.setFillColor(colors.HexColor("#FACC15"))
+    c.setFont(DEFAULT_FONT, 11)
+    c.drawCentredString(w / 2, 125, "⚠️ Confidentiality Note")
+    c.setFont(DEFAULT_FONT, 9)
+    c.setFillColor(colors.white)
+    y = 110
+    for line in [
+        "• System for internal use only.",
+        "• No personally identifiable data is stored or transmitted.",
+        "• Reports are confidential leadership artifacts."
+    ]:
+        c.drawCentredString(w / 2, y, line)
+        y -= 12
+
+    # Footer
+    _add_footer(c, None)
     c.showPage()
     c.save()
     packet.seek(0)
     pdf_thank = packet.getvalue()
 
-    # Merge
+    # Merge PDFs
     main_reader = PdfReader(io.BytesIO(buf.getvalue()))
     thank_reader = PdfReader(io.BytesIO(pdf_thank))
     writer = PdfWriter()
-    for p in main_reader.pages: writer.add_page(p)
-    for p in thank_reader.pages: writer.add_page(p)
-    out = io.BytesIO(); writer.write(out)
-    pdf = out.getvalue()
+    for p in main_reader.pages:
+        writer.add_page(p)
+    for p in thank_reader.pages:
+        writer.add_page(p)
+    output = io.BytesIO()
+    writer.write(output)
+    pdf = output.getvalue()
 
     if output_path:
         os.makedirs(os.path.dirname(output_path) or "/tmp", exist_ok=True)
