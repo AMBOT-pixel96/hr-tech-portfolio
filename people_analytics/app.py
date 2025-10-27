@@ -1,19 +1,11 @@
 # ============================================
-# app.py — People Analytics Dashboard (v3.2 Executive Stable)
+# app.py — People Analytics Dashboard (v3.4 Executive Stable)
 # ============================================
 
-# ===============================
-# 🧠 Stability Patch — Disable Watchdog
-# ===============================
 import os
-os.environ["STREAMLIT_WATCHDOG"] = "false"
-
-# ===============================
-# 📦 Imports
-# ===============================
-import streamlit as st
 import json
 from datetime import datetime
+import streamlit as st
 from utils.pdf_explainer_builder import show_explainer_ui
 
 # ===============================
@@ -24,6 +16,9 @@ st.set_page_config(
     layout="wide",
     page_icon="📊"
 )
+
+# 🧠 Disable Watchdog AFTER Streamlit init (safe placement)
+os.environ["STREAMLIT_WATCHDOG"] = "false"
 
 # ===============================
 # 🎨 Sidebar Styling (Executive Theme)
@@ -82,7 +77,6 @@ os.makedirs(SESSION_DIR, exist_ok=True)
 SESSION_FILE = os.path.join(SESSION_DIR, "people_analytics_state.json")
 
 def preload_session_state():
-    """Restores saved Streamlit session data."""
     try:
         if os.path.exists(SESSION_FILE):
             with open(SESSION_FILE, "r") as f:
@@ -97,7 +91,6 @@ def preload_session_state():
         st.warning(f"⚠️ Session restore skipped: {e}")
 
 def auto_save_session_state():
-    """Auto-saves session to JSON."""
     try:
         data = {k: v for k, v in st.session_state.items() if not k.startswith("_")}
         data["last_saved"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -155,7 +148,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ===============================
-# 📘 People Analytics Explainer PDF Section
+# 📘 Executive Explainer Section
 # ===============================
 st.markdown("""
 <div style="padding:12px;border-radius:10px;background:linear-gradient(90deg,#0F172A,#1E3A8A);color:white;">
