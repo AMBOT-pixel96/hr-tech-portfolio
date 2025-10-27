@@ -1,26 +1,26 @@
 # ============================================
-# app.py — People Analytics Dashboard (v3.5 Executive Safe Boot)
+# app.py — People Analytics Dashboard (v3.7 Safe Boot Ultra Stable)
 # ============================================
 
-import streamlit as st  # ✅ must come BEFORE st.set_page_config()
 import os
 import json
 from datetime import datetime
 
-# ===============================
-# ⚙️ Streamlit Page Config (must be first Streamlit command)
-# ===============================
+# ⚙️ Streamlit MUST be imported *after* base imports, but before config
+import streamlit as st
+
+# 🧠 Page config — must be the very first Streamlit command
 st.set_page_config(
     page_title="People Analytics Dashboard",
     layout="wide",
     page_icon="📊"
 )
 
-# 🧠 Disable Watchdog AFTER Streamlit init (safe placement)
+# 🧩 Disable Watchdog AFTER Streamlit init
 os.environ["STREAMLIT_WATCHDOG"] = "false"
 
+# ✅ Only now import modules that also import Streamlit
 from utils.pdf_explainer_builder import show_explainer_ui
-
 # ===============================
 # 🎨 Sidebar Styling (Executive Theme)
 # ===============================
