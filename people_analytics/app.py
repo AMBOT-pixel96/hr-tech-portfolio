@@ -157,9 +157,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 show_explainer_ui()
-
-st.markdown("---")
-st.markdown("<br><br>", unsafe_allow_html=True)
+st.markdown("<br>", unsafe_allow_html=True)
 # ---------------------------
 # ⚡ Navigation Tiles
 # ---------------------------
