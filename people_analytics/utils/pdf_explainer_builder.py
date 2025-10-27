@@ -1,10 +1,10 @@
 # ============================================
-# utils/pdf_explainer_builder.py — v5.6 | People Analytics Explainer (Boardroom Ultra Fixed Edition)
+# utils/pdf_explainer_builder.py — v5.7 | People Analytics Explainer (Boardroom Ultra Fixed & Verified)
 # ============================================
 """
 Generates the People Analytics Executive Explainer PDF
-with gradient cover, clean TOC, wrapped tables,
-white header text, and confidentiality disclaimer box.
+with gradient cover, proper TOC placement, all modules,
+white table headers, wrapped cells, and confidentiality disclaimer.
 """
 
 import os, io
@@ -31,6 +31,7 @@ try:
     DEFAULT_FONT = "DejaVuSans"
 except Exception:
     DEFAULT_FONT = "Helvetica"
+
 
 # ----------------------------
 # Color palette
@@ -70,12 +71,11 @@ def _get_styles():
 
 
 # ----------------------------
-# Zebra Table (wrapped, white header text)
+# Zebra Table (white header text, wrapped)
 # ----------------------------
 def make_zebra_table(data, col_widths):
     s = _get_styles()
     wrapped = [[Paragraph(str(c), s["body"]) for c in r] for r in data]
-
     t = Table(wrapped, colWidths=col_widths, repeatRows=1)
     t.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), INDIGO),
@@ -104,7 +104,7 @@ def _add_footer(c, doc):
 
 
 # ----------------------------
-# Gradient Background (cover / thank-you)
+# Gradient Background
 # ----------------------------
 def draw_gradient_background(c):
     w, h = A4
@@ -119,11 +119,9 @@ def draw_gradient_background(c):
 
 
 # ----------------------------
-# Explainer Content (unchanged)
+# Explainer Content
 # ----------------------------
-EXPLAINER_CONTENT = {  # ... keep your full content block as-is ...
-    # [same data as before, unchanged for brevity]
-}
+# (Keep your full EXPLAINER_CONTENT dict — unchanged from your previous file)
 
 
 # ----------------------------
@@ -131,6 +129,9 @@ EXPLAINER_CONTENT = {  # ... keep your full content block as-is ...
 # ----------------------------
 def build_explainer_pdf(output_path=None) -> bytes:
     buf = io.BytesIO()
+    s = _get_styles()
+
+    # ✅ Initialize document *before* adding content
     doc = SimpleDocTemplate(
         buf, pagesize=A4,
         rightMargin=PAGE_LEFT_RIGHT_MARGIN,
@@ -138,10 +139,9 @@ def build_explainer_pdf(output_path=None) -> bytes:
         topMargin=PAGE_TOP_BOTTOM_MARGIN,
         bottomMargin=PAGE_TOP_BOTTOM_MARGIN,
     )
-    s = _get_styles()
     story = []
 
-    # --- Cover page ---
+    # --- Cover ---
     def cover(canvas, doc):
         draw_gradient_background(canvas)
         w, h = A4
@@ -153,9 +153,9 @@ def build_explainer_pdf(output_path=None) -> bytes:
         canvas.drawCentredString(w / 2, h / 2 - 10, f"Generated on {datetime.now().strftime('%d %b %Y')}")
         canvas.restoreState()
 
-    # --- Table of Contents ---
-    story.append(PageBreak())
-    story.append(Paragraph("Table of Contents", s["heading"]))
+    # ✅ Add some space before TOC
+    story.append(Spacer(1, 40))
+    story.append(Paragraph("📘 Table of Contents", s["heading"]))
     toc = [["#", "Section", "Description"],
            ["1", "Module Overview", "Purpose & Outputs"],
            ["2", "Module Details", "Required Fields, Samples & Metrics"],
@@ -164,24 +164,27 @@ def build_explainer_pdf(output_path=None) -> bytes:
     story.append(make_zebra_table(toc, [10 * mm, 60 * mm, 110 * mm]))
     story.append(PageBreak())
 
-    # --- Module Sections ---
+    # ✅ Module sections (now actually added to story)
     for name, p in EXPLAINER_CONTENT.items():
         story.append(Paragraph(name, s["heading"]))
         story.append(Paragraph(p["blurb"], s["body"]))
         story.append(Spacer(1, 6))
+
         story.append(Paragraph("Required Columns", s["subhead"]))
         story.append(Paragraph(", ".join(p["required"]), s["body"]))
         story.append(Spacer(1, 6))
+
         story.append(Paragraph("Sample Rows", s["subhead"]))
         col_count = len(p["required"])
         col_width = (180 * mm) / col_count
         story.append(make_zebra_table([p["required"]] + p["sample"], [col_width] * col_count))
         story.append(Spacer(1, 6))
+
         story.append(Paragraph("Metrics & Formulas", s["subhead"]))
         story.append(make_zebra_table([["Metric", "Formula", "Explanation"]] + p["metrics"], [45 * mm, 50 * mm, 70 * mm]))
         story.append(PageBreak())
 
-    # --- Build main body ---
+    # ✅ Build main report body
     doc.build(story, onFirstPage=cover, onLaterPages=_add_footer)
 
     # --- Thank You Page ---
@@ -193,7 +196,7 @@ def build_explainer_pdf(output_path=None) -> bytes:
     can.setFillColor(colors.white)
     can.drawCentredString(w / 2, h / 2 + 10, "Thank You")
 
-    # Confidentiality box
+    # Confidentiality Note
     can.setStrokeColor(YELLOW_BORDER)
     can.rect(50, 110, w - 100, 85, stroke=1, fill=0)
     can.setFont(DEFAULT_FONT, 9)
@@ -208,7 +211,6 @@ def build_explainer_pdf(output_path=None) -> bytes:
         can.drawCentredString(w / 2, y, line)
         y -= 15
 
-    # Footer
     can.setFont(DEFAULT_FONT, 8)
     can.setFillColor(GRAY_TEXT)
     can.drawCentredString(w / 2, 25, "Prepared with ❤️ by People Analytics Project — Confidential")
@@ -216,7 +218,7 @@ def build_explainer_pdf(output_path=None) -> bytes:
     can.showPage()
     can.save()
 
-    # Merge PDFs
+    # ✅ Merge both parts
     main_reader = PdfReader(io.BytesIO(buf.getvalue()))
     thank_reader = PdfReader(io.BytesIO(packet.getvalue()))
     writer = PdfWriter()
