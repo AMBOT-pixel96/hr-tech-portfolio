@@ -6,7 +6,6 @@ import streamlit as st  # ✅ must come BEFORE st.set_page_config()
 import os
 import json
 from datetime import datetime
-from utils.pdf_explainer_builder import show_explainer_ui
 
 # ===============================
 # ⚙️ Streamlit Page Config (must be first Streamlit command)
@@ -19,6 +18,8 @@ st.set_page_config(
 
 # 🧠 Disable Watchdog AFTER Streamlit init (safe placement)
 os.environ["STREAMLIT_WATCHDOG"] = "false"
+
+from utils.pdf_explainer_builder import show_explainer_ui
 
 # ===============================
 # 🎨 Sidebar Styling (Executive Theme)
