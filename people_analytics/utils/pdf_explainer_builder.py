@@ -80,11 +80,12 @@ def make_zebra_table(data, col_widths):
     t.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), INDIGO),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-        ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#D1D5DB")),
         ("FONTNAME", (0, 0), (-1, -1), DEFAULT_FONT),
-        ("WORDWRAP", (0, 0), (-1, -1), "CJK"),
+        ("FONTSIZE", (0, 0), (-1, -1), 9),
+        ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#D1D5DB")),
         ("TOPPADDING", (0, 0), (-1, -1), 6),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+        ("WORDWRAP", (0, 0), (-1, -1), "CJK"),
         ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT_BG]),
     ]))
     return t
@@ -252,7 +253,9 @@ def build_explainer_pdf(output_path=None) -> bytes:
         story.append(Paragraph(", ".join(p["required"]), s["body"]))
         story.append(Spacer(1, 6))
         story.append(Paragraph("Sample Rows", s["subhead"]))
-        story.append(make_zebra_table([p["required"]] + p["sample"], [40 * mm] * len(p["required"])))
+        col_count = len(p["required"])
+col_width = (180 * mm) / col_count
+story.append(make_zebra_table([p["required"]] + p["sample"], [col_width] * col_count))
         story.append(Spacer(1, 6))
         story.append(Paragraph("Metrics & Formulas", s["subhead"]))
         story.append(make_zebra_table([["Metric", "Formula", "Explanation"]] + p["metrics"], [45 * mm, 50 * mm, 70 * mm]))
