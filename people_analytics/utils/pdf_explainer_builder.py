@@ -122,7 +122,89 @@ def draw_gradient_background(c):
 # Explainer Content
 # ----------------------------
 # (Keep your full EXPLAINER_CONTENT dict — unchanged from your previous file)
-
+EXPLAINER_CONTENT = {
+    "Attrition Analysis": {
+        "blurb": "Understanding who’s leaving, how fast, and why.",
+        "required": ["EmployeeID", "Department", "JobLevel", "TenureMonths", "AttritionFlag"],
+        "sample": [["E301", "Finance", "L2", "26", "Yes"],
+                   ["E302", "Tech", "L3", "40", "No"],
+                   ["E303", "HR", "L1", "15", "Yes"]],
+        "metrics": [
+            ("Attrition %", "(Employees Left / Total) × 100", "Percentage of employees who left during a period."),
+            ("Average Tenure (months)", "Σ(TenureMonths) / N", "Average stay duration before leaving."),
+            ("Attrition % by Department", "(DeptLeft / DeptTotal) × 100", "Compares turnover across teams."),
+            ("Attrition % by Job Level", "(LevelLeft / LevelTotal) × 100", "Reveals hierarchy churn."),
+            ("Attrition % by Tenure Cohort", "Grouped Tenure Cohort % Left", "Shows early-leaver patterns."),
+            ("Exit Reasons (counts/share)", "Count(Reason)/TotalExits", "Categorical reason analysis."),
+        ],
+    },
+    "Compensation Analysis": {
+        "blurb": "Understanding pay fairness, competitiveness, and motivation levers.",
+        "required": ["EmployeeID", "Department", "CTC", "Bonus", "JobLevel", "Gender"],
+        "sample": [["E201", "Tech", "1500000", "150000", "L3", "Male"],
+                   ["E202", "Finance", "900000", "75000", "L2", "Female"],
+                   ["E203", "HR", "700000", "50000", "L1", "Female"]],
+        "metrics": [
+            ("Average CTC", "Σ(CTC)/N", "Mean total annual cost per employee."),
+            ("Average Bonus %", "Mean(Bonus/CTC×100)", "Average variable pay ratio."),
+            ("Bonus % by Job Level", "Avg(Bonus/CTC×100) per Level", "Spread across hierarchy."),
+            ("Avg CTC by Job Level", "Avg(CTC) by Level", "Pay progression across levels."),
+            ("Avg CTC by Gender", "Avg(CTC) by Gender", "Checks pay equity."),
+            ("Internal vs Market", "Compare AvgCTC vs MarketMedian", "Internal vs external benchmark."),
+            ("Market Gap % by Job Level", "(AvgCTC–MarketMedian)/MarketMedian×100", "Gap to market median."),
+        ],
+    },
+    "Engagement Analysis": {
+        "blurb": "How emotionally and mentally invested employees feel at work.",
+        "required": ["Department", "Gender", "Q1", "Q2", "Q3", "Q4"],
+        "sample": [["Sales", "Male", "4", "3", "5", "4"],
+                   ["HR", "Female", "5", "4", "4", "5"],
+                   ["Tech", "Male", "3", "4", "3", "4"]],
+        "metrics": [
+            ("Engagement Index", "Mean(Q1..Qn)", "Composite score of survey responses."),
+            ("Avg Engagement Index", "Avg(EngagementIndex)", "Mean engagement score."),
+            ("Highly Engaged %", "Count(Index>3.6)/Total×100", "Top-tier engagement ratio."),
+            ("Low Engaged %", "Count(Index≤2.9)/Total×100", "Disengaged proportion."),
+            ("Engagement Index by Department", "Avg(Index) per Department", "Team-level culture score."),
+            ("Engagement Categories", "Bucket Index into ranges", "Distribution of sentiment."),
+            ("Engagement by Gender", "Avg(Index) by Gender", "Gender-level engagement gap."),
+        ],
+    },
+    "Performance Analysis": {
+        "blurb": "How people perform and whether rewards are fair.",
+        "required": ["EmployeeID", "Department", "CTC", "PerformanceRating"],
+        "sample": [["E101", "Finance", "950000", "4"],
+                   ["E102", "Tech", "1200000", "5"],
+                   ["E103", "HR", "800000", "3"]],
+        "metrics": [
+            ("Average Rating", "Σ(PerformanceRating)/N", "Mean rating across employees."),
+            ("Rating SD", "StdDev(PerformanceRating)", "Variance in performance scores."),
+            ("Avg Rating by Dept", "Avg(Rating) per Department", "Team-wise performance."),
+            ("Avg Rating by Level", "Avg(Rating) per Level", "Hierarchical differentiation."),
+            ("Top Performers %", "Count(Rating≥4)/Total×100", "High-performer ratio."),
+            ("Low Performers %", "Count(Rating≤2)/Total×100", "Low-performer share."),
+            ("Performance KDE", "Density of Ratings", "Shape of performance curve."),
+            ("Performance vs Pay", "Correlation(CTC, Rating)", "Pay-for-performance linkage."),
+            ("Gender Performance", "Avg(Rating) by Gender", "Bias detection metric."),
+        ],
+    },
+    "Workforce Analysis": {
+        "blurb": "The structural anatomy of your organization.",
+        "required": ["EmployeeID", "JobLevel", "Gender"],
+        "sample": [["E001", "L1", "Male"],
+                   ["E002", "L2", "Female"],
+                   ["E003", "L3", "Male"]],
+        "metrics": [
+            ("Total Headcount", "COUNT(EmployeeID)", "Total workforce size."),
+            ("Headcount by Level", "Count(EmployeeID) per Level", "Hierarchical structure."),
+            ("Female %", "Count(Female)/Total×100", "Gender ratio."),
+            ("Number of Job Levels", "Distinct(JobLevel)", "Total hierarchy layers."),
+            ("Manager Span", "Avg(DirectReports per Manager)", "Leadership bandwidth."),
+            ("Top Manager Spans", "Top N managers by direct reports", "Load distribution."),
+            ("Skill Inventory", "Tokenize & Count(Skills)", "Top emerging skills."),
+        ],
+    },
+}
 
 # ----------------------------
 # Main PDF Builder
