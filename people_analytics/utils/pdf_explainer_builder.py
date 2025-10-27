@@ -278,52 +278,51 @@ def build_explainer_pdf(output_path=None) -> bytes:
         w, h = A4
         canvas.drawCentredString(w / 2, h / 2, "Thank You")
         canvas.restoreState()
+# -------------------------------------
+    # Build main document (cover + all pages with footer)
+    # -------------------------------------
+    doc.build(story, onFirstPage=cover, onLaterPages=_add_footer)
 
     # -------------------------------------
-# Build main document (cover + all pages with footer)
-# -------------------------------------
-doc.build(story, onFirstPage=cover, onLaterPages=_add_footer)
+    # Append single gradient Thank You page (merged properly)
+    # -------------------------------------
+    packet = io.BytesIO()
+    can = canvas.Canvas(packet, pagesize=A4)
+    draw_gradient_background(can)
+    can.setFont(DEFAULT_FONT, 28)
+    can.setFillColor(colors.white)
+    w, h = A4
+    can.drawCentredString(w / 2, h / 2, "Thank You")
 
-# -------------------------------------
-# Append single gradient Thank You page (merged properly)
-# -------------------------------------
-packet = io.BytesIO()
-can = canvas.Canvas(packet, pagesize=A4)
-draw_gradient_background(can)
-can.setFont(DEFAULT_FONT, 28)
-can.setFillColor(colors.white)
-w, h = A4
-can.drawCentredString(w / 2, h / 2, "Thank You")
+    # Confidentiality footer
+    can.setFont(DEFAULT_FONT, 9)
+    can.setFillColor(GRAY_TEXT)
+    can.drawCentredString(
+        w / 2,
+        40,
+        "Prepared with ❤️ by People Analytics Project — Confidential"
+    )
 
-# Confidentiality footer
-can.setFont(DEFAULT_FONT, 9)
-can.setFillColor(GRAY_TEXT)
-can.drawCentredString(
-    w / 2,
-    40,
-    "Prepared with ❤️ by People Analytics Project — Confidential"
-)
+    can.showPage()
+    can.save()
+    packet.seek(0)
+    pdf_thankyou = packet.getvalue()
 
-can.showPage()
-can.save()
-packet.seek(0)
-pdf_thankyou = packet.getvalue()
+    # Merge both PDFs correctly
+    from PyPDF2 import PdfReader, PdfWriter
 
-# Merge both PDFs correctly
-from PyPDF2 import PdfReader, PdfWriter
+    main_reader = PdfReader(io.BytesIO(buf.getvalue()))
+    thank_reader = PdfReader(io.BytesIO(pdf_thankyou))
+    writer = PdfWriter()
 
-main_reader = PdfReader(io.BytesIO(buf.getvalue()))
-thank_reader = PdfReader(io.BytesIO(pdf_thankyou))
-writer = PdfWriter()
+    for page in main_reader.pages:
+        writer.add_page(page)
+    for page in thank_reader.pages:
+        writer.add_page(page)
 
-for page in main_reader.pages:
-    writer.add_page(page)
-for page in thank_reader.pages:
-    writer.add_page(page)
-
-output = io.BytesIO()
-writer.write(output)
-pdf = output.getvalue()
+    output = io.BytesIO()
+    writer.write(output)
+    pdf = output.getvalue()
 
     if output_path:
         os.makedirs(os.path.dirname(output_path) or "/tmp", exist_ok=True)
