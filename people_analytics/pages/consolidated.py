@@ -1,5 +1,5 @@
 # ============================================
-# pages/consolidated.py — v6.1 | Executive Stable (Merge Logic Fix)
+# pages/consolidated.py — v6.7 | Persistence + Chatbot Cross-Module Intelligence Arc
 # ============================================
 """
 📘 Consolidated HR Leadership Deck Entry Point
@@ -14,10 +14,14 @@ Workforce, Performance, Engagement, Compensation, Attrition
 ✅ Allows single-click final PDF merge
 ✅ Includes Maintenance Panel
 ✅ Uniform Sidebar Styling
+✅ Job-Level Sequencer (Persistent)
+✅ Global Chatbot (Cross-Module Intelligence)
+✅ Auto-loads module dataframes from session memory
 """
 
 import sys, os
 import streamlit as st
+import pandas as pd
 from datetime import datetime
 
 # -------------------------------------------------------
@@ -42,6 +46,20 @@ st.set_page_config(
     page_icon="📘",
     layout="wide"
 )
+
+# -------------------------------------------------------
+# 🧠 Import Persistence + Chatbot Utilities
+# -------------------------------------------------------
+from utils.persistence_chatbot import (
+    bootstrap_persistence,
+    job_level_sequencer_ui,
+    run_chatbot_ui
+)
+
+# -------------------------------------------------------
+# 🧠 Initialize Session (Memory Restore)
+# -------------------------------------------------------
+bootstrap_persistence()
 
 # -------------------------------------------------------
 # 🎨 Executive Styling
@@ -109,6 +127,26 @@ for i, mod in enumerate(modules_expected):
         """, unsafe_allow_html=True)
 
 # -------------------------------------------------------
+# ⚙️ Job Level Sequencing (Persistent)
+# -------------------------------------------------------
+st.markdown("---")
+st.header("⚙️ Job Level Hierarchy Sequencing (Persistent)")
+
+# Use real data if loaded from other modules; fallback to dummy
+emp_df = None
+if "compensation_df" in st.session_state:
+    emp_df = st.session_state["compensation_df"]
+elif "emp_df" in st.session_state:
+    emp_df = st.session_state["emp_df"]
+else:
+    emp_df = pd.DataFrame({
+        "EmployeeID": [101, 102, 103, 104],
+        "JobLevel": ["Analyst", "Manager", "Senior Manager", "Director"]
+    })
+
+job_level_sequencer_ui(emp_df=emp_df)
+
+# -------------------------------------------------------
 # 🧾 Merge Final Deck (with case-insensitive validation)
 # -------------------------------------------------------
 st.markdown("---")
@@ -166,3 +204,24 @@ with col2:
                 path = os.path.join(TMP_DIR, f)
                 mod_time = datetime.fromtimestamp(os.path.getmtime(path)).strftime("%b'%y %H:%M")
                 st.write(f"📄 {f} — {mod_time}")
+
+# -------------------------------------------------------
+# 🤖 Sidebar Chatbot (Cross-Module Intelligence)
+# -------------------------------------------------------
+st.sidebar.markdown("---")
+st.sidebar.subheader("🤖 Smart HR Chatbot")
+
+# 🧩 Try to automatically fetch module dataframes if they exist in session
+modules = {}
+for key in ["compensation_df", "attrition_df", "engagement_df", "performance_df", "workforce_df"]:
+    if key in st.session_state and isinstance(st.session_state[key], pd.DataFrame):
+        short_key = key.replace("_df", "")
+        modules[short_key] = st.session_state[key]
+
+# Fallback: ensure at least one dataset exists
+if not modules:
+    modules["compensation"] = emp_df
+
+# ✅ Run chatbot via sidebar toggle
+if st.sidebar.checkbox("Enable Chatbot (Smart Mode)", value=False):
+    run_chatbot_ui(modules_data=modules, primary_table_key="compensation")
