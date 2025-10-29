@@ -1,13 +1,9 @@
 # ============================================
-# pages/consolidated.py — v6.7 | Persistence + Chatbot Cross-Module Intelligence Arc
+# pages/consolidated.py — v6.8 | Auto Job Detection + Fusion Integrated
 # ============================================
 """
 📘 Consolidated HR Leadership Deck Entry Point
 ------------------------------------------------
-Loads and displays the unified executive dashboard
-that merges module reports from:
-Workforce, Performance, Engagement, Compensation, Attrition
-
 ✅ Case-insensitive PDF validation
 ✅ Reflects real-time deck status (from TMP_DIR)
 ✅ Uses deck_state_tracker timestamps
@@ -16,7 +12,8 @@ Workforce, Performance, Engagement, Compensation, Attrition
 ✅ Uniform Sidebar Styling
 ✅ Job-Level Sequencer (Persistent)
 ✅ Global Chatbot (Cross-Module Intelligence)
-✅ Auto-loads module dataframes from session memory
+✅ Auto-loads module dataframes or cached CSVs
+✅ Fusion Insights PDF (Unicode-enabled)
 """
 
 import sys, os
@@ -55,6 +52,7 @@ from utils.persistence_chatbot import (
     job_level_sequencer_ui,
     run_chatbot_ui
 )
+from utils.fusion_report_builder import build_fusion_report
 
 # -------------------------------------------------------
 # 🧠 Initialize Session (Memory Restore)
@@ -132,27 +130,40 @@ for i, mod in enumerate(modules_expected):
 st.markdown("---")
 st.header("⚙️ Job Level Hierarchy Sequencing (Persistent)")
 
-# Use real data if loaded from other modules; fallback to dummy
-# 🔹 Auto-detect any uploaded module that has a JobLevel column
 emp_df = None
+
+# 🔹 Priority 1: check if any dataframe in session has JobLevel
 for key, val in st.session_state.items():
     if isinstance(val, pd.DataFrame) and "JobLevel" in val.columns:
         emp_df = val
         break
+
+# 🔹 Priority 2: look for cached CSVs in /tmp or /data
+if emp_df is None:
+    possible_paths = [
+        os.path.join("/tmp", "compensation.csv"),
+        os.path.join("data", "compensation.csv"),
+    ]
+    for path in possible_paths:
+        if os.path.exists(path):
+            df = pd.read_csv(path)
+            if "JobLevel" in df.columns:
+                emp_df = df
+                st.session_state["compensation_df"] = emp_df
+                break
 
 if emp_df is None:
     st.warning("⚠️ No module with a JobLevel column found — upload or run a module first.")
 else:
     job_level_sequencer_ui(emp_df=emp_df)
 
-# --------------------------------------------
-# 🧾 Merge Final Deck (with case-insensitive validation)
-# --------------------------------------------
+# -------------------------------------------------------
+# 🧾 Merge Final Deck
+# -------------------------------------------------------
 st.markdown("---")
 st.header("📄 Finalize & Generate Executive Leadership Deck")
 st.caption("Combines all completed module PDFs into a single master HR Leadership Deck.")
 
-# Case-insensitive check
 existing_pdfs = [os.path.splitext(f)[0].lower() for f in pdf_files if f.endswith(".pdf")]
 missing = [m for m in modules_expected if m.lower() not in existing_pdfs]
 
@@ -164,7 +175,7 @@ else:
         try:
             success = merge_consolidated_pdfs(output_path)
             if success and os.path.exists(output_path):
-                st.success("✅ Consolidated Leadership Deck generated successfully!")
+                st.toast("✅ Consolidated Leadership Deck ready.")
                 with open(output_path, "rb") as f:
                     st.download_button(
                         "⬇️ Download Final Consolidated Deck",
@@ -172,8 +183,6 @@ else:
                         file_name="People_Analytics_Leadership_Deck.pdf",
                         mime="application/pdf"
                     )
-            else:
-                st.warning("⚠️ Some module PDFs might still be missing. Please verify.")
         except Exception as e:
             st.error(f"❌ Failed to merge PDFs: {e}")
 
@@ -205,29 +214,17 @@ with col2:
                 st.write(f"📄 {f} — {mod_time}")
 
 # -------------------------------------------------------
-# 🤖 Sidebar Chatbot (Cross-Module Intelligence)
+# 🤖 Sidebar Chatbot + Fusion Report
 # -------------------------------------------------------
 st.sidebar.markdown("---")
 st.sidebar.subheader("🤖 Smart HR Chatbot")
 
-# 🧩 Try to automatically fetch module dataframes if they exist in session
-modules = {}
-for key, val in st.session_state.items():
-    if isinstance(val, pd.DataFrame):
-        k = key.replace("_df", "").lower()
-        modules[k] = val
-
-# Fallback: ensure at least one dataset exists
-if not modules:
+modules = {k.replace("_df", "").lower(): v for k, v in st.session_state.items() if isinstance(v, pd.DataFrame) and not v.empty}
+if not modules and emp_df is not None:
     modules["compensation"] = emp_df
 
-# ✅ Run chatbot via sidebar toggle
 if st.sidebar.checkbox("Enable Chatbot (Smart Mode)", value=False):
     run_chatbot_ui(modules_data=modules, primary_table_key="compensation")
-# -------------------------------------------------------
-# 📘 Fusion Insights Report (Functional)
-# -------------------------------------------------------
-from utils.fusion_report_builder import build_fusion_report
 
 st.markdown("---")
 st.header("📘 Fusion Insights Report")
