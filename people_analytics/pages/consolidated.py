@@ -133,22 +133,21 @@ st.markdown("---")
 st.header("⚙️ Job Level Hierarchy Sequencing (Persistent)")
 
 # Use real data if loaded from other modules; fallback to dummy
+# 🔹 Auto-detect any uploaded module that has a JobLevel column
 emp_df = None
-if "compensation_df" in st.session_state:
-    emp_df = st.session_state["compensation_df"]
-elif "emp_df" in st.session_state:
-    emp_df = st.session_state["emp_df"]
+for key, val in st.session_state.items():
+    if isinstance(val, pd.DataFrame) and "JobLevel" in val.columns:
+        emp_df = val
+        break
+
+if emp_df is None:
+    st.warning("⚠️ No module with a JobLevel column found — upload or run a module first.")
 else:
-    emp_df = pd.DataFrame({
-        "EmployeeID": [101, 102, 103, 104],
-        "JobLevel": ["Analyst", "Manager", "Senior Manager", "Director"]
-    })
+    job_level_sequencer_ui(emp_df=emp_df)
 
-job_level_sequencer_ui(emp_df=emp_df)
-
-# -------------------------------------------------------
+# --------------------------------------------
 # 🧾 Merge Final Deck (with case-insensitive validation)
-# -------------------------------------------------------
+# --------------------------------------------
 st.markdown("---")
 st.header("📄 Finalize & Generate Executive Leadership Deck")
 st.caption("Combines all completed module PDFs into a single master HR Leadership Deck.")
@@ -213,10 +212,10 @@ st.sidebar.subheader("🤖 Smart HR Chatbot")
 
 # 🧩 Try to automatically fetch module dataframes if they exist in session
 modules = {}
-for key in ["compensation_df", "attrition_df", "engagement_df", "performance_df", "workforce_df"]:
-    if key in st.session_state and isinstance(st.session_state[key], pd.DataFrame):
-        short_key = key.replace("_df", "")
-        modules[short_key] = st.session_state[key]
+for key, val in st.session_state.items():
+    if isinstance(val, pd.DataFrame):
+        k = key.replace("_df", "").lower()
+        modules[k] = val
 
 # Fallback: ensure at least one dataset exists
 if not modules:
