@@ -1,11 +1,11 @@
 \# Master Documentation
-\_Generated 2025-10-29 05:31\_
+\_Generated 2025-10-29 06:08\_
 
-**Total files:** 224 **Total size:** 43.2 MB
+**Total files:** 231 **Total size:** 43.5 MB
 
 \#\# File Types
 
-\{'py': 42, 'txt': 5, 'md': 4, 'pdf': 21, 'noext': 3, 'pkl': 7, 'ipynb': 22, 'yml': 3, 'json': 1, 'jpg': 32, 'xlsx': 4, 'png': 44, 'csv': 28, 'joblib': 5, 'db': 1, 'toml': 1, 'gitkeep': 1\}
+\{'py': 42, 'txt': 5, 'md': 5, 'pdf': 22, 'noext': 3, 'pkl': 7, 'ipynb': 22, 'yml': 4, 'json': 1, 'jpg': 32, 'xlsx': 4, 'png': 48, 'csv': 28, 'joblib': 5, 'db': 1, 'toml': 1, 'gitkeep': 1\}
 
 \#\# Repository Tree
 
@@ -31,19 +31,20 @@
 - `.git/hooks/push-to-checkout.sample`  (2.7 KB)
 - `.git/hooks/sendemail-validate.sample`  (2.3 KB)
 - `.git/hooks/update.sample`  (3.6 KB)
-- `.git/index`  (24.5 KB)
+- `.git/index`  (25.2 KB)
 - `.git/info/exclude`  (240.0 B)
 - `.git/logs/HEAD`  (218.0 B)
 - `.git/logs/refs/heads/main`  (227.0 B)
 - `.git/logs/refs/remotes/origin/main`  (326.0 B)
-- `.git/objects/pack/pack-1d3d1df4b8e4eb4e9a584bcc98c74084192761bb.idx`  (7.9 KB)
-- `.git/objects/pack/pack-1d3d1df4b8e4eb4e9a584bcc98c74084192761bb.pack`  (20.1 MB)
-- `.git/objects/pack/pack-1d3d1df4b8e4eb4e9a584bcc98c74084192761bb.rev`  (1.0 KB)
+- `.git/objects/pack/pack-da3920c81d234310e14768c3fa4a91c032c1abbf.idx`  (8.1 KB)
+- `.git/objects/pack/pack-da3920c81d234310e14768c3fa4a91c032c1abbf.pack`  (20.3 MB)
+- `.git/objects/pack/pack-da3920c81d234310e14768c3fa4a91c032c1abbf.rev`  (1.1 KB)
 - `.git/refs/heads/main`  (41.0 B)
 - `.git/refs/remotes/origin/main`  (41.0 B)
 - `.git/shallow`  (41.0 B)
 \#\#\# 📂 .github
 - `.github/workflows/autodoc.yml`  (5.1 KB)
+- `.github/workflows/autodoc\_universe.yml`  (6.1 KB)
 - `.github/workflows/gen-tree.yml`  (949.0 B)
 - `.github/workflows/generate-pdf.yml`  (1.6 KB)
 \#\#\# 📂 backups
@@ -273,6 +274,11 @@
 \#\#\# 📂 sidequests
 - `sidequests/.gitkeep`  (1.0 B)
 - `sidequests/HR\_Data\_Cleaning\_Utility\_V1.ipynb`  (257.0 KB)
+\#\#\# 📂 universe\_charts
+- `universe\_charts/Personal\_Apps.png`  (13.7 KB)
+- `universe\_charts/SQL-Fundamentals-Lab.png`  (13.1 KB)
+- `universe\_charts/hr-tech-portfolio.png`  (32.9 KB)
+- `universe\_charts/python-fundamentals-lab.png`  (15.2 KB)
 
 \#\# Code \& Notebook Overview
 
