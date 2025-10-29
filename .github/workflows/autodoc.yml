@@ -1,7 +1,101 @@
-name: Autodoc Test
-on: [push, workflow_dispatch]
+name: Auto Master Documentation
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      REPO_LIST:
+        description: "Comma-separated list of extra repos (owner/repo). Leave blank for defaults."
+        required: false
+      PREVIEW_DATASETS:
+        description: "true to include small dataset previews"
+        required: false
+        default: "false"
+
+permissions:
+  contents: write
+  actions: read
+
 jobs:
-  test:
+  build-autodoc:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Actions runner works fine."
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install system deps
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y tree pandoc texlive-xetex poppler-utils
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Python packages
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas matplotlib nbformat pygments openpyxl python-dateutil
+
+      - name: Write generator script
+        run: |
+          cat > generate_autodoc.py <<'PY'
+          import pathlib, os, datetime, subprocess, base64, collections, shutil, nbformat, pandas as pd, matplotlib.pyplot as plt
+
+          ROOT = pathlib.Path('.').resolve()
+          OUT_MD = ROOT / "MASTER_DOCUMENTATION.md"
+          OUT_PDF = ROOT / "MASTER_DOCUMENTATION.pdf"
+          CHARTS = ROOT / "charts"
+          CHARTS.mkdir(exist_ok=True)
+
+          def run(cmd):
+              return subprocess.check_output(cmd, shell=True, text=True)
+
+          def bytes_human(n):
+              for u in ['B','KB','MB','GB']:
+                  if n < 1024: return f"{n:.1f} {u}"
+                  n /= 1024
+              return f"{n:.1f} TB"
+
+          files = [p for p in ROOT.rglob('*') if p.is_file() and not any(x in p.parts for x in ['.git','venv','__pycache__'])]
+          ext_counts = collections.Counter(p.suffix.lower().lstrip('.') or 'noext' for p in files)
+          total_size = sum(p.stat().st_size for p in files)
+
+          # simple chart
+          fig, ax = plt.subplots(figsize=(6,4))
+          ax.pie(ext_counts.values(), labels=ext_counts.keys(), autopct='%1.1f%%')
+          ax.axis('equal')
+          fig.savefig(CHARTS/'filetypes.png', bbox_inches='tight')
+
+          lines = []
+          lines.append("# Master Documentation")
+          lines.append(f"_Generated {datetime.datetime.now():%Y-%m-%d %H:%M}_\n")
+          lines.append(f"**Total files:** {len(files)} **Total size:** {bytes_human(total_size)}")
+          lines.append("\n## File Types\n")
+          lines.append(str(dict(ext_counts)))
+          lines.append("\n![chart](charts/filetypes.png)\n")
+
+          OUT_MD.write_text("\n".join(lines), encoding="utf-8")
+          run(f"pandoc {OUT_MD} -o {OUT_PDF} --pdf-engine=xelatex")
+          PY
+
+      - name: Run generator
+        run: python generate_autodoc.py
+
+      - name: Commit generated docs
+        uses: EndBug/add-and-commit@v9
+        with:
+          message: "🤖 Autodoc update"
+          add: "MASTER_DOCUMENTATION.md MASTER_DOCUMENTATION.pdf charts || true"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: autodoc
+          path: |
+            MASTER_DOCUMENTATION.md
+            MASTER_DOCUMENTATION.pdf
+            charts/**
