@@ -168,9 +168,14 @@ if emp_df is None:
 else:
     job_level_sequencer_ui(emp_df=emp_df)
 
-# -------------------------------------------------------
+# 🧠 Cache discovered DataFrame for persistence
+if emp_df is not None:
+    emp_path = os.path.join("/tmp", "detected_emp_df.xlsx")
+    emp_df.to_excel(emp_path, index=False)
+
+# -------------------------------------------
 # 🧾 Merge Final Deck
-# -------------------------------------------------------
+# -------------------------------------------
 st.markdown("---")
 st.header("📄 Finalize & Generate Executive Leadership Deck")
 st.caption("Combines all completed module PDFs into a single master HR Leadership Deck.")
