@@ -100,9 +100,30 @@ jobs:
                   except Exception as e:
                       lines.append(f"> *(Could not preview: {e})*")
 
-          # ---- SAVE ----
-          OUT_MD.write_text('\n'.join(lines), encoding='utf-8')
-          run(f"pandoc {OUT_MD} -o {OUT_PDF} --pdf-engine=xelatex")
+         # ---- SAVE ----
+text = '\n'.join(lines)
+
+# Escape LaTeX-sensitive characters to prevent pandoc crashes
+def safe_for_latex(t):
+    return (t.replace('\\', '\\\\')
+            .replace('%', '\\%')
+            .replace('&', '\\&')
+            .replace('#', '\\#')
+            .replace('_', '\\_')
+            .replace('{', '\\{')
+            .replace('}', '\\}')
+            .replace('~', '\\textasciitilde{}')
+            .replace('^', '\\textasciicircum{}'))
+
+OUT_MD.write_text(text, encoding='utf-8')
+
+try:
+    safe_text = safe_for_latex(text)
+    OUT_MD.write_text(safe_text, encoding='utf-8')
+    run(f"pandoc {OUT_MD} -o {OUT_PDF} --pdf-engine=xelatex")
+except Exception as e:
+    print(f"⚠️ PDF generation failed: {e}")
+    print('Markdown generated successfully, skipping PDF.')
           PY
 
       - name: Run generator
