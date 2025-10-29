@@ -53,6 +53,8 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 ```text
 ├── .devcontainer
 │   └── devcontainer.json
+├── MASTER_DOCUMENTATION.md
+├── MASTER_DOCUMENTATION.pdf
 ├── README.md
 ├── app.py
 ├── backups
@@ -67,6 +69,8 @@ It contains hands-on projects where I apply **Python, Pandas, Seaborn, and Peopl
 │   │   ├── CB_User_Guide.pdf
 │   │   └── Cb_Report_consolidated.pdf
 │   └── ... (1 more)
+├── charts
+│   └── filetypes.png
 ├── data
 │   ├── Attrition_SQL_Predictions.csv
 │   ├── Comp_Analytics_Processed.csv
