@@ -1,4 +1,4 @@
-name: Auto Universe Documentation v∞
+name: Auto Universe Documentation v∞.1
 on:
   workflow_dispatch:
 
@@ -28,7 +28,7 @@ jobs:
       - name: Write universe generator
         run: |
           cat > generate_universe_autodoc.py <<'PY'
-          import pathlib, os, subprocess, datetime, collections, nbformat, re, shutil
+          import pathlib, os, subprocess, datetime, collections, nbformat
 
           REPOS = [
               "AMBOT-pixel96/hr-tech-portfolio",
@@ -146,6 +146,12 @@ jobs:
       - name: Commit Universe Docs
         uses: EndBug/add-and-commit@v9
         with:
-          message: "🌌 Universe Autodoc v∞ update (full source)"
+          message: "🌌 Universe Autodoc v∞.1 update (full source + artifact)"
           add: "MASTER_UNIVERSE_DOCUMENTATION.md"
           push: origin main --force
+
+      - name: Upload Universe Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: universe-autodoc
+          path: MASTER_UNIVERSE_DOCUMENTATION.md
