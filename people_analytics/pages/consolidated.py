@@ -1,5 +1,5 @@
 # ============================================
-# pages/consolidated.py — v6.8 | Auto Job Detection + Fusion Integrated
+# pages/consolidated.py — v6.8 | Auto Job Detection + Fusion Integrated + XlSX Support
 # ============================================
 """
 📘 Consolidated HR Leadership Deck Entry Point
@@ -138,19 +138,30 @@ for key, val in st.session_state.items():
         emp_df = val
         break
 
-# 🔹 Priority 2: look for cached CSVs in /tmp or /data
+# 🔹 Priority 2: search for Excel or CSVs in /tmp or /data
 if emp_df is None:
-    possible_paths = [
-        os.path.join("/tmp", "compensation.csv"),
-        os.path.join("data", "compensation.csv"),
+    search_paths = [
+        "/tmp", "data", os.path.join(BASE_DIR, "data")
     ]
-    for path in possible_paths:
-        if os.path.exists(path):
-            df = pd.read_csv(path)
-            if "JobLevel" in df.columns:
-                emp_df = df
-                st.session_state["compensation_df"] = emp_df
-                break
+    possible_files = [
+        "compensation", "workforce", "performance", "attrition"
+    ]
+
+    for folder in search_paths:
+        for base in possible_files:
+            for ext in [".csv", ".xlsx"]:
+                path = os.path.join(folder, f"{base}{ext}")
+                if os.path.exists(path):
+                    try:
+                        df = pd.read_excel(path) if ext == ".xlsx" else pd.read_csv(path)
+                        if "JobLevel" in df.columns:
+                            emp_df = df
+                            st.session_state[f"{base}_df"] = emp_df
+                            break
+                    except Exception:
+                        pass
+        if emp_df is not None:
+            break
 
 if emp_df is None:
     st.warning("⚠️ No module with a JobLevel column found — upload or run a module first.")
