@@ -151,72 +151,87 @@ def run_chatbot_ui(modules_data: dict, primary_table_key="compensation"):
 # 🧠 Insight Fusion Logic
 # ==========================
 def generate_smart_response(prompt: str, modules_data: dict, primary_key: str):
-    """Handles natural queries and performs cross-module correlations."""
+    """Handles natural queries + fuzzy matching + visual summaries."""
+    import re, plotly.express as px
     icon = "🤖"
+    p = prompt.lower()
+
     try:
-        # === Cross-Module Fusion Examples ===
-        if "attrition" in prompt and "engagement" in prompt:
+        # --- Normalize some synonyms ---
+        p = p.replace("salary", "ctc").replace("wage", "ctc")
+        p = p.replace("bonus", "bonus %")
+
+        # --- Helper: detect keywords loosely ---
+        def has(*words): return any(re.search(rf"\b{w}\b", p) for w in words)
+
+        # === 1️⃣ Attrition × Engagement correlation ===
+        if has("attrition", "churn") and has("engagement"):
             if "attrition" in modules_data and "engagement" in modules_data:
-                attr_df = modules_data["attrition"].copy()
-                eng_df = modules_data["engagement"].copy()
+                a, e = modules_data["attrition"], modules_data["engagement"]
+                if "Department" in a and "Department" in e:
+                    m = a.merge(e, on="Department", suffixes=("_attr", "_eng"))
+                    if {"AttritionFlag", "EngagementIndex"}.issubset(m.columns):
+                        m["AttritionBinary"] = m["AttritionFlag"].map({"Yes": 1, "No": 0})
+                        corr = m["AttritionBinary"].corr(m["EngagementIndex"])
+                        fig = px.scatter(m, x="EngagementIndex", y="AttritionBinary",
+                                         trendline="ols", title="Engagement vs Attrition")
+                        st.plotly_chart(fig, use_container_width=True)
+                        return f"{icon} Correlation between engagement & attrition: **{corr:.2f}** (negative → higher engagement = lower attrition)"
 
-                # Standardize department key
-                if "Department" in attr_df.columns and "Department" in eng_df.columns:
-                    merged = pd.merge(
-                        attr_df, eng_df, on="Department", suffixes=("_attr", "_eng")
-                    )
-                    if "AttritionFlag" in merged.columns and "EngagementIndex" in merged.columns:
-                        merged["AttritionBinary"] = merged["AttritionFlag"].map({"Yes": 1, "No": 0})
-                        corr = merged["AttritionBinary"].corr(merged["EngagementIndex"])
-                        return f"{icon} Correlation between engagement and attrition: **{corr:.2f}** (negative → higher engagement reduces attrition)"
-            return f"{icon} I couldn’t find both engagement and attrition data with comparable fields."
+        # === 2️⃣ Compensation × Performance correlation ===
+        if has("performance", "rating") and has("compensation", "ctc"):
+            if "performance" in modules_data and "compensation" in modules_data:
+                c, p_df = modules_data["compensation"], modules_data["performance"]
+                if "EmployeeID" in c and "EmployeeID" in p_df:
+                    m = c.merge(p_df, on="EmployeeID", how="inner")
+                    if {"CTC", "PerformanceRating"}.issubset(m.columns):
+                        corr = m["CTC"].corr(m["PerformanceRating"])
+                        fig = px.scatter(m, x="PerformanceRating", y="CTC",
+                                         trendline="ols", title="Compensation vs Performance")
+                        st.plotly_chart(fig, use_container_width=True)
+                        return f"{icon} Compensation ↔ Performance correlation: **{corr:.2f}**."
 
-        # === Compensation vs Performance
-        if "compensation" in prompt and "performance" in prompt:
-            if "compensation" in modules_data and "performance" in modules_data:
-                comp = modules_data["compensation"].copy()
-                perf = modules_data["performance"].copy()
-
-                merged = pd.merge(comp, perf, on="EmployeeID", how="inner")
-                if "CTC" in merged.columns and "PerformanceRating" in merged.columns:
-                    corr = merged["CTC"].corr(merged["PerformanceRating"])
-                    return f"{icon} Compensation vs Performance correlation: **{corr:.2f}** — positive indicates higher pay for higher performance."
-
-        # === Gender Pay Gap
-        if "gender" in prompt and "pay" in prompt:
+        # === 3️⃣ Gender pay gap ===
+        if has("gender") and has("ctc", "pay", "compensation"):
             if "compensation" in modules_data:
                 df = modules_data["compensation"]
                 if {"Gender", "CTC"}.issubset(df.columns):
-                    pivot = df.groupby("Gender")["CTC"].mean().round(2)
-                    gap = (pivot.max() - pivot.min()) / pivot.max() * 100
-                    return f"{icon} Gender pay gap: {gap:.1f}% — {pivot.idxmax()}s earn more on average."
+                    g = df.groupby("Gender")["CTC"].mean().round(2)
+                    gap = (g.max() - g.min()) / g.max() * 100
+                    fig = px.bar(g, x=g.index, y=g.values, title="Average CTC by Gender")
+                    st.plotly_chart(fig, use_container_width=True)
+                    return f"{icon} Gender pay gap: **{gap:.1f}%** — {g.idxmax()}s earn more."
 
-        # === Engagement Summary
-        if "engagement" in prompt:
-            if "engagement" in modules_data:
-                df = modules_data["engagement"]
-                if "EngagementIndex" in df.columns:
-                    avg = df["EngagementIndex"].mean().round(2)
-                    return f"{icon} Average engagement index across organization: **{avg} / 5**"
+        # === 4️⃣ Average CTC by Rating ===
+        if has("ctc") and has("rating", "performance"):
+            if "performance" in modules_data:
+                df = modules_data["performance"]
+                if {"PerformanceRating", "CTC"}.issubset(df.columns):
+                    avg = df.groupby("PerformanceRating")["CTC"].mean().round(0)
+                    fig = px.bar(avg, x=avg.index, y=avg.values, title="Average CTC by Rating")
+                    st.plotly_chart(fig, use_container_width=True)
+                    return f"{icon} Average CTC by rating:\n{avg.to_string()}"
 
-        # === Attrition Summary
-        if "attrition" in prompt:
-            if "attrition" in modules_data:
-                df = modules_data["attrition"]
-                if "AttritionFlag" in df.columns:
-                    attr_rate = (df["AttritionFlag"].eq("Yes").mean() * 100).round(2)
-                    return f"{icon} Overall attrition rate: **{attr_rate}%**"
+        # === 5️⃣ Engagement summary ===
+        if has("engagement"):
+            if "engagement" in modules_data and "EngagementIndex" in modules_data["engagement"].columns:
+                avg = modules_data["engagement"]["EngagementIndex"].mean().round(2)
+                return f"{icon} Average engagement index: **{avg}/5**."
 
-        # === Compensation Overview
-        if "ctc" in prompt or "salary" in prompt or "compensation" in prompt:
-            if "compensation" in modules_data:
-                df = modules_data["compensation"]
-                if "CTC" in df.columns:
-                    avg_ctc = df["CTC"].mean() / 1e5
-                    return f"{icon} Average CTC across organization: ₹{avg_ctc:.2f} Lakhs"
+        # === 6️⃣ Attrition summary ===
+        if has("attrition", "churn"):
+            if "attrition" in modules_data and "AttritionFlag" in modules_data["attrition"].columns:
+                rate = modules_data["attrition"]["AttritionFlag"].eq("Yes").mean() * 100
+                return f"{icon} Overall attrition rate: **{rate:.2f}%**."
 
-        # === Default
-        return f"{icon} I couldn’t find an exact match. Try queries like:\n• 'Compare attrition vs engagement'\n• 'Gender pay gap'\n• 'Compensation vs performance'"
+        # === 7️⃣ Compensation overview ===
+        if has("ctc", "compensation", "salary"):
+            if "compensation" in modules_data and "CTC" in modules_data["compensation"].columns:
+                mean = modules_data["compensation"]["CTC"].mean() / 1e5
+                return f"{icon} Average CTC: ₹{mean:.2f} Lakhs."
+
+        # --- Default help ---
+        return f"{icon} I couldn't interpret that yet — try things like:\n• Compare attrition vs engagement\n• Compensation vs performance\n• Gender pay gap"
 
     except Exception as e:
-        return f"{icon} Error while analyzing: {e}"
+        return f"{icon} Error: {e}"
