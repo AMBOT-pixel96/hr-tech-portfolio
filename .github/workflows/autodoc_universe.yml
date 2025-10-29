@@ -1,0 +1,124 @@
+name: Auto Universe Documentation
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  build-universe-autodoc:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install system deps
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y tree pandoc texlive-xetex poppler-utils
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Python packages
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas matplotlib nbformat pygments openpyxl python-dateutil
+
+      - name: Write universe generator
+        run: |
+          cat > generate_universe_autodoc.py <<'PY'
+          import pathlib, os, datetime, subprocess, collections, shutil, nbformat
+
+          REPOS = [
+              "AMBOT-pixel96/hr-tech-portfolio",
+              "AMBOT-pixel96/python-fundamentals-lab",
+              "AMBOT-pixel96/SQL-Fundamentals-Lab",
+              "AMBOT-pixel96/Personal_Apps"
+          ]
+
+          ROOT = pathlib.Path(".").resolve()
+          TMP = ROOT / "universe_tmp"
+          TMP.mkdir(exist_ok=True)
+          OUT_MD = ROOT / "MASTER_UNIVERSE_DOCUMENTATION.md"
+          OUT_PDF = ROOT / "MASTER_UNIVERSE_DOCUMENTATION.pdf"
+          CHARTS = ROOT / "universe_charts"
+          CHARTS.mkdir(exist_ok=True)
+
+          def run(cmd):
+              subprocess.run(cmd, shell=True, check=True)
+
+          def bytes_human(n):
+              for u in ['B','KB','MB','GB']:
+                  if n < 1024: return f"{n:.1f} {u}"
+                  n /= 1024
+              return f"{n:.1f} TB"
+
+          master_lines = [f"# 🌌 HR-Tech Universe Documentation",
+                          f"_Generated {datetime.datetime.now():%Y-%m-%d %H:%M}_\n"]
+
+          for repo in REPOS:
+              name = repo.split("/")[-1]
+              local_path = TMP / name
+              print(f"Cloning {repo}...")
+              run(f"git clone --depth=1 https://github.com/{repo}.git {local_path}")
+
+              files = [p for p in local_path.rglob('*')
+                       if p.is_file() and not any(x in p.parts for x in ['.git','venv','__pycache__'])]
+              ext_counts = collections.Counter(p.suffix.lower().lstrip('.') or 'noext' for p in files)
+              total_size = sum(p.stat().st_size for p in files)
+
+              import matplotlib.pyplot as plt
+              fig, ax = plt.subplots(figsize=(5, 3))
+              ax.pie(ext_counts.values(), labels=ext_counts.keys(), autopct='%1.1f%%')
+              ax.axis('equal')
+              chart_path = CHARTS / f"{name}.png"
+              fig.savefig(chart_path, bbox_inches='tight')
+              plt.close(fig)
+
+              master_lines.append(f"\n---\n\n## 🌐 Repository: `{name}`")
+              master_lines.append(f"**Files:** {len(files)} **Size:** {bytes_human(total_size)}")
+              master_lines.append(f"\n### File Type Distribution\n{dict(ext_counts)}")
+              master_lines.append(f"\n![chart](universe_charts/{name}.png)\n")
+
+              # mini tree
+              master_lines.append("### Top-Level Structure")
+              for item in sorted(local_path.iterdir()):
+                  if item.is_dir():
+                      master_lines.append(f"- 📂 {item.name}/")
+                  else:
+                      master_lines.append(f"- 📄 {item.name}")
+
+          # save master doc
+          OUT_MD.write_text("\n".join(master_lines), encoding="utf-8")
+
+          try:
+              run(f"pandoc {OUT_MD} -o {OUT_PDF} --pdf-engine=xelatex")
+          except Exception as e:
+              print(f"⚠️ PDF generation failed: {e}")
+              print("Continuing with Markdown only.")
+          PY
+
+      - name: Run universe generator
+        run: python generate_universe_autodoc.py
+
+      - name: Commit Universe Docs
+        uses: EndBug/add-and-commit@v9
+        with:
+          message: "🌌 Universe Autodoc update"
+          add: "MASTER_UNIVERSE_DOCUMENTATION.md MASTER_UNIVERSE_DOCUMENTATION.pdf universe_charts"
+          push: origin main --force
+
+      - name: Upload Universe Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: universe-autodoc
+          path: |
+            MASTER_UNIVERSE_DOCUMENTATION.md
+            MASTER_UNIVERSE_DOCUMENTATION.pdf
+            universe_charts/**
