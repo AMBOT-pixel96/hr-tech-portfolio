@@ -224,3 +224,24 @@ if not modules:
 # ✅ Run chatbot via sidebar toggle
 if st.sidebar.checkbox("Enable Chatbot (Smart Mode)", value=False):
     run_chatbot_ui(modules_data=modules, primary_table_key="compensation")
+# -------------------------------------------------------
+# 📘 Fusion Insights Report (Functional)
+# -------------------------------------------------------
+from utils.fusion_report_builder import build_fusion_report
+
+st.markdown("---")
+st.header("📘 Fusion Insights Report")
+st.caption("Generates a separate PDF summarizing detected module correlations and chatbot insights.")
+
+if st.button("🧠 Generate Fusion Insights Report"):
+    try:
+        pdf = build_fusion_report(modules, st.session_state.get("messages", []))
+        st.success("✅ Fusion Insights Report generated successfully!")
+        st.download_button(
+            "⬇️ Download Fusion Insights Report",
+            pdf,
+            file_name=f"Fusion_Insights_Report_{datetime.now().strftime('%Y%m%d')}.pdf",
+            mime="application/pdf"
+        )
+    except Exception as e:
+        st.error(f"⚠️ Failed to generate Fusion Report: {e}")
