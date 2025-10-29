@@ -43,7 +43,7 @@ jobs:
       - name: Write generator script
         run: |
           cat > generate_autodoc.py <<'PY'
-          import pathlib, os, datetime, subprocess, base64, collections, shutil, nbformat, pandas as pd, matplotlib.pyplot as plt
+          import pathlib, os, datetime, subprocess, collections, nbformat
 
           ROOT = pathlib.Path('.').resolve()
           OUT_MD = ROOT / "MASTER_DOCUMENTATION.md"
@@ -52,7 +52,7 @@ jobs:
           CHARTS.mkdir(exist_ok=True)
 
           def run(cmd):
-              return subprocess.check_output(cmd, shell=True, text=True)
+              subprocess.run(cmd, shell=True, check=True)
 
           def bytes_human(n):
               for u in ['B','KB','MB','GB']:
@@ -60,25 +60,48 @@ jobs:
                   n /= 1024
               return f"{n:.1f} TB"
 
-          files = [p for p in ROOT.rglob('*') if p.is_file() and not any(x in p.parts for x in ['.git','venv','__pycache__'])]
+          # ---- SCAN REPO ----
+          files = [p for p in ROOT.rglob('*')
+                   if p.is_file() and not any(x in p.parts for x in ['.git','venv','__pycache__','charts'])]
           ext_counts = collections.Counter(p.suffix.lower().lstrip('.') or 'noext' for p in files)
           total_size = sum(p.stat().st_size for p in files)
 
-          # simple chart
-          fig, ax = plt.subplots(figsize=(6,4))
-          ax.pie(ext_counts.values(), labels=ext_counts.keys(), autopct='%1.1f%%')
-          ax.axis('equal')
-          fig.savefig(CHARTS/'filetypes.png', bbox_inches='tight')
-
+          # ---- SUMMARY HEADER ----
           lines = []
           lines.append("# Master Documentation")
           lines.append(f"_Generated {datetime.datetime.now():%Y-%m-%d %H:%M}_\n")
           lines.append(f"**Total files:** {len(files)} **Total size:** {bytes_human(total_size)}")
           lines.append("\n## File Types\n")
           lines.append(str(dict(ext_counts)))
-          lines.append("\n![chart](charts/filetypes.png)\n")
 
-          OUT_MD.write_text("\n".join(lines), encoding="utf-8")
+          # ---- DIRECTORY TREE ----
+          lines.append("\n## Repository Tree\n")
+          for p in sorted(ROOT.iterdir()):
+              if p.is_dir():
+                  lines.append(f"### 📂 {p.name}")
+                  for sub in sorted(p.rglob('*')):
+                      if sub.is_file():
+                          rel = sub.relative_to(ROOT)
+                          size = bytes_human(sub.stat().st_size)
+                          lines.append(f"- `{rel}`  ({size})")
+
+          # ---- NOTEBOOK & PY FILE HEADERS ----
+          lines.append("\n## Code & Notebook Overview\n")
+          for p in files:
+              if p.suffix in ['.py','.ipynb']:
+                  lines.append(f"### `{p}`")
+                  try:
+                      if p.suffix == '.py':
+                          head = ''.join(open(p,encoding='utf-8').read().splitlines()[:10])
+                      else:
+                          nb = nbformat.read(p, as_version=4)
+                          head = '\n'.join(c.get('source','') for c in nb.cells[:2])
+                      lines.append("```python\n" + head[:600] + "\n```")
+                  except Exception as e:
+                      lines.append(f"> *(Could not preview: {e})*")
+
+          # ---- SAVE ----
+          OUT_MD.write_text('\n'.join(lines), encoding='utf-8')
           run(f"pandoc {OUT_MD} -o {OUT_PDF} --pdf-engine=xelatex")
           PY
 
