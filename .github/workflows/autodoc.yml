@@ -92,7 +92,7 @@ jobs:
           add: "MASTER_DOCUMENTATION.md MASTER_DOCUMENTATION.pdf charts || true"
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: autodoc
           path: |
